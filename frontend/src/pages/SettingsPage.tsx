@@ -288,14 +288,9 @@ export function SettingsPage({ store }: SettingsPageProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <span className="inline-block rounded bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700">
-            화면 S01 & S07 · REQ-001 / REQ-003 / REQ-004 / REQ-011
-          </span>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
-            POS 데이터 연동(S01) 및 매장·테이블 환경설정(S07)
-          </h1>
-          <p className="text-sm text-slate-600">
-            POS 연동 모드(A/B/C) 선택, 판매 CSV 파일 업로드·미리보기·메뉴 매핑과 매장 테이블 구성을 관리합니다.
+          <h1 className="text-2xl font-bold text-gray-900">설정</h1>
+          <p className="text-sm text-gray-600">
+            POS 연동 모드, 판매 CSV 반영, 상품명 연결, 매장 정보와 테이블 구성.
           </p>
         </div>
 
@@ -303,7 +298,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
           type="button"
           onClick={() => seedDemoMutation.mutate()}
           disabled={seedDemoMutation.isPending}
-          className="rounded-xl border border-blue-300 bg-blue-50 px-3.5 py-2 text-xs font-bold text-blue-900 hover:bg-blue-100 disabled:opacity-50"
+          className="rounded-lg border border-accent-300 bg-accent-50 px-3.5 py-2 text-xs font-bold text-accent-900 hover:bg-accent-100 disabled:opacity-50"
         >
           {seedDemoMutation.isPending
             ? "프로토타입 데이터 준비 중..."
@@ -332,21 +327,18 @@ export function SettingsPage({ store }: SettingsPageProps) {
       )}
 
       {/* 화면 S01: POS 연결 모드 선택 및 CSV 파일 수집 */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+      <div className="rounded-lg border border-gray-200 bg-white p-5 space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-3">
           <div>
-            <span className="inline-block rounded bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-900">
-              화면 S01 · POS 연동 및 데이터 수집
-            </span>
-            <h2 className="mt-1 text-base font-bold text-slate-900">
+            <h2 className="text-base font-bold text-gray-900">
               데이터 수집 어댑터 모드 (A / B / C)
             </h2>
           </div>
           {integration && (
-            <div className="text-right text-xs text-slate-600">
+            <div className="text-right text-xs text-gray-600">
               <div>
                 현재 상태:{" "}
-                <strong className="text-slate-900">
+                <strong className="text-gray-900">
                   {integration.connection_status === "READY_CSV"
                     ? "CSV 파일 수집 준비됨 (비실시간)"
                     : "미검증 (UNVERIFIED)"}
@@ -373,20 +365,20 @@ export function SettingsPage({ store }: SettingsPageProps) {
                   key={m}
                   type="button"
                   onClick={() => updateModeMutation.mutate(m)}
-                  className={`flex flex-col justify-between rounded-xl border-2 p-4 text-left transition ${
+                  className={`flex flex-col justify-between rounded-lg border-2 p-4 text-left transition ${
                     selected
-                      ? "border-blue-600 bg-blue-50/60"
-                      : "border-slate-200 bg-white hover:border-slate-300"
+                      ? "border-accent-600 bg-accent-50/60"
+                      : "border-gray-200 bg-white hover:border-gray-300"
                   }`}
                 >
                   <div>
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-xs font-bold text-slate-900">
+                      <span className="text-xs font-bold text-gray-900">
                         {info.title}
                       </span>
                     </div>
                     <span
-                      className={`mt-1.5 inline-block rounded px-2 py-0.5 text-[11px] font-semibold ${
+                      className={`mt-1.5 inline-block rounded px-2 py-0.5 text-[12px] font-semibold ${
                         m === "CSV_UPLOAD"
                           ? "bg-emerald-100 text-emerald-900"
                           : "bg-amber-100 text-amber-900"
@@ -394,9 +386,9 @@ export function SettingsPage({ store }: SettingsPageProps) {
                     >
                       {info.badge}
                     </span>
-                    <p className="mt-2 text-xs text-slate-600">{info.desc}</p>
+                    <p className="mt-2 text-xs text-gray-600">{info.desc}</p>
                   </div>
-                  <div className="mt-3 text-xs font-semibold text-blue-700">
+                  <div className="mt-3 text-xs font-semibold text-accent-700">
                     {selected ? "● 현재 선택된 모드" : "이 모드로 전환 →"}
                   </div>
                 </button>
@@ -406,13 +398,13 @@ export function SettingsPage({ store }: SettingsPageProps) {
         </div>
 
         {/* CSV 업로드 및 컬럼 매핑 영역 */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-4">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">
-                판매 데이터 CSV 업로드 · 미리보기 · 확정 반영 (REQ-003, REQ-004)
+              <h3 className="text-sm font-bold text-gray-900">
+                판매 데이터 CSV 업로드 · 미리보기 · 확정 반영
               </h3>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-gray-600">
                 취소/환불(`CANCELLED`) 행은 순매출 및 예상 재고 차감에서 자동 제외됩니다. 동일 파일 재업로드 시 중복 경고를 표시하며 주문번호 기준으로 멱등 반영됩니다.
               </p>
             </div>
@@ -420,11 +412,11 @@ export function SettingsPage({ store }: SettingsPageProps) {
               <button
                 type="button"
                 onClick={() => loadSampleCsvMutation.mutate()}
-                className="rounded-lg border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-100"
+                className="rounded-lg border border-accent-300 bg-accent-50 px-3 py-1.5 text-xs font-semibold text-accent-800 hover:bg-accent-100"
               >
                 양식당 샘플 CSV 불러오기
               </button>
-              <label className="cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+              <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100">
                 로컬 CSV 파일 선택
                 <input
                   type="file"
@@ -439,75 +431,75 @@ export function SettingsPage({ store }: SettingsPageProps) {
           {/* 컬럼 매핑 설정 */}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600">
+              <label className="block text-[12px] font-semibold text-gray-600">
                 주문번호 컬럼
               </label>
               <input
                 type="text"
                 value={orderIdCol}
                 onChange={(e) => setOrderIdCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs"
+                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600">
+              <label className="block text-[12px] font-semibold text-gray-600">
                 주문시각 컬럼
               </label>
               <input
                 type="text"
                 value={orderedAtCol}
                 onChange={(e) => setOrderedAtCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs"
+                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600">
+              <label className="block text-[12px] font-semibold text-gray-600">
                 상품명 컬럼
               </label>
               <input
                 type="text"
                 value={productNameCol}
                 onChange={(e) => setProductNameCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs"
+                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600">
+              <label className="block text-[12px] font-semibold text-gray-600">
                 수량 컬럼
               </label>
               <input
                 type="text"
                 value={quantityCol}
                 onChange={(e) => setQuantityCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs"
+                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600">
+              <label className="block text-[12px] font-semibold text-gray-600">
                 단가 컬럼
               </label>
               <input
                 type="text"
                 value={unitPriceCol}
                 onChange={(e) => setUnitPriceCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs"
+                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600">
+              <label className="block text-[12px] font-semibold text-gray-600">
                 상태 컬럼
               </label>
               <input
                 type="text"
                 value={statusCol}
                 onChange={(e) => setStatusCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs"
+                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-700">
+            <label className="mb-1 block text-xs font-semibold text-gray-700">
               CSV 원문 ({csvFileName})
             </label>
             <textarea
@@ -518,7 +510,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                 setPreviewResult(null);
               }}
               placeholder="order_id,ordered_at,menu_name,quantity,unit_price,status 형식의 CSV 내용을 붙여넣거나 파일을 선택하세요."
-              className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-mono text-xs"
+              className="w-full rounded-lg border border-gray-300 bg-white p-2.5 font-mono text-xs"
             />
           </div>
 
@@ -527,7 +519,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
               type="button"
               disabled={!csvText.trim() || previewCsvMutation.isPending}
               onClick={() => previewCsvMutation.mutate()}
-              className="rounded-lg bg-slate-800 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-900 disabled:opacity-50"
+              className="rounded-lg bg-gray-800 px-4 py-2 text-xs font-semibold text-white hover:bg-gray-900 disabled:opacity-50"
             >
               {previewCsvMutation.isPending
                 ? "검증 중..."
@@ -539,7 +531,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                 type="button"
                 disabled={commitCsvMutation.isPending}
                 onClick={() => commitCsvMutation.mutate(previewResult.batch_id)}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-lg bg-accent-600 px-4 py-2 text-xs font-bold text-white hover:bg-accent-700 disabled:opacity-50"
               >
                 {commitCsvMutation.isPending
                   ? "반영 중..."
@@ -550,10 +542,10 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
           {/* 미리보기 결과 요약 및 상세 */}
           {previewResult && (
-            <div className="rounded-lg border border-slate-300 bg-white p-4 space-y-3">
+            <div className="rounded-lg border border-gray-300 bg-white p-4 space-y-3">
               {previewResult.duplicate_file_warning && (
                 <div className="rounded border border-amber-400 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
-                  ⚠️ 이전에 이미 반영(COMMITTED)된 적이 있는 동일한 CSV 파일 해시입니다. 다시 반영하더라도 주문번호 기준으로 덮어쓰므로 매출이 중복 합산되지 않습니다.
+                  이전에 이미 반영(COMMITTED)된 적이 있는 동일한 CSV 파일 해시입니다. 다시 반영하더라도 주문번호 기준으로 덮어쓰므로 매출이 중복 합산되지 않습니다.
                 </div>
               )}
 
@@ -588,7 +580,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
               {previewResult.sample_valid_rows.length > 0 && (
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse text-left text-xs">
-                    <thead className="border-b border-slate-200 bg-slate-50 text-slate-600">
+                    <thead className="border-b border-gray-200 text-gray-600">
                       <tr>
                         <th className="px-2 py-1.5">행</th>
                         <th className="px-2 py-1.5">주문번호</th>
@@ -600,12 +592,12 @@ export function SettingsPage({ store }: SettingsPageProps) {
                         <th className="px-2 py-1.5">주문상태</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200">
+                    <tbody className="divide-y divide-gray-200">
                       {previewResult.sample_valid_rows.map((r) => (
                         <tr key={r.row_number}>
-                          <td className="px-2 py-1.5 font-mono">{r.row_number}</td>
+                          <td className="px-2 py-1.5 tabular-nums">{r.row_number}</td>
                           <td className="px-2 py-1.5 font-mono">{r.external_order_id}</td>
-                          <td className="px-2 py-1.5 font-mono">
+                          <td className="px-2 py-1.5 tabular-nums">
                             {r.ordered_at
                               ? new Date(r.ordered_at).toLocaleString("ko-KR")
                               : "-"}
@@ -615,11 +607,11 @@ export function SettingsPage({ store }: SettingsPageProps) {
                           </td>
                           <td className="px-2 py-1.5">
                             {r.mapping_status === "MAPPED" ? (
-                              <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-900">
+                              <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[12px] font-semibold text-emerald-900">
                                 연결됨
                               </span>
                             ) : (
-                              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-900">
+                              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[12px] font-semibold text-amber-900">
                                 미매핑
                               </span>
                             )}
@@ -648,19 +640,19 @@ export function SettingsPage({ store }: SettingsPageProps) {
         </div>
 
         {/* 미매핑 외부 상품명 → 내부 메뉴 매핑 도구 */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
           <div>
-            <h3 className="text-sm font-bold text-slate-900">
-              POS/CSV 외부 상품명 ↔ 내부 메뉴 연결 관리 (REQ-011)
+            <h3 className="text-sm font-bold text-gray-900">
+              POS/CSV 외부 상품명 ↔ 내부 메뉴 연결 관리
             </h3>
-            <p className="text-xs text-slate-600">
-              CSV 또는 POS의 상품명이 메뉴 관리(S03)의 이름과 다를 경우 연결해 주세요. 연결 즉시 기존에 수집된 미매핑 판매 항목도 소급 갱신됩니다.
+            <p className="text-xs text-gray-600">
+              CSV 또는 POS의 상품명이 메뉴 관리의 이름과 다를 경우 연결해 주세요. 연결 즉시 기존에 수집된 미매핑 판매 항목도 소급 갱신됩니다.
             </p>
           </div>
 
           {allUnmapped.length === 0 ? (
             <p className="text-xs text-emerald-700 font-medium">
-              ✓ 현재 미매핑된 외부 상품명이 없습니다.
+              현재 미매핑된 외부 상품명이 없습니다.
             </p>
           ) : (
             <div className="space-y-2">
@@ -676,7 +668,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                       <span className="font-semibold text-amber-900">
                         미매핑 외부 상품명:
                       </span>{" "}
-                      <strong className="text-slate-900">{extName}</strong>
+                      <strong className="text-gray-900">{extName}</strong>
                     </div>
                     <div className="flex items-center gap-2">
                       <select
@@ -687,10 +679,10 @@ export function SettingsPage({ store }: SettingsPageProps) {
                             [extName]: e.target.value,
                           }))
                         }
-                        className="rounded border border-slate-300 bg-white px-2.5 py-1 text-xs"
+                        className="rounded border border-gray-300 bg-white px-2.5 py-1 text-xs"
                       >
                         {activeMenus.length === 0 ? (
-                          <option value="">먼저 메뉴(S03)를 등록하세요</option>
+                          <option value="">먼저 메뉴를 등록하세요</option>
                         ) : (
                           activeMenus.map((m) => (
                             <option key={m.id} value={m.id}>
@@ -708,7 +700,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                             menuItemId: selectedMenuId,
                           })
                         }
-                        className="rounded bg-blue-600 px-3 py-1 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                        className="rounded bg-accent-600 px-3 py-1 font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
                       >
                         이 메뉴에 연결
                       </button>
@@ -721,14 +713,14 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
           {(mappingsQuery.data ?? []).length > 0 && (
             <div className="pt-2">
-              <div className="text-xs font-semibold text-slate-600 mb-1">
+              <div className="text-xs font-semibold text-gray-600 mb-1">
                 등록된 상품명 매핑 규칙 ({mappingsQuery.data?.length}건)
               </div>
               <div className="flex flex-wrap gap-2">
                 {(mappingsQuery.data ?? []).map((mp) => (
                   <span
                     key={mp.id}
-                    className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700"
+                    className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-700"
                   >
                     <strong>{mp.external_product_name}</strong> → {mp.menu_name}
                   </span>
@@ -740,13 +732,13 @@ export function SettingsPage({ store }: SettingsPageProps) {
       </div>
 
       {/* 매장 기본정보 수정 (터치 요일·시간 선택) */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <div className="rounded-lg border border-gray-200 bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-bold text-slate-900">
-              매장 기본정보 · 영업일/시간 설정 (S07)
+            <h2 className="text-base font-bold text-gray-900">
+              매장 기본정보 · 영업일/시간 설정
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-500">
               요일과 시간을 터치하여 변경한 뒤 저장을 누르면 상단 상태바에 즉시 반영됩니다.
             </p>
           </div>
@@ -754,7 +746,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
             type="button"
             onClick={() => updateStoreMutation.mutate()}
             disabled={updateStoreMutation.isPending}
-            className="rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-blue-700"
+            className="rounded-lg bg-accent-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-accent-700"
           >
             {updateStoreMutation.isPending ? "저장 중..." : "매장 정보 저장"}
           </button>
@@ -762,34 +754,34 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-slate-700">
+            <label className="mb-1.5 block text-xs font-bold text-gray-700">
               매장명
             </label>
             <input
               type="text"
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold"
+              className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm font-semibold"
             />
           </div>
 
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-700">
+              <label className="text-xs font-bold text-gray-700">
                 영업일 (터치 토글)
               </label>
               <div className="flex gap-1">
                 <button
                   type="button"
                   onClick={() => setBusinessDays("화,수,목,금,토,일")}
-                  className="rounded border border-slate-300 px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-100"
+                  className="rounded border border-gray-300 px-2 py-0.5 text-[12px] font-semibold text-gray-600 hover:bg-gray-100"
                 >
                   월휴무
                 </button>
                 <button
                   type="button"
                   onClick={() => setBusinessDays("월,화,수,목,금,토,일")}
-                  className="rounded border border-slate-300 px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-100"
+                  className="rounded border border-gray-300 px-2 py-0.5 text-[12px] font-semibold text-gray-600 hover:bg-gray-100"
                 >
                   매일
                 </button>
@@ -813,10 +805,10 @@ export function SettingsPage({ store }: SettingsPageProps) {
                       const ordered = ALL_DAYS.filter((d) => next.includes(d));
                       setBusinessDays(ordered.join(","));
                     }}
-                    className={`h-10 rounded-xl border text-xs font-extrabold transition ${
+                    className={`h-10 rounded-lg border text-xs font-bold transition ${
                       active
-                        ? "border-blue-600 bg-blue-600 text-white"
-                        : "border-slate-300 bg-slate-50 text-slate-500 hover:bg-slate-100"
+                        ? "border-accent-600 bg-accent-50 text-accent-800"
+                        : "border-gray-300 bg-gray-50 text-gray-500 hover:bg-gray-100"
                     }`}
                   >
                     {day}
@@ -827,7 +819,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-slate-700">
+            <label className="mb-1.5 block text-xs font-bold text-gray-700">
               운영시간 ({openingHours})
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -837,7 +829,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                   const closePart = openingHours.split("-")[1] || "22:00";
                   setOpeningHours(`${e.target.value}-${closePart}`);
                 }}
-                className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-bold text-slate-800"
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-xs font-bold text-gray-800"
               >
                 {OPEN_TIME_OPTIONS.map((t) => (
                   <option key={t} value={t}>
@@ -851,7 +843,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                   const openPart = openingHours.split("-")[0] || "11:30";
                   setOpeningHours(`${openPart}-${e.target.value}`);
                 }}
-                className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-bold text-slate-800"
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-xs font-bold text-gray-800"
               >
                 {CLOSE_TIME_OPTIONS.map((t) => (
                   <option key={t} value={t}>
@@ -865,13 +857,13 @@ export function SettingsPage({ store }: SettingsPageProps) {
       </div>
 
       {/* 테이블 구성 관리 */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <div className="rounded-lg border border-gray-200 bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-bold text-slate-900">
-              테이블 · 좌석 구성 (S07)
+            <h2 className="text-base font-bold text-gray-900">
+              테이블 · 좌석 구성
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-500">
               테이블을 비활성화해도 과거 방문 기록은 삭제되지 않습니다.
             </p>
           </div>
@@ -881,7 +873,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
               value={newTableName}
               onChange={(e) => setNewTableName(e.target.value)}
               placeholder="새 테이블명 (비우면 자동)"
-              className="rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs"
+              className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs"
             />
             <input
               type="number"
@@ -889,13 +881,13 @@ export function SettingsPage({ store }: SettingsPageProps) {
               max={20}
               value={newTableSeats}
               onChange={(e) => setNewTableSeats(e.target.value)}
-              className="w-16 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs"
+              className="w-16 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs"
             />
-            <span className="text-xs text-slate-600">석</span>
+            <span className="text-xs text-gray-600">석</span>
             <button
               type="button"
               onClick={() => addTableMutation.mutate()}
-              className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+              className="rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-accent-700"
             >
               + 테이블 추가
             </button>
@@ -904,7 +896,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
         <div className="mt-4 overflow-x-auto">
           <table className="w-full border-collapse text-left text-xs">
-            <thead className="border-b border-slate-200 bg-slate-50 text-slate-600">
+            <thead className="border-b border-gray-200 text-gray-600">
               <tr>
                 <th className="px-3 py-2">테이블명</th>
                 <th className="px-3 py-2">좌석 수</th>
@@ -913,13 +905,13 @@ export function SettingsPage({ store }: SettingsPageProps) {
                 <th className="px-3 py-2 text-right">관리</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-gray-200">
               {(tablesQuery.data ?? []).map((t) => (
                 <tr
                   key={t.id}
-                  className={t.is_active ? "" : "bg-slate-50 text-slate-400"}
+                  className={t.is_active ? "" : "bg-gray-50 text-gray-500"}
                 >
-                  <td className="px-3 py-2 font-semibold text-slate-900">
+                  <td className="px-3 py-2 font-semibold text-gray-900">
                     {t.name}
                   </td>
                   <td className="px-3 py-2">
@@ -932,11 +924,11 @@ export function SettingsPage({ store }: SettingsPageProps) {
                             payload: { seats: Math.max(1, t.seats - 1) },
                           })
                         }
-                        className="rounded border border-slate-300 px-1.5 py-0.5"
+                        className="rounded border border-gray-300 px-1.5 py-0.5"
                       >
                         -
                       </button>
-                      <span className="w-8 text-center font-mono">{t.seats}석</span>
+                      <span className="w-8 text-center tabular-nums">{t.seats}석</span>
                       <button
                         type="button"
                         onClick={() =>
@@ -945,13 +937,13 @@ export function SettingsPage({ store }: SettingsPageProps) {
                             payload: { seats: Math.min(20, t.seats + 1) },
                           })
                         }
-                        className="rounded border border-slate-300 px-1.5 py-0.5"
+                        className="rounded border border-gray-300 px-1.5 py-0.5"
                       >
                         +
                       </button>
                     </div>
                   </td>
-                  <td className="px-3 py-2 font-mono">
+                  <td className="px-3 py-2 tabular-nums">
                     ({t.grid_x}, {t.grid_y})
                   </td>
                   <td className="px-3 py-2">
@@ -966,7 +958,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                           payload: { is_active: !t.is_active },
                         })
                       }
-                      className="rounded border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-100"
+                      className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-100"
                     >
                       {t.is_active ? "비활성화" : "재활성화"}
                     </button>

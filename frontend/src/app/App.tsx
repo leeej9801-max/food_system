@@ -97,21 +97,18 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
   }
 
   return (
-    <div className="mx-auto mt-8 max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between">
-        <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-900">
-          매장 초기 설정 ({step} / 2)
-        </span>
-        <span className="text-xs font-medium text-slate-500">태블릿 터치 최적화</span>
-      </div>
-      <h1 className="mt-3 text-2xl font-bold text-slate-900">새 매장 시작하기</h1>
-      <p className="mt-1 text-sm text-slate-600">
+    <div className="mx-auto mt-8 max-w-xl rounded-lg border border-gray-200 bg-white p-6">
+      <h1 className="text-2xl font-bold text-gray-900">새 매장 시작하기</h1>
+      <p className="mt-1 text-sm font-medium text-gray-700">
+        {step === 1 ? "1단계 · 매장명과 영업 시간" : "2단계 · 테이블 구성"} ({step}/2)
+      </p>
+      <p className="mt-1 text-sm text-gray-600">
         요일과 운영시간, 테이블 수를 터치로 간편하게 선택하세요. 생성 후 설정 화면에서도 언제든
         변경할 수 있습니다.
       </p>
 
       {error && (
-        <div className="mt-3 rounded-xl border border-red-300 bg-red-50 px-3.5 py-2.5 text-xs font-medium text-red-800">
+        <div className="mt-3 rounded-lg border border-red-300 bg-red-50 px-3.5 py-2.5 text-xs font-medium text-red-800">
           {error}
         </div>
       )}
@@ -119,7 +116,7 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
       {step === 1 ? (
         <form onSubmit={handleNextStep} className="mt-5 space-y-5">
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-slate-700">
+            <label className="mb-1.5 block text-xs font-bold text-gray-700">
               매장명 <span className="text-red-600">*</span>
             </label>
             <input
@@ -127,34 +124,34 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="예: 비스트로 서울"
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base font-medium focus:border-blue-600 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base font-medium focus:border-accent-600 focus:outline-none"
             />
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <label className="text-xs font-bold text-slate-800">
+              <label className="text-xs font-bold text-gray-800">
                 영업 요일 선택 (터치 토글)
               </label>
               <div className="flex gap-1.5">
                 <button
                   type="button"
                   onClick={() => setSelectedDays(["화", "수", "목", "금", "토", "일"])}
-                  className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100"
+                  className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-[12px] font-semibold text-gray-700 hover:bg-gray-100"
                 >
                   월요일 휴무
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedDays([...ALL_DAYS])}
-                  className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100"
+                  className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-[12px] font-semibold text-gray-700 hover:bg-gray-100"
                 >
                   매일 영업
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedDays(["월", "화", "수", "목", "금"])}
-                  className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100"
+                  className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-[12px] font-semibold text-gray-700 hover:bg-gray-100"
                 >
                   평일만
                 </button>
@@ -169,10 +166,10 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                     key={day}
                     type="button"
                     onClick={() => toggleDay(day)}
-                    className={`flex h-12 items-center justify-center rounded-xl border text-base font-bold transition ${
+                    className={`flex h-12 items-center justify-center rounded-lg border text-base font-bold transition ${
                       active
-                        ? "border-blue-600 bg-blue-600 text-white shadow-xs"
-                        : "border-slate-300 bg-white text-slate-500 hover:bg-slate-100"
+                        ? "border-accent-600 bg-accent-50 text-accent-800"
+                        : "border-gray-300 bg-white text-gray-500 hover:bg-gray-100"
                     }`}
                   >
                     {day}
@@ -180,21 +177,21 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                 );
               })}
             </div>
-            <div className="mt-2 text-xs text-slate-600">
+            <div className="mt-2 text-xs text-gray-600">
               선택됨:{" "}
-              <span className="font-bold text-slate-900">
+              <span className="font-bold text-gray-900">
                 {businessDaysStr || "선택 안 됨"}
               </span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <label className="block text-xs font-bold text-slate-800">
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <label className="block text-xs font-bold text-gray-800">
               운영 시간 (터치 선택)
             </label>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <div className="mb-1.5 text-xs font-semibold text-slate-600">오픈 시간</div>
+                <div className="mb-1.5 text-xs font-semibold text-gray-600">오픈 시간</div>
                 <div className="grid grid-cols-4 gap-1.5">
                   {OPEN_TIME_OPTIONS.map((t) => (
                     <button
@@ -203,8 +200,8 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                       onClick={() => setOpenTime(t)}
                       className={`rounded-lg border py-2 text-xs font-bold ${
                         openTime === t
-                          ? "border-blue-600 bg-blue-600 text-white"
-                          : "border-slate-300 bg-white text-slate-700"
+                          ? "border-accent-600 bg-accent-50 text-accent-800"
+                          : "border-gray-300 bg-white text-gray-700"
                       }`}
                     >
                       {t}
@@ -214,7 +211,7 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
               </div>
 
               <div>
-                <div className="mb-1.5 text-xs font-semibold text-slate-600">마감 시간</div>
+                <div className="mb-1.5 text-xs font-semibold text-gray-600">마감 시간</div>
                 <div className="grid grid-cols-4 gap-1.5">
                   {CLOSE_TIME_OPTIONS.map((t) => (
                     <button
@@ -223,8 +220,8 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                       onClick={() => setCloseTime(t)}
                       className={`rounded-lg border py-2 text-xs font-bold ${
                         closeTime === t
-                          ? "border-blue-600 bg-blue-600 text-white"
-                          : "border-slate-300 bg-white text-slate-700"
+                          ? "border-accent-600 bg-accent-50 text-accent-800"
+                          : "border-gray-300 bg-white text-gray-700"
                       }`}
                     >
                       {t}
@@ -233,40 +230,40 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                 </div>
               </div>
             </div>
-            <div className="mt-2.5 text-xs text-slate-600">
+            <div className="mt-2.5 text-xs text-gray-600">
               설정된 운영시간:{" "}
-              <span className="font-bold text-slate-900">{openingHoursStr}</span>
+              <span className="font-bold text-gray-900">{openingHoursStr}</span>
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-blue-600 py-3.5 text-base font-bold text-white hover:bg-blue-700"
+            className="w-full rounded-lg bg-accent-600 py-3.5 text-base font-bold text-white hover:bg-accent-700"
           >
             다음 단계 (테이블 구성) →
           </button>
         </form>
       ) : (
         <form onSubmit={handleCreateStore} className="mt-5 space-y-5">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-            <label className="block text-sm font-bold text-slate-800">
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
+            <label className="block text-sm font-bold text-gray-800">
               매장 홀 테이블 수 (터치 조절)
             </label>
             <div className="mt-3 flex items-center gap-4">
               <button
                 type="button"
                 onClick={() => setTableCount((c) => Math.max(1, c - 1))}
-                className="flex h-12 w-14 items-center justify-center rounded-xl border border-slate-300 bg-white text-xl font-bold text-slate-800 active:bg-slate-100"
+                className="flex h-12 w-14 items-center justify-center rounded-lg border border-gray-300 bg-white text-xl font-bold text-gray-800 active:bg-gray-100"
               >
                 -
               </button>
-              <span className="min-w-[110px] text-center text-2xl font-extrabold text-slate-900">
+              <span className="min-w-[110px] text-center text-2xl font-bold text-gray-900">
                 {tableCount}개 테이블
               </span>
               <button
                 type="button"
                 onClick={() => setTableCount((c) => Math.min(30, c + 1))}
-                className="flex h-12 w-14 items-center justify-center rounded-xl border border-slate-300 bg-white text-xl font-bold text-slate-800 active:bg-slate-100"
+                className="flex h-12 w-14 items-center justify-center rounded-lg border border-gray-300 bg-white text-xl font-bold text-gray-800 active:bg-gray-100"
               >
                 +
               </button>
@@ -279,8 +276,8 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                   onClick={() => setTableCount(cnt)}
                   className={`rounded-lg border px-3 py-1.5 text-xs font-bold ${
                     tableCount === cnt
-                      ? "border-slate-900 bg-slate-900 text-white"
-                      : "border-slate-300 bg-white text-slate-700"
+                      ? "border-accent-600 bg-accent-50 text-accent-800"
+                      : "border-gray-300 bg-white text-gray-700"
                   }`}
                 >
                   {cnt}개
@@ -288,7 +285,7 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
               ))}
             </div>
 
-            <label className="mt-5 block text-sm font-bold text-slate-800">
+            <label className="mt-5 block text-sm font-bold text-gray-800">
               테이블당 기본 좌석 수 (생성 후 개별 변경 가능)
             </label>
             <div className="mt-2.5 grid grid-cols-3 gap-2.5">
@@ -297,10 +294,10 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                   key={s}
                   type="button"
                   onClick={() => setDefaultSeats(s)}
-                  className={`rounded-xl border py-3 text-sm font-bold ${
+                  className={`rounded-lg border py-3 text-sm font-bold ${
                     defaultSeats === s
-                      ? "border-blue-600 bg-blue-600 text-white"
-                      : "border-slate-300 bg-white text-slate-700"
+                      ? "border-accent-600 bg-accent-50 text-accent-800"
+                      : "border-gray-300 bg-white text-gray-700"
                   }`}
                 >
                   기본 {s}인석
@@ -313,14 +310,14 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="w-1/3 rounded-xl border border-slate-300 py-3.5 text-sm font-bold text-slate-700 hover:bg-slate-100"
+              className="w-1/3 rounded-lg border border-gray-300 py-3.5 text-sm font-bold text-gray-700 hover:bg-gray-100"
             >
               ← 이전
             </button>
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="w-2/3 rounded-xl bg-blue-600 py-3.5 text-base font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+              className="w-2/3 rounded-lg bg-accent-600 py-3.5 text-base font-bold text-white hover:bg-accent-700 disabled:opacity-50"
             >
               {mutation.isPending ? "생성 중..." : "매장 및 테이블 생성 완료"}
             </button>
@@ -381,38 +378,40 @@ function ShellLayout({ store }: { store: Store }) {
   const currentNav = navItems.find((item) => location.pathname.startsWith(item.to));
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
-      {/* 태블릿 친화형 컴팩트 상단 상태 & 네비게이션 바 */}
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-4 py-2.5 backdrop-blur-xs">
-        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-2">
-          {/* 좌측: 사이드 메뉴 토글 + 매장 정보 + 도트 홀 iOS 슬라이딩 스위치 */}
-          <div className="flex flex-wrap items-center gap-2.5">
+    <div className="min-h-screen bg-ground text-gray-900">
+      {/* 태블릿 친화형 컴팩트 상단 상태 & 네비게이션 바 (U-08) */}
+      <header className="sticky top-0 z-30 border-b border-gray-200 bg-white px-4 py-2">
+        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-x-6 gap-y-2">
+          {/* 좌측: 사이드 메뉴 토글 + 매장 정보 + 도트 홀 스위치 */}
+          <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen((v) => !v)}
               aria-label="사이드 메뉴 토글"
-              className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-bold transition ${
+              aria-expanded={sidebarOpen}
+              className={`inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium transition ${
                 sidebarOpen
-                  ? "border-slate-900 bg-slate-900 text-white"
-                  : "border-slate-300 bg-slate-50 text-slate-800 hover:bg-slate-100"
+                  ? "border-gray-900 bg-gray-900 text-white"
+                  : "border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
               }`}
             >
-              <span>{sidebarOpen ? "메뉴 닫기" : "메뉴 · 탭 이동"}</span>
+              {sidebarOpen ? "메뉴 닫기" : "메뉴"}
             </button>
 
-            <Link
-              to="/home"
-              className="flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-100"
-            >
-              <span className="text-base font-extrabold text-slate-900">{store.name}</span>
-              <span className="hidden rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 sm:inline-block">
+            <div className="flex items-baseline gap-2">
+              <Link to="/home" className="text-base font-bold text-gray-900 hover:text-accent-700">
+                {store.name}
+              </Link>
+              {location.pathname === "/home" && (
+                <h1 className="text-base font-semibold text-gray-500">/ 홀 테이블</h1>
+              )}
+              <span className="hidden text-[12px] text-gray-600 sm:inline">
                 {store.business_days ?? "영업일 미설정"} · {store.opening_hours ?? "시간 미설정"}
               </span>
-            </Link>
+            </div>
 
-            {/* iOS 스타일 도트 홀 ON / OFF 슬라이딩 토글 스위치 */}
-            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1">
-              <span className="text-xs font-bold text-slate-700">2D 도트 홀</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700">2D 도트 홀</span>
               <button
                 type="button"
                 role="switch"
@@ -420,20 +419,16 @@ function ShellLayout({ store }: { store: Store }) {
                 aria-label="2D 도트 홀 모드 전환"
                 onClick={() => handleSetMetaverseMode(!metaverseMode)}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                  metaverseMode ? "bg-emerald-500" : "bg-slate-300"
+                  metaverseMode ? "bg-gray-900" : "bg-gray-300"
                 }`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0 transition duration-200 ease-in-out ${
                     metaverseMode ? "translate-x-5" : "translate-x-0"
                   }`}
                 />
               </button>
-              <span
-                className={`w-6 text-[11px] font-extrabold ${
-                  metaverseMode ? "text-emerald-700" : "text-slate-500"
-                }`}
-              >
+              <span className="w-7 text-[12px] font-medium text-gray-600">
                 {metaverseMode ? "ON" : "OFF"}
               </span>
             </div>
@@ -441,54 +436,49 @@ function ShellLayout({ store }: { store: Store }) {
             {currentNav && location.pathname !== "/home" && (
               <Link
                 to="/home"
-                className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100"
+                className="text-sm font-medium text-accent-700 hover:text-accent-900"
               >
-                ← 홀 테이블(HOME)로 복귀
+                ← 홀 테이블로
               </Link>
             )}
           </div>
 
-          {/* 우측: 축소된 핵심 KPI 요약 배지 */}
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <div className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/80 px-3 py-1.5 font-semibold text-blue-950">
-              <span className="text-blue-600">● 홀 착석</span>
-              <span className="font-extrabold">
-                {visitSummary?.active_table_count ?? 0}/{activeTablesCount}테이블
-              </span>
-              <span className="text-blue-700">({visitSummary?.active_guest_count ?? 0}명)</span>
+          {/* 우측: 축소된 핵심 지표 요약 (U-08) */}
+          <dl className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm tabular-nums">
+            <div className="flex items-baseline gap-1.5">
+              <dt className="text-gray-600">홀 착석</dt>
+              <dd className="font-semibold text-gray-900">
+                {visitSummary?.active_table_count ?? 0}/{activeTablesCount}테이블 ·{" "}
+                {visitSummary?.active_guest_count ?? 0}명
+              </dd>
             </div>
-
-            <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 font-semibold text-slate-800">
-              <span className="text-slate-500">누적 방문</span>
-              <span className="font-extrabold">
+            <div className="flex items-baseline gap-1.5">
+              <dt className="text-gray-600">누적 방문</dt>
+              <dd className="font-semibold text-gray-900">
                 {visitSummary?.total_visit_count ?? 0}팀 · {visitSummary?.total_guest_count ?? 0}명
-              </span>
+              </dd>
             </div>
-
-            <div className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 font-semibold text-emerald-950">
-              <span className="text-emerald-700">순매출</span>
-              <span className="font-extrabold">
+            <div className="flex items-baseline gap-1.5">
+              <dt className="text-gray-600">순매출</dt>
+              <dd className="font-semibold text-gray-900">
                 {integration && integration.total_orders_count > 0
                   ? `${Number(integration.net_sales_amount).toLocaleString("ko-KR")}원 (${integration.total_orders_count}건)`
                   : "0원"}
-              </span>
+              </dd>
             </div>
-
             <Link
               to="/settings"
-              className={`hidden items-center gap-1 rounded-xl px-2.5 py-1.5 font-bold xl:inline-flex ${
+              className={`hidden rounded px-2 py-0.5 text-[12px] font-medium xl:inline-block ${
                 integration?.connection_status === "READY_CSV"
-                  ? "bg-slate-200/80 text-slate-800 hover:bg-slate-300/70"
-                  : "bg-amber-100 text-amber-900"
+                  ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-amber-50 text-amber-900"
               }`}
             >
-              <span>
-                {integration?.mode === "CSV_UPLOAD"
-                  ? "CSV/수동모드"
-                  : `${integration?.mode ?? "POS"} (미검증)`}
-              </span>
+              {integration?.mode === "CSV_UPLOAD"
+                ? "CSV/수동 모드"
+                : `${integration?.mode ?? "POS"} (미검증)`}
             </Link>
-          </div>
+          </dl>
         </div>
       </header>
 
@@ -502,38 +492,37 @@ function ShellLayout({ store }: { store: Store }) {
           }
         >
           {sidebarOpen && (
-            <aside className="rounded-2xl border border-slate-200 bg-white p-3 shadow-xs">
-              <div className="mb-2 flex items-center justify-between px-2">
-                <span className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-                  화면 이동 (브레이크·마감)
-                </span>
+            <aside className="self-start rounded-lg border border-gray-200 bg-white p-2">
+              <div className="mb-1 flex items-center justify-between px-2 pt-1">
+                <span className="text-[12px] text-gray-600">화면 이동</span>
                 <button
                   type="button"
                   onClick={() => setSidebarOpen(false)}
-                  className="text-xs font-semibold text-slate-500 hover:text-slate-800"
+                  className="text-[12px] font-medium text-gray-600 hover:text-gray-900"
                 >
                   접기
                 </button>
               </div>
-              <nav className="space-y-1">
+              <nav className="space-y-0.5">
                 {navItems.map((item) => {
                   const active = location.pathname.startsWith(item.to);
                   return (
                     <Link
                       key={item.to}
                       to={item.to}
+                      aria-current={active ? "page" : undefined}
                       onClick={() => {
                         if (window.innerWidth < 1024 || item.to === "/home") {
                           setSidebarOpen(false);
                         }
                       }}
-                      className={`flex items-center rounded-xl px-3 py-3 text-sm font-bold transition ${
+                      className={`flex min-h-11 items-center rounded-md px-3 text-sm transition ${
                         active
-                          ? "bg-blue-600 text-white shadow-xs"
-                          : "text-slate-700 hover:bg-slate-100"
+                          ? "bg-gray-100 font-semibold text-gray-900"
+                          : "text-gray-700 hover:bg-gray-50"
                       }`}
                     >
-                      <span>{item.label}</span>
+                      {item.label}
                     </Link>
                   );
                 })}
@@ -570,7 +559,7 @@ export function App() {
 
   if (storesQuery.isLoading) {
     return (
-      <div className="p-10 text-center text-sm text-slate-600">
+      <div className="p-10 text-center text-sm text-gray-600">
         매장 정보를 확인하는 중입니다...
       </div>
     );
@@ -578,7 +567,7 @@ export function App() {
 
   if (storesQuery.isError) {
     return (
-      <div className="mx-auto mt-12 max-w-lg rounded-xl border border-red-300 bg-red-50 p-6 text-sm text-red-900">
+      <div className="mx-auto mt-12 max-w-lg rounded-lg border border-red-300 bg-red-50 p-6 text-sm text-red-900">
         <h1 className="text-base font-bold">백엔드 API 서버에 연결할 수 없습니다</h1>
         <p className="mt-2">
           FastAPI 서버가 실행 중인지 확인해 주세요. (기본 주소:{" "}

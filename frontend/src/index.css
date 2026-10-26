@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+/* WO-20261026-001 디자인 토큰. PROVISIONAL (P-13): 브랜드 확정 시 accent 램프와 서체만 교체한다. */
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo",
+    "Malgun Gothic", system-ui, sans-serif;
+
+  /* 태블릿 현장 가독성: 가장 작은 본문 단계를 12px → 13px로 올린다 (메타 정보는 text-[12px]). */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+
+  /* 화면 바탕: 강조색의 가장 옅은 틴트 쪽으로 한 단계 기운 중립색 */
+  --color-ground: #faf8f9;
+
+  /* 단일 강조색(와인). 진한 단계는 작은 표시·주 버튼에만, 옅은 단계는 선택 상태·배지 면에 쓴다. */
+  --color-accent-50: #fbf2f6;
+  --color-accent-100: #f6e3ec;
+  --color-accent-200: #eec5d6;
+  --color-accent-300: #e09ab7;
+  --color-accent-400: #cc6a91;
+  --color-accent-500: #ad4572;
+  --color-accent-600: #8c2f55;
+  --color-accent-700: #752747;
+  --color-accent-800: #5f203b;
+  --color-accent-900: #4c1b30;
+  --color-accent-950: #2e0d1b;
+}
+
+body {
+  background: var(--color-ground);
+}
+
+table {
+  font-variant-numeric: tabular-nums;
+}

@@ -160,11 +160,8 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <span className="inline-block rounded bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700">
-            화면 S04 · REQ-006 / REQ-007
-          </span>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">식자재 · 레시피 관리</h1>
-          <p className="text-sm text-slate-600">
+          <h1 className="text-2xl font-bold text-gray-900">식자재 · 레시피 관리</h1>
+          <p className="text-sm text-gray-600">
             식자재 마스터와 단위 변환 규칙(예: 구매 kg → 레시피 g)을 정의하고, 메뉴별 1인분 사용
             레시피를 양방향으로 연결합니다.
           </p>
@@ -173,7 +170,7 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
         <button
           type="button"
           onClick={openCreateModal}
-          className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+          className="rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-700"
         >
           + 식자재 추가
         </button>
@@ -196,23 +193,23 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
       )}
 
       {/* 검색 및 필터 */}
-      <div className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-xs font-semibold text-slate-600">식자재명 검색</label>
+          <label className="mb-1 block text-xs font-semibold text-gray-600">식자재명 검색</label>
           <input
             type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="예: 스파게티면, 올리브오일, 생크림, 베이컨..."
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-semibold text-slate-600">등록 상태</label>
+          <label className="mb-1 block text-xs font-semibold text-gray-600">등록 상태</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
           >
             <option value="all">전체 (사용중 + 비활성)</option>
             <option value="active">사용중(활성)만</option>
@@ -222,29 +219,29 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
       </div>
 
       {/* 식자재 목록 테이블 */}
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
         {ingredientsQuery.isLoading ? (
-          <div className="p-8 text-center text-sm text-slate-500">
+          <div className="p-8 text-center text-sm text-gray-500">
             식자재 목록을 불러오는 중입니다...
           </div>
         ) : (ingredientsQuery.data ?? []).length === 0 ? (
           <div className="p-10 text-center">
-            <p className="text-base font-semibold text-slate-800">아직 등록된 식자재가 없습니다.</p>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="text-base font-semibold text-gray-800">아직 등록된 식자재가 없습니다.</p>
+            <p className="mt-1 text-sm text-gray-500">
               양식당 기본 식자재(예: 스파게티면, 올리브오일, 관찰레/베이컨, 파르미지아노 치즈 등)를
               먼저 등록해 보세요.
             </p>
             <button
               type="button"
               onClick={openCreateModal}
-              className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              className="mt-4 rounded-lg bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700"
             >
               + 첫 식자재 추가하기
             </button>
           </div>
         ) : (
           <table className="w-full border-collapse text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-600">
+            <thead className="border-b border-gray-200 text-xs font-medium text-gray-600">
               <tr>
                 <th className="px-4 py-3">식자재명</th>
                 <th className="px-4 py-3">구매단위 → 기본단위 (변환비)</th>
@@ -254,32 +251,32 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                 <th className="px-4 py-3 text-right">관리</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-gray-200">
               {(ingredientsQuery.data ?? []).map((ing) => (
                 <tr
                   key={ing.id}
-                  className={ing.is_active ? "bg-white" : "bg-slate-50 text-slate-500"}
+                  className={ing.is_active ? "bg-white" : "bg-gray-50 text-gray-500"}
                 >
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                  <td className="px-4 py-3 font-medium text-gray-900">
                     <div>{ing.name}</div>
-                    {ing.notes && <div className="text-xs text-slate-500">{ing.notes}</div>}
+                    {ing.notes && <div className="text-xs text-gray-500">{ing.notes}</div>}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-700">
+                  <td className="px-4 py-3 tabular-nums text-xs text-gray-700">
                     1 {ing.purchase_unit} = {Number(ing.conversion_factor).toLocaleString("ko-KR")}{" "}
                     {ing.base_unit}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs">
+                  <td className="px-4 py-3 tabular-nums text-xs">
                     {ing.safety_stock !== null ? (
                       `${Number(ing.safety_stock).toLocaleString("ko-KR")} ${ing.base_unit}`
                     ) : (
-                      <span className="font-sans text-slate-400">미설정</span>
+                      <span className="font-sans text-gray-500">미설정</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     <button
                       type="button"
                       onClick={() => setSelectedIngredientForUsage(ing)}
-                      className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                      className="rounded-full bg-accent-50 px-2.5 py-0.5 text-xs font-semibold text-accent-700 hover:bg-accent-100"
                     >
                       {ing.linked_menu_count}개 메뉴 보기
                     </button>
@@ -290,7 +287,7 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                         ● 사용중
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-700">
                         ○ 비활성
                       </span>
                     )}
@@ -300,14 +297,14 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                       <button
                         type="button"
                         onClick={() => openEditModal(ing)}
-                        className="rounded border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                        className="rounded border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
                       >
                         수정
                       </button>
                       <button
                         type="button"
                         onClick={() => toggleActiveMutation.mutate(ing)}
-                        className="rounded border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                        className="rounded border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
                       >
                         {ing.is_active ? "비활성화" : "재활성화"}
                       </button>
@@ -321,19 +318,19 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
       </div>
 
       {/* 식자재별 연결 메뉴 & 빠른 레시피 편집 섹션 */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <div className="rounded-lg border border-gray-200 bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-bold text-slate-900">
+            <h2 className="text-base font-bold text-gray-900">
               메뉴 ↔ 식자재 레시피 빠른 연결
             </h2>
-            <p className="text-xs text-slate-500">
-              메뉴 화면(S03)과 식자재 화면(S04) 어느 쪽에서 수정해도 동일한 레시피 데이터가
+            <p className="text-xs text-gray-500">
+              메뉴 화면과 식자재 화면 어느 쪽에서 수정해도 동일한 레시피 데이터가
               갱신됩니다.
             </p>
           </div>
           {selectedIngredientForUsage && (
-            <span className="rounded bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-800">
+            <span className="rounded bg-accent-50 px-2.5 py-1 text-xs font-semibold text-accent-800">
               선택 식자재: {selectedIngredientForUsage.name} (사용 메뉴{" "}
               {(usagesQuery.data ?? []).length}개)
             </span>
@@ -341,21 +338,21 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
         </div>
 
         {selectedIngredientForUsage && (
-          <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50/50 p-3 text-xs">
+          <div className="mt-3 rounded-lg border border-accent-100 bg-accent-50/50 p-3 text-xs">
             <div className="mb-2 flex items-center justify-between">
-              <strong className="text-slate-800">
+              <strong className="text-gray-800">
                 ‘{selectedIngredientForUsage.name}’ 식자재를 사용하는 메뉴 목록:
               </strong>
               <button
                 type="button"
                 onClick={() => setSelectedIngredientForUsage(null)}
-                className="text-slate-500 underline"
+                className="text-gray-500 underline"
               >
                 선택 해제
               </button>
             </div>
             {(usagesQuery.data ?? []).length === 0 ? (
-              <p className="text-slate-500">아직 이 식자재를 사용하는 메뉴가 없습니다.</p>
+              <p className="text-gray-500">아직 이 식자재를 사용하는 메뉴가 없습니다.</p>
             ) : (
               <ul className="space-y-1">
                 {(usagesQuery.data ?? []).map((u) => (
@@ -371,7 +368,7 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                       onClick={() =>
                         setRecipeModalTarget({ menuId: u.menu_item_id, menuName: u.menu_name })
                       }
-                      className="rounded border border-blue-300 bg-white px-2 py-0.5 text-xs font-semibold text-blue-700 hover:bg-blue-50"
+                      className="rounded border border-accent-300 bg-white px-2 py-0.5 text-xs font-semibold text-accent-700 hover:bg-accent-50"
                     >
                       레시피 편집
                     </button>
@@ -386,11 +383,11 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
           {(menusQuery.data ?? []).map((m) => (
             <div
               key={m.id}
-              className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-xs"
+              className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-xs"
             >
               <div>
-                <div className="font-semibold text-slate-800">{m.name}</div>
-                <div className="text-slate-500">
+                <div className="font-semibold text-gray-800">{m.name}</div>
+                <div className="text-gray-500">
                   {m.recipe_status === "COMPLETE"
                     ? `완성 (${m.recipe_item_count}종)`
                     : m.recipe_status === "PARTIAL"
@@ -401,7 +398,7 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
               <button
                 type="button"
                 onClick={() => setRecipeModalTarget({ menuId: m.id, menuName: m.name })}
-                className="rounded bg-slate-100 px-2.5 py-1 font-semibold text-slate-700 hover:bg-slate-200"
+                className="rounded bg-gray-100 px-2.5 py-1 font-semibold text-gray-700 hover:bg-gray-200"
               >
                 레시피 편집
               </button>
@@ -412,16 +409,16 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
 
       {/* 식자재 추가/수정 모달 */}
       {formOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-            <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-3">
-              <h2 className="text-lg font-bold text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
+              <h2 className="text-lg font-bold text-gray-900">
                 {editingIng ? "식자재 수정" : "새 식자재 추가"}
               </h2>
               <button
                 type="button"
                 onClick={() => setFormOpen(false)}
-                className="rounded px-2 py-1 text-sm text-slate-500 hover:bg-slate-100"
+                className="rounded px-2 py-1 text-sm text-gray-500 hover:bg-gray-100"
               >
                 닫기
               </button>
@@ -435,7 +432,7 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
 
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-800">
+                <label className="mb-1 block text-sm font-medium text-gray-800">
                   식자재명 <span className="text-red-600">*</span>
                 </label>
                 <input
@@ -443,33 +440,33 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="예: 스파게티면, 엑스트라버진 올리브오일, 관찰레"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                 />
               </div>
 
               <div>
-                <span className="mb-1 block text-xs font-semibold text-slate-600">
+                <span className="mb-1 block text-xs font-semibold text-gray-600">
                   자주 쓰는 단위 조합 빠른 선택:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   <button
                     type="button"
                     onClick={() => handlePresetUnit("kg", "g", "1000")}
-                    className="rounded border border-slate-300 bg-slate-50 px-2 py-1 text-xs hover:bg-slate-100"
+                    className="rounded border border-gray-300 bg-gray-50 px-2 py-1 text-xs hover:bg-gray-100"
                   >
                     구매 kg → 사용 g (×1,000)
                   </button>
                   <button
                     type="button"
                     onClick={() => handlePresetUnit("L", "ml", "1000")}
-                    className="rounded border border-slate-300 bg-slate-50 px-2 py-1 text-xs hover:bg-slate-100"
+                    className="rounded border border-gray-300 bg-gray-50 px-2 py-1 text-xs hover:bg-gray-100"
                   >
                     구매 L → 사용 ml (×1,000)
                   </button>
                   <button
                     type="button"
                     onClick={() => handlePresetUnit("ea", "ea", "1")}
-                    className="rounded border border-slate-300 bg-slate-50 px-2 py-1 text-xs hover:bg-slate-100"
+                    className="rounded border border-gray-300 bg-gray-50 px-2 py-1 text-xs hover:bg-gray-100"
                   >
                     개(ea) 단위 동일 (×1)
                   </button>
@@ -478,13 +475,13 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-700">
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
                     구매 단위
                   </label>
                   <select
                     value={purchaseUnit}
                     onChange={(e) => setPurchaseUnit(e.target.value as PurchaseUnitType)}
-                    className="w-full rounded-lg border border-slate-300 px-2.5 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm"
                   >
                     <option value="kg">kg</option>
                     <option value="g">g</option>
@@ -496,13 +493,13 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-700">
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
                     레시피 기본 단위
                   </label>
                   <select
                     value={baseUnit}
                     onChange={(e) => setBaseUnit(e.target.value as BaseUnitType)}
-                    className="w-full rounded-lg border border-slate-300 px-2.5 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm"
                   >
                     <option value="g">g (그램)</option>
                     <option value="ml">ml (밀리리터)</option>
@@ -511,7 +508,7 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-700">
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
                     변환 계수
                   </label>
                   <input
@@ -520,17 +517,17 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                     step="any"
                     value={conversionFactor}
                     onChange={(e) => setConversionFactor(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-2.5 py-2 text-sm font-mono"
+                    className="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm tabular-nums"
                   />
                 </div>
               </div>
 
-              <div className="rounded bg-blue-50 px-3 py-1.5 text-xs text-blue-800">
+              <div className="rounded bg-accent-50 px-3 py-1.5 text-xs text-accent-800">
                 단위 변환 미리보기: <strong>{conversionGuide}</strong>
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700">
+                <label className="mb-1 block text-xs font-medium text-gray-700">
                   기준 안전재고 (선택, {baseUnit} 기준 — 미달 시 재고 알림)
                 </label>
                 <input
@@ -540,12 +537,12 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                   value={safetyStock}
                   onChange={(e) => setSafetyStock(e.target.value)}
                   placeholder={`예: 2000 (${baseUnit})`}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700">
+                <label className="mb-1 block text-xs font-medium text-gray-700">
                   보관/공급처 메모 (선택)
                 </label>
                 <input
@@ -553,7 +550,7 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="예: 냉장 보관, 주요 공급처 OO식자재"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                 />
               </div>
 
@@ -561,7 +558,7 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                 <button
                   type="button"
                   onClick={() => setFormOpen(false)}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
                 >
                   취소
                 </button>
@@ -569,7 +566,7 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                   type="button"
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending}
-                  className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="rounded-lg bg-accent-600 px-5 py-2 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
                 >
                   {saveMutation.isPending ? "저장 중..." : "저장"}
                 </button>

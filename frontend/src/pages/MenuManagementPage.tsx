@@ -138,11 +138,8 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <span className="inline-block rounded bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700">
-            화면 S03 · REQ-005 / REQ-007
-          </span>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">메뉴 관리</h1>
-          <p className="text-sm text-slate-600">
+          <h1 className="text-2xl font-bold text-gray-900">메뉴 관리</h1>
+          <p className="text-sm text-gray-600">
             매장 메뉴 마스터와 1인분 레시피를 관리합니다. 선택 정보(가격·카테고리·레시피)가 비어
             있어도 저장 가능하며, 비활성화 시 과거 기록은 그대로 보존됩니다.
           </p>
@@ -152,7 +149,7 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+            className="rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-700"
           >
             + 메뉴 추가
           </button>
@@ -183,24 +180,24 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
       )}
 
       {/* 검색 및 필터 바 */}
-      <div className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:grid-cols-3">
         <div>
-          <label className="mb-1 block text-xs font-semibold text-slate-600">메뉴명 검색</label>
+          <label className="mb-1 block text-xs font-semibold text-gray-600">메뉴명 검색</label>
           <input
             type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="예: 까르보나라, 알리오올리오, 스테이크..."
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600 focus:outline-none"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-semibold text-slate-600">카테고리</label>
+          <label className="mb-1 block text-xs font-semibold text-gray-600">카테고리</label>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600 focus:outline-none"
           >
             <option value="">전체 카테고리</option>
             {categories.map((cat) => (
@@ -212,11 +209,11 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-semibold text-slate-600">판매 상태</label>
+          <label className="mb-1 block text-xs font-semibold text-gray-600">판매 상태</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600 focus:outline-none"
           >
             <option value="all">전체 (판매중 + 비활성)</option>
             <option value="active">판매중(활성)만</option>
@@ -226,68 +223,68 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
       </div>
 
       {/* 목록 테이블 */}
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
         {menusQuery.isLoading ? (
-          <div className="p-8 text-center text-sm text-slate-600">
+          <div className="p-8 text-center text-sm text-gray-600">
             메뉴 목록을 불러오는 중입니다...
           </div>
         ) : menusQuery.isError ? (
           <div className="p-8 text-center text-sm text-red-700">
             <p className="font-semibold">메뉴 목록 조회에 실패했습니다.</p>
-            <p className="mt-1 text-xs text-slate-600">
+            <p className="mt-1 text-xs text-gray-600">
               백엔드 서버가 실행 중인지 확인한 뒤 다시 시도해 주세요.
             </p>
           </div>
         ) : (menusQuery.data ?? []).length === 0 ? (
           <div className="p-10 text-center">
-            <p className="text-base font-semibold text-slate-800">아직 등록된 메뉴가 없습니다.</p>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="text-base font-semibold text-gray-800">아직 등록된 메뉴가 없습니다.</p>
+            <p className="mt-1 text-sm text-gray-500">
               가짜 샘플 데이터를 표시하지 않습니다. 우측 상단 <strong>[+ 메뉴 추가]</strong> 버튼으로
               매장의 첫 메뉴를 등록하세요.
             </p>
             <button
               type="button"
               onClick={handleOpenCreate}
-              className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              className="mt-4 rounded-lg bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700"
             >
               + 첫 메뉴 추가하기
             </button>
           </div>
         ) : (
           <table className="w-full border-collapse text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-600">
+            <thead className="border-b border-gray-200 text-xs font-medium text-gray-600">
               <tr>
                 <th className="px-4 py-3">메뉴명</th>
                 <th className="px-4 py-3">카테고리</th>
-                <th className="px-4 py-3">판매가격</th>
+                <th className="px-4 py-3 text-right">판매가격</th>
                 <th className="px-4 py-3">판매 상태</th>
                 <th className="px-4 py-3">POS 연결</th>
                 <th className="px-4 py-3">레시피</th>
                 <th className="px-4 py-3 text-right">관리</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-gray-200">
               {(menusQuery.data ?? []).map((item) => (
                 <tr
                   key={item.id}
-                  className={item.is_active ? "bg-white" : "bg-slate-50 text-slate-500"}
+                  className={item.is_active ? "bg-white" : "bg-gray-50 text-gray-500"}
                 >
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                  <td className="px-4 py-3 font-medium text-gray-900">
                     <div>{item.name}</div>
                     {item.description && (
-                      <div className="text-xs text-slate-500">{item.description}</div>
+                      <div className="text-xs text-gray-500">{item.description}</div>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     {item.category ? (
-                      <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
+                      <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
                         {item.category}
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-400">미입력</span>
+                      <span className="text-xs text-gray-500">미입력</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-mono">
+                  <td className="px-4 py-3 tabular-nums text-right">
                     {item.selling_price !== null ? (
                       formatKrwPrice(item.selling_price)
                     ) : (
@@ -302,7 +299,7 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
                         ● 판매중(활성)
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-700">
                         ○ 비활성(보관)
                       </span>
                     )}
@@ -313,7 +310,7 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
                         ● 연결됨 (POS/CSV)
                       </span>
                     ) : (
-                      <span className="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                      <span className="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
                         대기 (이름 자동매칭)
                       </span>
                     )}
@@ -324,14 +321,14 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
                       <button
                         type="button"
                         onClick={() => setRecipeTarget(item)}
-                        className="rounded border border-blue-300 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                        className="rounded border border-accent-300 bg-accent-50 px-2.5 py-1 text-xs font-semibold text-accent-700 hover:bg-accent-100"
                       >
                         레시피
                       </button>
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(item)}
-                        className="rounded border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                        className="rounded border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
                       >
                         수정
                       </button>
@@ -339,7 +336,7 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
                         type="button"
                         onClick={() => handleToggleActive(item)}
                         disabled={updateMutation.isPending}
-                        className="rounded border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                        className="rounded border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
                       >
                         {item.is_active ? "비활성화" : "재활성화"}
                       </button>
