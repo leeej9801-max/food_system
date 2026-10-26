@@ -343,7 +343,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
       {banner && (
         <div
           role="status"
-          className={`flex items-center justify-between rounded-xl border px-4 py-2 text-xs font-bold ${
+          className={`flex items-center justify-between rounded-lg border px-4 py-2 text-xs font-bold ${
             banner.type === "success"
               ? "border-emerald-300 bg-emerald-50 text-emerald-900"
               : "border-red-300 bg-red-50 text-red-900"
@@ -379,25 +379,25 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               activeGuestCount={visitSummaryQuery.data?.active_guest_count ?? 0}
             />
           ) : (
-            <section className="flex min-h-[calc(100vh-120px)] flex-col justify-between rounded-2xl border-2 border-slate-300 bg-slate-200/70 p-4 shadow-inner">
+            <section className="flex min-h-[calc(100vh-120px)] flex-col justify-between rounded-lg border-2 border-gray-300 bg-gray-200/70 p-4">
               {/* 상단 홀 상태 바 (출입구 · 카운터 표시 및 범례) */}
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-300/80 bg-white/90 px-4 py-2.5">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-300/80 bg-white/90 px-4 py-2.5">
                 <div className="flex items-center gap-3">
-                  <span className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-extrabold text-white">
+                  <span className="rounded-lg bg-gray-800 px-2.5 py-1 text-xs font-bold text-white">
                     매장 입구 · 카운터
                   </span>
-                  <span className="text-sm font-extrabold text-slate-800">
+                  <span className="text-sm font-bold text-gray-800">
                     매장 홀 테이블 배치
                   </span>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
-                  <span className="inline-flex items-center gap-1.5 text-slate-600">
-                    <span className="inline-block h-3 w-3 rounded-full border border-slate-400 bg-white" />
+                  <span className="inline-flex items-center gap-1.5 text-gray-600">
+                    <span className="inline-block h-3 w-3 rounded-full border border-gray-400 bg-white" />
                     빈 테이블
                   </span>
-                  <span className="inline-flex items-center gap-1.5 text-blue-700">
-                    <span className="inline-block h-3 w-3 rounded-full bg-blue-600" />
+                  <span className="inline-flex items-center gap-1.5 text-accent-700">
+                    <span className="inline-block h-3 w-3 rounded-full bg-accent-600" />
                     착석중
                   </span>
                   <span className="inline-flex items-center gap-1.5 text-amber-800">
@@ -406,7 +406,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   </span>
                   <Link
                     to="/settings"
-                    className="rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100"
+                    className="rounded-lg border border-gray-300 bg-gray-50 px-2.5 py-1 text-[12px] font-bold text-gray-700 hover:bg-gray-100"
                   >
                     + 테이블 배치 설정
                   </Link>
@@ -415,9 +415,9 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
               {/* 심플 카드 홀 그리드 */}
               {tables.length === 0 ? (
-                <div className="my-auto rounded-2xl bg-white/80 p-10 text-center text-sm text-slate-600">
+                <div className="my-auto rounded-lg bg-white/80 p-10 text-center text-sm text-gray-600">
                   등록된 홀 테이블이 없습니다.{" "}
-                  <Link to="/settings" className="font-bold text-blue-600 underline">
+                  <Link to="/settings" className="font-bold text-accent-600 underline">
                     설정 화면
                   </Link>
                   에서 테이블을 추가해 주세요.
@@ -438,14 +438,14 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                         key={t.id}
                         type="button"
                         onClick={() => setSelectedTableId(t.id)}
-                        className={`group relative flex min-h-[155px] flex-col justify-between rounded-2xl border-2 p-4 text-left transition active:scale-[0.99] ${
+                        className={`group relative flex min-h-[155px] flex-col justify-between rounded-lg border-2 p-4 text-left transition active:scale-[0.99] ${
                           isSelected
-                            ? "border-blue-600 bg-white ring-4 ring-blue-500/25"
+                            ? "border-accent-600 bg-white ring-4 ring-accent-500/25"
                             : active
                             ? active.status === "PAID"
                               ? "border-amber-400 bg-amber-50/95 hover:border-amber-500"
-                              : "border-blue-400 bg-blue-50/95 hover:border-blue-500"
-                            : "border-slate-300 bg-white/95 hover:border-slate-400"
+                              : "border-accent-400 bg-accent-50/95 hover:border-accent-500"
+                            : "border-gray-300 bg-white/95 hover:border-gray-400"
                         }`}
                       >
                         <div className="flex justify-center gap-2">
@@ -456,8 +456,8 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                                 active
                                   ? active.status === "PAID"
                                     ? "bg-amber-400"
-                                    : "bg-blue-500"
-                                  : "bg-slate-300"
+                                    : "bg-accent-500"
+                                  : "bg-gray-300"
                               }`}
                             />
                           ))}
@@ -465,10 +465,10 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
                         <div className="my-2">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="text-lg font-extrabold text-slate-900">
+                            <span className="text-lg font-bold text-gray-900">
                               {t.name}
                             </span>
-                            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                            <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[12px] font-bold text-gray-600">
                               {t.seats}인석
                             </span>
                           </div>
@@ -476,32 +476,32 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                           {active ? (
                             <div className="mt-2 flex flex-wrap items-baseline justify-between gap-1">
                               <span
-                                className={`text-2xl font-black ${
+                                className={`text-2xl font-bold ${
                                   active.status === "PAID"
                                     ? "text-amber-900"
-                                    : "text-blue-900"
+                                    : "text-accent-900"
                                 }`}
                               >
                                 {active.party_size}명
                               </span>
                               <span
-                                className={`rounded-full px-2.5 py-0.5 text-xs font-extrabold ${
+                                className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                                   active.status === "PAID"
                                     ? "bg-amber-200 text-amber-950"
-                                    : "bg-blue-600 text-white"
+                                    : "bg-accent-600 text-white"
                                 }`}
                               >
                                 {active.status === "PAID" ? "결제완료" : "착석중"}
                               </span>
                             </div>
                           ) : (
-                            <div className="mt-3 text-sm font-bold text-slate-400">
+                            <div className="mt-3 text-sm font-bold text-gray-500">
                               빈 테이블 (터치하여 착석)
                             </div>
                           )}
 
                           {active && ageSummary && (
-                            <div className="mt-1.5 truncate rounded-md bg-white/80 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                            <div className="mt-1.5 truncate rounded-md bg-white/80 px-2 py-0.5 text-[12px] font-bold text-gray-700">
                               {ageSummary}
                             </div>
                           )}
@@ -515,8 +515,8 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                                 active
                                   ? active.status === "PAID"
                                     ? "bg-amber-400"
-                                    : "bg-blue-500"
-                                  : "bg-slate-300"
+                                    : "bg-accent-500"
+                                  : "bg-gray-300"
                               }`}
                             />
                           ))}
@@ -527,11 +527,11 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                 </div>
               )}
 
-              <div className="mt-3 flex items-center justify-between rounded-xl border border-slate-300/70 bg-white/80 px-4 py-2 text-xs font-bold text-slate-600">
+              <div className="mt-3 flex items-center justify-between rounded-lg border border-gray-300/70 bg-white/80 px-4 py-2 text-xs font-bold text-gray-600">
                 <span>주방 · 서빙 패스 라인</span>
                 <span>
                   이용 중:{" "}
-                  <strong className="text-slate-900">
+                  <strong className="text-gray-900">
                     {visitSummaryQuery.data?.active_table_count ?? 0}테이블 (
                     {visitSummaryQuery.data?.active_guest_count ?? 0}명)
                   </strong>
@@ -542,26 +542,26 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
         </div>
 
         {/* 우측: 선택된 테이블 터치 입력 패널 */}
-        <aside className="flex flex-col justify-between rounded-2xl border-2 border-slate-300 bg-white p-5 shadow-xs">
+        <aside className="flex flex-col justify-between rounded-lg border-2 border-gray-300 bg-white p-5">
           {!selectedTable ? (
-            <div className="py-12 text-center text-sm font-semibold text-slate-500">
+            <div className="py-12 text-center text-sm font-semibold text-gray-500">
               좌측 배치도에서 테이블을 터치해 주세요.
             </div>
           ) : (
             <div className="space-y-5">
               {/* 선택된 테이블 헤더 */}
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-black text-slate-900">
+                    <h2 className="text-2xl font-bold text-gray-900">
                       {selectedTable.name}
                     </h2>
-                    <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">
+                    <span className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-700">
                       기본 {selectedTable.seats}인석
                     </span>
                   </div>
                   {selectedTable.active_visit && (
-                    <div className="mt-1 text-xs font-semibold text-slate-500">
+                    <div className="mt-1 text-xs font-semibold text-gray-500">
                       입점 시각:{" "}
                       {new Date(selectedTable.active_visit.seated_at).toLocaleTimeString(
                         "ko-KR",
@@ -572,8 +572,8 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                 </div>
 
                 <div className="text-right">
-                  <div className="text-xs font-bold text-slate-500">현재 인원</div>
-                  <div className="text-3xl font-black text-blue-600">
+                  <div className="text-xs font-bold text-gray-500">현재 인원</div>
+                  <div className="text-3xl font-bold text-accent-600">
                     {partySize}명
                   </div>
                 </div>
@@ -582,9 +582,9 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               {/* 1. 방문 인원수 빠른 터치 (연령 미상 시 원탭) */}
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <label className="text-xs font-extrabold text-slate-800">
+                  <label className="text-xs font-bold text-gray-800">
                     빠른 인원수 터치{" "}
-                    <span className="font-normal text-slate-500">
+                    <span className="font-normal text-gray-500">
                       (연령대 미선택 시 바로 적용)
                     </span>
                   </label>
@@ -592,7 +592,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                     <button
                       type="button"
                       onClick={() => setAgeCounts({ ...EMPTY_AGE_COUNTS })}
-                      className="text-[11px] font-bold text-blue-600 underline"
+                      className="text-[12px] font-bold text-accent-600 underline"
                     >
                       연령 카운트 초기화
                     </button>
@@ -604,10 +604,10 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                       key={num}
                       type="button"
                       onClick={() => handleQuickPartySize(num)}
-                      className={`h-11 rounded-xl border text-sm font-extrabold transition active:scale-95 ${
+                      className={`h-11 rounded-lg border text-sm font-bold transition active:scale-95 ${
                         partySize === num && totalAgeSelected === 0
-                          ? "border-blue-600 bg-blue-600 text-white shadow-xs"
-                          : "border-slate-300 bg-slate-50 text-slate-800 hover:bg-slate-100"
+                          ? "border-accent-600 bg-accent-50 text-accent-800"
+                          : "border-gray-300 bg-gray-50 text-gray-800 hover:bg-gray-100"
                       }`}
                     >
                       {num}명
@@ -619,14 +619,14 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               {/* 2. 연령대 터치 스텝퍼: [-] 20대 (N) [+] */}
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <label className="text-xs font-extrabold text-slate-800">
+                  <label className="text-xs font-bold text-gray-800">
                     연령대 터치 카운터{" "}
-                    <span className="font-normal text-slate-500">
+                    <span className="font-normal text-gray-500">
                       (+ 터치 시 총 인원 자동 합산)
                     </span>
                   </label>
                   {totalAgeSelected > 0 && (
-                    <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-extrabold text-blue-900">
+                    <span className="rounded-full bg-accent-100 px-2.5 py-0.5 text-[12px] font-bold text-accent-900">
                       연령 합계 {totalAgeSelected}명
                     </span>
                   )}
@@ -639,10 +639,10 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                     return (
                       <div
                         key={key}
-                        className={`flex h-13 items-center justify-between rounded-xl border-2 px-2 transition ${
+                        className={`flex h-13 items-center justify-between rounded-lg border-2 px-2 transition ${
                           active
-                            ? "border-blue-600 bg-blue-50/80"
-                            : "border-slate-200 bg-slate-50"
+                            ? "border-accent-600 bg-accent-50/80"
+                            : "border-gray-200 bg-gray-50"
                         }`}
                       >
                         <button
@@ -650,7 +650,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                           onClick={() => handleAdjustAge(key, -1)}
                           disabled={count === 0}
                           aria-label={`${key} 감소`}
-                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-base font-black text-slate-700 disabled:opacity-35 active:bg-slate-200"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-base font-bold text-gray-700 disabled:opacity-35 active:bg-gray-200"
                         >
                           -
                         </button>
@@ -661,14 +661,14 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                           className="flex flex-1 flex-col items-center justify-center px-1 text-center"
                         >
                           <span
-                            className={`text-sm font-extrabold ${
-                              active ? "text-blue-950" : "text-slate-700"
+                            className={`text-sm font-bold ${
+                              active ? "text-accent-950" : "text-gray-700"
                             }`}
                           >
                             {key}{" "}
                             <span
                               className={
-                                active ? "text-blue-600" : "text-slate-400"
+                                active ? "text-accent-600" : "text-gray-500"
                               }
                             >
                               ({count})
@@ -680,10 +680,10 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                           type="button"
                           onClick={() => handleAdjustAge(key, 1)}
                           aria-label={`${key} 증가`}
-                          className={`flex h-9 w-9 items-center justify-center rounded-lg text-base font-black transition active:scale-95 ${
+                          className={`flex h-9 w-9 items-center justify-center rounded-lg text-base font-bold transition active:scale-95 ${
                             active
-                              ? "bg-blue-600 text-white"
-                              : "border border-slate-300 bg-white text-slate-800"
+                              ? "bg-accent-600 text-white"
+                              : "border border-gray-300 bg-white text-gray-800"
                           }`}
                         >
                           +
@@ -701,7 +701,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="선택 메모 (예: 창가 요청, 유아 동반, 단골)"
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm"
+                  className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm"
                 />
               </div>
 
@@ -711,7 +711,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   type="button"
                   onClick={() => startVisitMutation.mutate()}
                   disabled={startVisitMutation.isPending}
-                  className="w-full rounded-2xl bg-blue-600 py-4 text-base font-black text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
+                  className="w-full rounded-lg bg-accent-600 py-4 text-base font-bold text-white hover:bg-accent-700 disabled:opacity-50"
                 >
                   {startVisitMutation.isPending
                     ? "기록 중..."
@@ -730,7 +730,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                         })
                       }
                       disabled={updateVisitMutation.isPending}
-                      className="rounded-xl border border-slate-300 bg-white py-3 text-xs font-extrabold text-slate-800 hover:bg-slate-100"
+                      className="rounded-lg border border-gray-300 bg-white py-3 text-xs font-bold text-gray-800 hover:bg-gray-100"
                     >
                       인원 · 연령 수정 저장
                     </button>
@@ -746,7 +746,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                         })
                       }
                       disabled={updateVisitMutation.isPending}
-                      className="rounded-xl border border-amber-400 bg-amber-100 py-3 text-xs font-extrabold text-amber-950 hover:bg-amber-200"
+                      className="rounded-lg border border-amber-400 bg-amber-100 py-3 text-xs font-bold text-amber-950 hover:bg-amber-200"
                     >
                       {selectedTable.active_visit.status === "PAID"
                         ? "결제완료 취소 (착석중)"
@@ -758,7 +758,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                     type="button"
                     onClick={() => updateVisitMutation.mutate({ status: "LEFT" })}
                     disabled={updateVisitMutation.isPending}
-                    className="w-full rounded-2xl bg-slate-900 py-4 text-base font-black text-white hover:bg-slate-800"
+                    className="w-full rounded-lg bg-gray-900 py-4 text-base font-bold text-white hover:bg-gray-800"
                   >
                     퇴점 · 테이블 비우기
                   </button>
@@ -768,23 +768,23 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
           )}
 
           {/* 우측 패널 하단: 주문 수정 · 환불 관리 모달 진입 버튼 */}
-          <div className="mt-5 border-t border-slate-200 pt-4">
+          <div className="mt-5 border-t border-gray-200 pt-4">
             <button
               type="button"
               onClick={() => setOrderModalOpen(true)}
-              className="flex w-full items-center justify-between rounded-xl border-2 border-slate-300 bg-slate-50 px-4 py-3 text-left hover:bg-slate-100"
+              className="flex w-full items-center justify-between rounded-lg border-2 border-gray-300 bg-gray-50 px-4 py-3 text-left hover:bg-gray-100"
             >
               <div>
-                <div className="text-xs font-extrabold text-slate-900">
+                <div className="text-xs font-bold text-gray-900">
                   주문 수정 · 환불(취소) 관리
                 </div>
-                <div className="text-[11px] font-medium text-slate-500">
+                <div className="text-[12px] font-medium text-gray-500">
                   {integrationQuery.data?.mode === "CSV_UPLOAD"
                     ? "현재 CSV/수동 모드: 직접 수량 변경·환불 가능"
                     : "현재 POS 연동 모드: POS 단말 자동 동기화"}
                 </div>
               </div>
-              <span className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white">
+              <span className="rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-bold text-white">
                 열기 →
               </span>
             </button>
@@ -794,22 +794,22 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
       {/* 주문 수정 · 환불(취소) 대응 모달 (POS 자동 연동 vs CSV 직접 수정 분기) */}
       {orderModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
-          <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4">
+          <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
               <div>
-                <h3 className="text-lg font-black text-slate-900">
+                <h3 className="text-lg font-bold text-gray-900">
                   주문 내역 수정 · 환불(취소) 관리
                 </h3>
-                <p className="text-xs text-slate-500">
-                  환불(취소) 또는 수량 변경 시 예상 재고(S05)와 판매·원가 집계(S06)에 즉시
+                <p className="text-xs text-gray-500">
+                  환불(취소) 또는 수량 변경 시 예상 재고와 판매·원가 집계에 즉시
                   반영됩니다.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setOrderModalOpen(false)}
-                className="rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
+                className="rounded-lg border border-gray-300 px-3.5 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100"
               >
                 닫기
               </button>
@@ -818,10 +818,10 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
             <div className="flex-1 space-y-4 overflow-y-auto p-6">
               {/* POS 모드 vs CSV 모드 분기 배너 */}
               {salesOrdersQuery.data && !salesOrdersQuery.data.can_manual_edit ? (
-                <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950">
+                <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <div className="font-extrabold">
+                      <div className="font-bold">
                         현재 POS 연동 모드 ({salesOrdersQuery.data.pos_mode})
                       </div>
                       <p className="mt-1">{salesOrdersQuery.data.mode_notice}</p>
@@ -836,8 +836,8 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs text-emerald-950">
-                  <div className="font-extrabold">
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-4 text-xs text-emerald-950">
+                  <div className="font-bold">
                     CSV / 수동 관리 모드 활성화됨
                   </div>
                   <p className="mt-0.5">
@@ -851,7 +851,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                     <select
                       value={manualMenuId || menusQuery.data?.[0]?.id || ""}
                       onChange={(e) => setManualMenuId(e.target.value)}
-                      className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800"
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800"
                     >
                       {(menusQuery.data ?? []).map((m) => (
                         <option key={m.id} value={m.id}>
@@ -867,15 +867,15 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                       <button
                         type="button"
                         onClick={() => setManualQty((q) => Math.max(1, q - 1))}
-                        className="h-7 w-7 rounded border border-slate-300 bg-white font-bold"
+                        className="h-7 w-7 rounded border border-gray-300 bg-white font-bold"
                       >
                         -
                       </button>
-                      <span className="px-2 font-extrabold">{manualQty}개</span>
+                      <span className="px-2 font-bold">{manualQty}개</span>
                       <button
                         type="button"
                         onClick={() => setManualQty((q) => q + 1)}
-                        className="h-7 w-7 rounded border border-slate-300 bg-white font-bold"
+                        className="h-7 w-7 rounded border border-gray-300 bg-white font-bold"
                       >
                         +
                       </button>
@@ -897,18 +897,18 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
               {/* 수집된 주문 목록 */}
               {salesOrdersQuery.isLoading ? (
-                <div className="py-8 text-center text-sm text-slate-500">
+                <div className="py-8 text-center text-sm text-gray-500">
                   주문 내역을 불러오는 중입니다...
                 </div>
               ) : (salesOrdersQuery.data?.orders.length ?? 0) === 0 ? (
-                <div className="rounded-xl border border-slate-200 p-8 text-center text-sm text-slate-500">
+                <div className="rounded-lg border border-gray-200 p-8 text-center text-sm text-gray-500">
                   수집된 판매 주문이 없습니다. 위에서 현장 주문을 추가하거나{" "}
                   <Link
                     to="/settings"
                     onClick={() => setOrderModalOpen(false)}
-                    className="font-bold text-blue-600 underline"
+                    className="font-bold text-accent-600 underline"
                   >
-                    설정(S01)
+                    설정
                   </Link>
                   에서 판매 CSV를 업로드해 보세요.
                 </div>
@@ -921,19 +921,19 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                     return (
                       <div
                         key={order.id}
-                        className={`rounded-xl border p-4 ${
+                        className={`rounded-lg border p-4 ${
                           isCancelled
                             ? "border-red-200 bg-red-50/40"
-                            : "border-slate-200 bg-white"
+                            : "border-gray-200 bg-white"
                         }`}
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-extrabold text-slate-900">
+                            <span className="text-sm font-bold text-gray-900">
                               {order.external_order_id}
                             </span>
                             <span
-                              className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${
+                              className={`rounded-full px-2.5 py-0.5 text-[12px] font-bold ${
                                 isCancelled
                                   ? "bg-red-100 text-red-800"
                                   : "bg-emerald-100 text-emerald-900"
@@ -941,7 +941,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                             >
                               {isCancelled ? "환불 / 주문취소됨" : "정상 결제"}
                             </span>
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs text-gray-500">
                               {order.ordered_at
                                 ? new Date(order.ordered_at).toLocaleString("ko-KR")
                                 : "시각 미상"}
@@ -950,10 +950,10 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
                           <div className="flex items-center gap-3">
                             <span
-                              className={`text-sm font-black ${
+                              className={`text-sm font-bold ${
                                 isCancelled
-                                  ? "text-slate-400 line-through"
-                                  : "text-slate-900"
+                                  ? "text-gray-500 line-through"
+                                  : "text-gray-900"
                               }`}
                             >
                               {Number(order.total_amount).toLocaleString("ko-KR")}원
@@ -970,7 +970,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                               }
                               className={`rounded-lg px-3 py-1.5 text-xs font-bold transition disabled:opacity-40 ${
                                 isCancelled
-                                  ? "border border-slate-300 bg-white text-slate-800 hover:bg-slate-100"
+                                  ? "border border-gray-300 bg-white text-gray-800 hover:bg-gray-100"
                                   : "bg-red-600 text-white hover:bg-red-700"
                               }`}
                             >
@@ -987,10 +987,10 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                               className="flex flex-wrap items-center justify-between gap-2 text-xs"
                             >
                               <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-800">
+                                <span className="font-bold text-gray-800">
                                   {item.menu_name ?? item.raw_product_name}
                                 </span>
-                                <span className="text-slate-500">
+                                <span className="text-gray-500">
                                   단가 {Number(item.unit_price).toLocaleString("ko-KR")}원
                                 </span>
                               </div>
@@ -1015,11 +1015,11 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                                       ],
                                     })
                                   }
-                                  className="flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white font-bold disabled:opacity-35"
+                                  className="flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white font-bold disabled:opacity-35"
                                 >
                                   -
                                 </button>
-                                <span className="min-w-[36px] text-center font-extrabold text-slate-900">
+                                <span className="min-w-[36px] text-center font-bold text-gray-900">
                                   {item.quantity}개
                                 </span>
                                 <button
@@ -1040,7 +1040,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                                       ],
                                     })
                                   }
-                                  className="flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white font-bold disabled:opacity-35"
+                                  className="flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white font-bold disabled:opacity-35"
                                 >
                                   +
                                 </button>

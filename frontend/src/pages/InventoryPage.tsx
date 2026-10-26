@@ -189,22 +189,17 @@ export function InventoryPage({ store }: InventoryPageProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <span className="inline-block rounded bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700">
-            화면 S05 · REQ-008 / REQ-009 (PROVISIONAL P-12)
-          </span>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
-            식자재 입고 · 구매단가 이력 · 실재고 및 예상 재고
-          </h1>
-          <p className="text-sm text-slate-600">
+          <h1 className="text-2xl font-bold text-gray-900">입고 · 재고</h1>
+          <p className="text-sm text-gray-600">
             <strong>실재고(현장 실사값)</strong>와{" "}
-            <strong>예상 재고(입고 - 판매·레시피 이론소모량 ± 조정 추정치)</strong>를 엄격히 분리하여 표시합니다.
+            <strong>예상 재고(입고 - 판매·레시피 이론소모량 ± 조정 추정치)</strong>를 분리해 표시합니다. 원가 단가는 최근 입고 단가 기준입니다 (PROVISIONAL P-12).
           </p>
         </div>
         <Link
           to="/ingredients"
-          className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+          className="rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
         >
-          식자재 · 단위 마스터 관리 (S04) →
+          식자재 · 단위 마스터 관리 →
         </Link>
       </div>
 
@@ -230,20 +225,20 @@ export function InventoryPage({ store }: InventoryPageProps) {
 
       {/* 상단 요약 배너 */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="text-xs font-semibold text-slate-500">
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="text-xs font-semibold text-gray-500">
             관리 중인 활성 식자재
           </div>
-          <div className="mt-1 text-2xl font-bold text-slate-900">
+          <div className="mt-1 text-2xl font-bold text-gray-900">
             {items.length}종
           </div>
-          <div className="mt-1 text-xs text-slate-500">
+          <div className="mt-1 text-xs text-gray-500">
             기본 단위(g/ml/ea) 환산 기준
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="text-xs font-semibold text-slate-500">
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="text-xs font-semibold text-gray-500">
             안전재고 부족 / 음수 점검 필요
           </div>
           <div
@@ -253,45 +248,45 @@ export function InventoryPage({ store }: InventoryPageProps) {
           >
             {lowStockCount}종
           </div>
-          <div className="mt-1 text-xs text-slate-500">
+          <div className="mt-1 text-xs text-gray-500">
             예상 재고 ≤ 안전재고 또는 0 미만
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="text-xs font-semibold text-slate-500">
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="text-xs font-semibold text-gray-500">
             원가 산정 단가 기준 (D-05 / P-12)
           </div>
-          <div className="mt-1 text-sm font-bold text-slate-900">
+          <div className="mt-1 text-sm font-bold text-gray-900">
             최근 입고 단가 기준 (PROVISIONAL)
           </div>
-          <div className="mt-1 text-xs text-slate-500">
+          <div className="mt-1 text-xs text-gray-500">
             입고 시 과거 단가 이력은 덮어쓰지 않고 모두 보존됩니다
           </div>
         </div>
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-600">
           등록된 활성 식자재가 없습니다. 먼저{" "}
-          <Link to="/ingredients" className="font-bold text-blue-600 underline">
-            식자재·레시피(S04)
+          <Link to="/ingredients" className="font-bold text-accent-600 underline">
+            식자재·레시피
           </Link>{" "}
           화면에서 식자재를 등록해 주세요.
         </div>
       ) : (
         <>
           {/* 입고 / 실사 / 폐기·조정 빠른 입력 카드 */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+          <div className="rounded-lg border border-gray-200 bg-white p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
-                <label className="text-xs font-bold text-slate-700">
+                <label className="text-xs font-bold text-gray-700">
                   대상 식자재 선택:
                 </label>
                 <select
                   value={currentIngredient?.ingredient_id ?? ""}
                   onChange={(e) => setSelectedIngredientId(e.target.value)}
-                  className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-900"
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold text-gray-900"
                 >
                   {items.map((i) => (
                     <option key={i.ingredient_id} value={i.ingredient_id}>
@@ -308,8 +303,8 @@ export function InventoryPage({ store }: InventoryPageProps) {
                   onClick={() => setActiveTab("RECEIPT")}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
                     activeTab === "RECEIPT"
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      ? "bg-accent-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
                   + 입고 · 구매단가 등록
@@ -319,19 +314,19 @@ export function InventoryPage({ store }: InventoryPageProps) {
                   onClick={() => setActiveTab("COUNT")}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
                     activeTab === "COUNT"
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      ? "bg-accent-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  ✓ 실재고 실사 입력
+                  실재고 실사 입력
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab("ADJUST")}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
                     activeTab === "ADJUST"
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      ? "bg-accent-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
                   ± 폐기 · 수량 보정
@@ -342,7 +337,7 @@ export function InventoryPage({ store }: InventoryPageProps) {
             {activeTab === "RECEIPT" && currentIngredient && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-5 items-end">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                  <label className="mb-1 block text-xs font-semibold text-gray-700">
                     입고 수량 (구매단위: {currentIngredient.purchase_unit})
                   </label>
                   <input
@@ -351,11 +346,11 @@ export function InventoryPage({ store }: InventoryPageProps) {
                     min="0.001"
                     value={purchaseQty}
                     onChange={(e) => setPurchaseQty(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                  <label className="mb-1 block text-xs font-semibold text-gray-700">
                     총 구매금액 (원)
                   </label>
                   <input
@@ -364,11 +359,11 @@ export function InventoryPage({ store }: InventoryPageProps) {
                     value={totalCost}
                     onChange={(e) => setTotalCost(e.target.value)}
                     placeholder="예: 30000"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                  <label className="mb-1 block text-xs font-semibold text-gray-700">
                     공급처 (선택)
                   </label>
                   <input
@@ -376,11 +371,11 @@ export function InventoryPage({ store }: InventoryPageProps) {
                     value={supplierName}
                     onChange={(e) => setSupplierName(e.target.value)}
                     placeholder="예: 이탈리아푸드"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                  <label className="mb-1 block text-xs font-semibold text-gray-700">
                     메모 (선택)
                   </label>
                   <input
@@ -388,14 +383,14 @@ export function InventoryPage({ store }: InventoryPageProps) {
                     value={receiptNotes}
                     onChange={(e) => setReceiptNotes(e.target.value)}
                     placeholder="명세서 번호 등"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   />
                 </div>
                 <button
                   type="button"
                   disabled={createReceiptMutation.isPending}
                   onClick={() => createReceiptMutation.mutate()}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-bold text-white hover:bg-accent-700 disabled:opacity-50"
                 >
                   입고 저장
                 </button>
@@ -405,7 +400,7 @@ export function InventoryPage({ store }: InventoryPageProps) {
             {activeTab === "COUNT" && currentIngredient && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-4 items-end">
                 <div className="sm:col-span-2">
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                  <label className="mb-1 block text-xs font-semibold text-gray-700">
                     실제 확인한 실재고 수량 (기본단위: {currentIngredient.base_unit})
                   </label>
                   <input
@@ -417,11 +412,11 @@ export function InventoryPage({ store }: InventoryPageProps) {
                     placeholder={`현재 예상 재고: ${Number(
                       currentIngredient.estimated_quantity
                     ).toLocaleString("ko-KR")} ${currentIngredient.base_unit}`}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                  <label className="mb-1 block text-xs font-semibold text-gray-700">
                     실사 메모 (선택)
                   </label>
                   <input
@@ -429,7 +424,7 @@ export function InventoryPage({ store }: InventoryPageProps) {
                     value={countNotes}
                     onChange={(e) => setCountNotes(e.target.value)}
                     placeholder="예: 마감 실사"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   />
                 </div>
                 <button
@@ -446,7 +441,7 @@ export function InventoryPage({ store }: InventoryPageProps) {
             {activeTab === "ADJUST" && currentIngredient && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-4 items-end">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                  <label className="mb-1 block text-xs font-semibold text-gray-700">
                     증감 수량 ({currentIngredient.base_unit}, 폐기는 음수)
                   </label>
                   <input
@@ -454,11 +449,11 @@ export function InventoryPage({ store }: InventoryPageProps) {
                     step="0.001"
                     value={deltaQty}
                     onChange={(e) => setDeltaQty(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                  <label className="mb-1 block text-xs font-semibold text-gray-700">
                     사유
                   </label>
                   <select
@@ -466,7 +461,7 @@ export function InventoryPage({ store }: InventoryPageProps) {
                     onChange={(e) =>
                       setAdjReason(e.target.value as AdjustmentReasonType)
                     }
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   >
                     {(Object.keys(REASON_LABELS) as AdjustmentReasonType[]).map(
                       (r) => (
@@ -478,7 +473,7 @@ export function InventoryPage({ store }: InventoryPageProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                  <label className="mb-1 block text-xs font-semibold text-gray-700">
                     비고 (선택)
                   </label>
                   <input
@@ -486,7 +481,7 @@ export function InventoryPage({ store }: InventoryPageProps) {
                     value={adjNotes}
                     onChange={(e) => setAdjNotes(e.target.value)}
                     placeholder="상세 사유"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   />
                 </div>
                 <button
@@ -502,60 +497,60 @@ export function InventoryPage({ store }: InventoryPageProps) {
           </div>
 
           {/* 식자재별 실재고 vs 예상 재고 분리 비교 표 */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
-            <h2 className="text-base font-bold text-slate-900">
+          <div className="rounded-lg border border-gray-200 bg-white p-5">
+            <h2 className="text-base font-bold text-gray-900">
               식자재별 실재고(실사) · 이론 소모량 · 예상 재고(추정) 현황
             </h2>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="mt-0.5 text-xs text-gray-500">
               계산식: <code>예상 재고 = 최근 실재고 실사값 + 실사 이후 입고량 - 판매×레시피 이론 소모량 ± 폐기/조정</code>
             </p>
 
             <div className="mt-4 overflow-x-auto">
               <table className="w-full border-collapse text-left text-xs">
-                <thead className="border-b border-slate-200 bg-slate-50 text-slate-600">
+                <thead className="border-b border-gray-200 text-gray-600">
                   <tr>
                     <th className="px-3 py-2">식자재명</th>
                     <th className="px-3 py-2">최근 입고 단가 (PROVISIONAL P-12)</th>
                     <th className="px-3 py-2 bg-emerald-50/60 text-emerald-950">
                       최근 실재고 (실사 확인값)
                     </th>
-                    <th className="px-3 py-2">+ 입고량</th>
-                    <th className="px-3 py-2">- 이론 소모량 (판매×레시피)</th>
-                    <th className="px-3 py-2">± 폐기/조정</th>
-                    <th className="px-3 py-2 bg-blue-50/60 text-blue-950">
+                    <th className="px-3 py-2 text-right">+ 입고량</th>
+                    <th className="px-3 py-2 text-right">- 이론 소모량 (판매×레시피)</th>
+                    <th className="px-3 py-2 text-right">± 폐기/조정</th>
+                    <th className="px-3 py-2 text-right bg-accent-50/60 text-accent-950">
                       현재 예상 재고 (추정치)
                     </th>
                     <th className="px-3 py-2">안전재고 상태</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-gray-200">
                   {items.map((row) => (
                     <tr key={row.ingredient_id}>
-                      <td className="px-3 py-2.5 font-bold text-slate-900">
+                      <td className="px-3 py-2.5 font-bold text-gray-900">
                         {row.ingredient_name}
-                        <div className="text-[11px] font-normal text-slate-500">
+                        <div className="text-[12px] font-normal text-gray-500">
                           기본: {row.base_unit} / 구매: {row.purchase_unit}
                         </div>
                       </td>
                       <td className="px-3 py-2.5">
                         {row.latest_unit_cost_per_purchase ? (
                           <div>
-                            <span className="font-semibold text-slate-900">
+                            <span className="font-semibold text-gray-900">
                               {Number(
                                 row.latest_unit_cost_per_purchase
                               ).toLocaleString("ko-KR")}
                               원/{row.purchase_unit}
                             </span>
-                            <div className="text-[11px] text-slate-500">
+                            <div className="text-[12px] text-gray-500">
                               ({Number(row.latest_unit_cost_per_base)}원/
                               {row.base_unit})
                             </div>
                           </div>
                         ) : (
-                          <span className="text-slate-400">입고 단가 미등록</span>
+                          <span className="text-gray-500">입고 단가 미등록</span>
                         )}
                       </td>
-                      <td className="px-3 py-2.5 bg-emerald-50/30 font-mono">
+                      <td className="px-3 py-2.5 bg-emerald-50/30 tabular-nums">
                         {row.last_actual_quantity !== null ? (
                           <div>
                             <strong className="text-emerald-900">
@@ -564,7 +559,7 @@ export function InventoryPage({ store }: InventoryPageProps) {
                               )}{" "}
                               {row.base_unit}
                             </strong>
-                            <div className="text-[10px] text-slate-500">
+                            <div className="text-[12px] text-gray-500">
                               {row.last_counted_at
                                 ? new Date(
                                     row.last_counted_at
@@ -573,43 +568,43 @@ export function InventoryPage({ store }: InventoryPageProps) {
                             </div>
                           </div>
                         ) : (
-                          <span className="text-slate-400">
+                          <span className="text-gray-500">
                             미실사 (0 {row.base_unit} 기준)
                           </span>
                         )}
                       </td>
-                      <td className="px-3 py-2.5 font-mono text-slate-700">
+                      <td className="px-3 py-2.5 tabular-nums text-right text-gray-700">
                         +{Number(row.receipts_since_count_base).toLocaleString("ko-KR")}{" "}
                         {row.base_unit}
                       </td>
-                      <td className="px-3 py-2.5 font-mono text-slate-700">
+                      <td className="px-3 py-2.5 tabular-nums text-right text-gray-700">
                         -{Number(row.theoretical_consumption_base).toLocaleString("ko-KR")}{" "}
                         {row.base_unit}
                       </td>
-                      <td className="px-3 py-2.5 font-mono text-slate-700">
+                      <td className="px-3 py-2.5 tabular-nums text-right text-gray-700">
                         {Number(row.adjustments_since_count_base) > 0 ? "+" : ""}
                         {Number(row.adjustments_since_count_base).toLocaleString("ko-KR")}{" "}
                         {row.base_unit}
                       </td>
-                      <td className="px-3 py-2.5 bg-blue-50/30 font-mono font-bold text-blue-950">
+                      <td className="px-3 py-2.5 bg-accent-50/30 tabular-nums text-right font-bold text-accent-950">
                         {Number(row.estimated_quantity).toLocaleString("ko-KR")}{" "}
                         {row.base_unit}{" "}
-                        <span className="text-[10px] font-normal text-blue-700">
+                        <span className="text-[12px] font-normal text-accent-700">
                           (추정)
                         </span>
                       </td>
                       <td className="px-3 py-2.5">
                         {row.stock_status === "NEGATIVE_WARNING" ? (
-                          <span className="inline-block rounded bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-900">
-                            ⚠️ 음수 재고 (입고누락/실사점검 필요)
+                          <span className="inline-block rounded bg-red-100 px-2 py-0.5 text-[12px] font-bold text-red-900">
+                            음수 재고 (입고누락/실사점검 필요)
                           </span>
                         ) : row.stock_status === "LOW_STOCK" ? (
-                          <span className="inline-block rounded bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-900">
+                          <span className="inline-block rounded bg-amber-100 px-2 py-0.5 text-[12px] font-bold text-amber-900">
                             ● 안전재고 이하 (발주 권장)
                           </span>
                         ) : (
-                          <span className="inline-block rounded bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-900">
-                            ✓ 정상
+                          <span className="inline-block rounded bg-emerald-100 px-2 py-0.5 text-[12px] font-semibold text-emerald-900">
+                            정상
                           </span>
                         )}
                       </td>
@@ -621,56 +616,56 @@ export function InventoryPage({ store }: InventoryPageProps) {
           </div>
 
           {/* 하단: 입고 및 구매단가 변동 이력 보존 표 */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
-            <h2 className="text-sm font-bold text-slate-900">
-              입고 및 구매단가 변동 이력 (REQ-008 · 과거 단가 보존)
+          <div className="rounded-lg border border-gray-200 bg-white p-5">
+            <h2 className="text-sm font-bold text-gray-900">
+              입고 및 구매단가 변동 이력
             </h2>
             {(receiptsQuery.data ?? []).length === 0 ? (
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-gray-500">
                 아직 등록된 입고 내역이 없습니다.
               </p>
             ) : (
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full border-collapse text-left text-xs">
-                  <thead className="border-b border-slate-200 bg-slate-50 text-slate-600">
+                  <thead className="border-b border-gray-200 text-gray-600">
                     <tr>
                       <th className="px-3 py-2">입고 시각</th>
                       <th className="px-3 py-2">식자재</th>
-                      <th className="px-3 py-2">구매 수량</th>
-                      <th className="px-3 py-2">환산 수량 (기본단위)</th>
-                      <th className="px-3 py-2">총 구매금액</th>
-                      <th className="px-3 py-2">구매단위당 단가</th>
-                      <th className="px-3 py-2">기본단위당 단가</th>
+                      <th className="px-3 py-2 text-right">구매 수량</th>
+                      <th className="px-3 py-2 text-right">환산 수량 (기본단위)</th>
+                      <th className="px-3 py-2 text-right">총 구매금액</th>
+                      <th className="px-3 py-2 text-right">구매단위당 단가</th>
+                      <th className="px-3 py-2 text-right">기본단위당 단가</th>
                       <th className="px-3 py-2">공급처</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody className="divide-y divide-gray-200">
                     {(receiptsQuery.data ?? []).slice(0, 20).map((r) => (
                       <tr key={r.id}>
-                        <td className="px-3 py-2 font-mono">
+                        <td className="px-3 py-2 tabular-nums">
                           {new Date(r.received_at).toLocaleString("ko-KR")}
                         </td>
                         <td className="px-3 py-2 font-semibold">
                           {r.ingredient_name}
                         </td>
-                        <td className="px-3 py-2 font-mono">
+                        <td className="px-3 py-2 tabular-nums text-right">
                           {Number(r.purchase_quantity).toLocaleString("ko-KR")}{" "}
                           {r.purchase_unit}
                         </td>
-                        <td className="px-3 py-2 font-mono">
+                        <td className="px-3 py-2 tabular-nums text-right">
                           {Number(r.base_quantity).toLocaleString("ko-KR")}{" "}
                           {r.base_unit}
                         </td>
-                        <td className="px-3 py-2 font-mono font-semibold">
+                        <td className="px-3 py-2 tabular-nums text-right font-semibold">
                           {Number(r.total_cost).toLocaleString("ko-KR")}원
                         </td>
-                        <td className="px-3 py-2 font-mono">
+                        <td className="px-3 py-2 tabular-nums text-right">
                           {Number(r.unit_cost_per_purchase).toLocaleString(
                             "ko-KR"
                           )}
                           원/{r.purchase_unit}
                         </td>
-                        <td className="px-3 py-2 font-mono">
+                        <td className="px-3 py-2 tabular-nums text-right">
                           {Number(r.unit_cost_per_base)}원/{r.base_unit}
                         </td>
                         <td className="px-3 py-2">{r.supplier_name ?? "-"}</td>

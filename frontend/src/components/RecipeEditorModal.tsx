@@ -131,21 +131,21 @@ export function RecipeEditorModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-      <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl">
-        <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">
+      <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
           <div>
-            <span className="inline-block rounded bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
-              공통 레시피 편집기 (S03 ↔ S04 단일 데이터 원천)
-            </span>
-            <h2 className="mt-1 text-lg font-bold text-slate-900">
+            <h2 className="text-lg font-bold text-gray-900">
               ‘{menuName}’ 1인분 레시피 설정
             </h2>
+            <p className="mt-0.5 text-[12px] text-gray-600">
+              메뉴 관리와 식자재 화면이 같은 레시피를 함께 씁니다.
+            </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded px-2 py-1 text-sm text-slate-500 hover:bg-slate-100"
+            className="rounded px-2 py-1 text-sm text-gray-500 hover:bg-gray-100"
           >
             닫기
           </button>
@@ -158,27 +158,27 @@ export function RecipeEditorModal({
         )}
 
         {recipeQuery.isLoading || ingredientsQuery.isLoading ? (
-          <div className="p-6 text-center text-sm text-slate-500">
+          <div className="p-6 text-center text-sm text-gray-500">
             레시피 및 식자재 정보를 불러오는 중입니다...
           </div>
         ) : ingredients.length === 0 ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            아직 등록된 식자재가 없습니다. <strong>식자재·레시피 (S04)</strong> 화면에서 식자재를
+            아직 등록된 식자재가 없습니다. <strong>식자재·레시피</strong> 화면에서 식자재를
             먼저 추가해 주세요.
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
               <span>
                 현재 버전: <strong>v{recipeQuery.data?.version ?? 0}</strong> (변경 저장 시 버전과
                 이력이 보존됩니다)
               </span>
               <div className="flex items-center gap-2">
-                <label className="font-semibold text-slate-700">레시피 완성도 표시:</label>
+                <label className="font-semibold text-gray-700">레시피 완성도 표시:</label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as "COMPLETE" | "PARTIAL")}
-                  className="rounded border border-slate-300 bg-white px-2 py-1 text-xs"
+                  className="rounded border border-gray-300 bg-white px-2 py-1 text-xs"
                 >
                   <option value="COMPLETE">완성 (이론 소비량·원가 계산 반영)</option>
                   <option value="PARTIAL">일부 미입력 (작성 중 표시)</option>
@@ -187,7 +187,7 @@ export function RecipeEditorModal({
             </div>
 
             {rows.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
+              <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
                 등록된 식자재 항목이 없습니다. 아래 <strong>[+ 재료 행 추가]</strong> 버튼을 눌러
                 1인분 기준 사용량을 등록하세요.
               </div>
@@ -198,12 +198,12 @@ export function RecipeEditorModal({
                   return (
                     <div
                       key={idx}
-                      className="grid grid-cols-1 items-center gap-2 rounded-lg border border-slate-200 p-2.5 sm:grid-cols-[1.5fr_1fr_1.2fr_auto]"
+                      className="grid grid-cols-1 items-center gap-2 rounded-lg border border-gray-200 p-2.5 sm:grid-cols-[1.5fr_1fr_1.2fr_auto]"
                     >
                       <select
                         value={row.ingredient_id}
                         onChange={(e) => handleUpdateRow(idx, { ingredient_id: e.target.value })}
-                        className="rounded border border-slate-300 px-2.5 py-1.5 text-sm"
+                        className="rounded border border-gray-300 px-2.5 py-1.5 text-sm"
                       >
                         {ingredients.map((ing) => (
                           <option key={ing.id} value={ing.id}>
@@ -220,10 +220,10 @@ export function RecipeEditorModal({
                           step="any"
                           value={row.quantity}
                           onChange={(e) => handleUpdateRow(idx, { quantity: e.target.value })}
-                          className="w-full rounded border border-slate-300 px-2.5 py-1.5 text-sm font-mono"
+                          className="w-full rounded border border-gray-300 px-2.5 py-1.5 text-sm tabular-nums"
                           placeholder="사용량"
                         />
-                        <span className="min-w-8 text-xs font-semibold text-slate-600">
+                        <span className="min-w-8 text-xs font-semibold text-gray-600">
                           {selectedIng?.base_unit ?? "단위"}
                         </span>
                       </div>
@@ -233,7 +233,7 @@ export function RecipeEditorModal({
                         value={row.notes}
                         onChange={(e) => handleUpdateRow(idx, { notes: e.target.value })}
                         placeholder="메모 (선택, 예: 건면 기준)"
-                        className="rounded border border-slate-300 px-2.5 py-1.5 text-xs"
+                        className="rounded border border-gray-300 px-2.5 py-1.5 text-xs"
                       />
 
                       <button
@@ -253,7 +253,7 @@ export function RecipeEditorModal({
               <button
                 type="button"
                 onClick={handleAddRow}
-                className="rounded-lg border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                className="rounded-lg border border-accent-300 bg-accent-50 px-3 py-1.5 text-xs font-semibold text-accent-700 hover:bg-accent-100"
               >
                 + 재료 행 추가
               </button>
@@ -261,7 +261,7 @@ export function RecipeEditorModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
                 >
                   취소
                 </button>
@@ -269,7 +269,7 @@ export function RecipeEditorModal({
                   type="button"
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending}
-                  className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="rounded-lg bg-accent-600 px-5 py-2 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
                 >
                   {saveMutation.isPending ? "저장 중..." : "레시피 저장"}
                 </button>
