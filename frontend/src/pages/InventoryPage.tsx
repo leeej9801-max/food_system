@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { AppLink as Link } from "../components/AppLink";
+import { useUrlState } from "../lib/useUrlState";
 import { ApiClientError } from "../api/client";
 import {
   createAdjustment,
@@ -28,9 +29,9 @@ const REASON_LABELS: Record<AdjustmentReasonType, string> = {
 
 export function InventoryPage({ store }: InventoryPageProps) {
   const queryClient = useQueryClient();
-  const [selectedIngredientId, setSelectedIngredientId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"RECEIPT" | "COUNT" | "ADJUST">(
-    "RECEIPT"
+  const [selectedIngredientId, setSelectedIngredientId] = useUrlState<string>("ingredient", "");
+  const [activeTab, setActiveTab] = useUrlState<"RECEIPT" | "COUNT" | "ADJUST">(
+    "tab", "RECEIPT", ["RECEIPT", "COUNT", "ADJUST"]
   );
 
   // 입고 폼 상태

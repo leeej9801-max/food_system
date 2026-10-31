@@ -9,6 +9,7 @@ import {
 } from "../api/ingredients";
 import { fetchMenus } from "../api/menus";
 import { RecipeEditorModal } from "../components/RecipeEditorModal";
+import { useUrlState } from "../lib/useUrlState";
 import type { BaseUnitType, Ingredient, PurchaseUnitType, Store } from "../types";
 
 interface IngredientManagementPageProps {
@@ -17,8 +18,10 @@ interface IngredientManagementPageProps {
 
 export function IngredientManagementPage({ store }: IngredientManagementPageProps) {
   const queryClient = useQueryClient();
-  const [searchInput, setSearchInput] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [searchInput, setSearchInput] = useUrlState<string>("q", "");
+  const [statusFilter, setStatusFilter] = useUrlState<"all" | "active" | "inactive">(
+    "status", "all", ["all", "active", "inactive"],
+  );
   const [formOpen, setFormOpen] = useState(false);
   const [editingIng, setEditingIng] = useState<Ingredient | null>(null);
 

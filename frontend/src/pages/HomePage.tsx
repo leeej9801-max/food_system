@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { AppLink as Link } from "../components/AppLink";
 import { ApiClientError } from "../api/client";
 import {
   createManualSalesOrder,
@@ -379,7 +379,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               activeGuestCount={visitSummaryQuery.data?.active_guest_count ?? 0}
             />
           ) : (
-            <section className="flex min-h-[calc(100vh-120px)] flex-col justify-between rounded-lg border-2 border-gray-300 bg-gray-200/70 p-4">
+            <section className="flex min-h-[calc(var(--app-viewport-height)-120px)] flex-col justify-between rounded-lg border-2 border-gray-300 bg-gray-200/70 p-4">
               {/* 상단 홀 상태 바 (출입구 · 카운터 표시 및 범례) */}
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-300/80 bg-white/90 px-4 py-2.5">
                 <div className="flex items-center gap-3">
@@ -795,7 +795,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
       {/* 주문 수정 · 환불(취소) 대응 모달 (POS 자동 연동 vs CSV 직접 수정 분기) */}
       {orderModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4">
-          <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl">
+          <div className="flex max-h-[calc(var(--app-viewport-height)*0.9)] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
               <div>
                 <h3 className="text-lg font-bold text-gray-900">

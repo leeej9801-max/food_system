@@ -1,0 +1,79 @@
+name: food
+
+x-api: &api
+  image: food-backend:local
+  build: ./backend
+  environment:
+    APP_ENV: production
+    DATABASE_URL: postgresql+psycopg://food:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.deploy}@food-db:5432/food
+    API_PREFIX: /api/v1
+    APP_TIMEZONE: Asia/Seoul
+    CORS_ALLOWED_ORIGINS: https://lci.leejblab.site
+  networks: [private]
+
+services:
+  food-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: food
+      POSTGRES_DB: food
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.deploy}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [private]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U food -d food']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    <<: *api
+    command: [alembic, upgrade, head]
+    depends_on:
+      food-db:
+        condition: service_healthy
+
+  backend:
+    <<: *api
+    restart: unless-stopped
+    command: [uvicorn, app.main:app, --host, 0.0.0.0, --port, '8000', --root-path, /food]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    image: food-web:local
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${FOOD_PORT:-8088}:80'
+    networks:
+      private:
+      tunnel:
+        aliases: [food-web]
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1/food/health']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+networks:
+  private:
+    internal: true
+  tunnel:
+    external: true
+    name: ${TUNNEL_NETWORK:-lci-prod_edge}
+
+volumes:
+  pgdata:

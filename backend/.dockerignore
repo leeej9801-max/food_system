@@ -1,0 +1,12 @@
+*
+!pyproject.toml
+!requirements.deploy.txt
+!app/
+!app/**
+!alembic.ini
+!alembic/
+!alembic/**
+!scripts/
+!scripts/**
+**/__pycache__/
+**/*.pyc

@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
+import { AppLink as Link } from "../components/AppLink";
+import { withStore } from "../lib/navigation";
 import { createStore, fetchStores, fetchTables, fetchVisitSummary } from "../api/stores";
 import { fetchIntegrationStatus } from "../api/imports";
 import { AnalyticsPage } from "../pages/AnalyticsPage";
@@ -378,7 +380,7 @@ function ShellLayout({ store }: { store: Store }) {
   const currentNav = navItems.find((item) => location.pathname.startsWith(item.to));
 
   return (
-    <div className="min-h-screen bg-ground text-gray-900">
+    <div className="min-h-[var(--app-viewport-height)] bg-ground text-gray-900">
       {/* 태블릿 친화형 컴팩트 상단 상태 & 네비게이션 바 (U-08) */}
       <header className="sticky top-0 z-30 border-b border-gray-200 bg-white px-4 py-2">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-x-6 gap-y-2">
@@ -532,7 +534,7 @@ function ShellLayout({ store }: { store: Store }) {
 
           <main className="min-w-0">
             <Routes>
-              <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route path="/" element={<Navigate to={withStore("/home", location.search)} replace />} />
               <Route
                 path="/home"
                 element={<HomePage store={store} metaverseMode={metaverseMode} />}
@@ -542,6 +544,7 @@ function ShellLayout({ store }: { store: Store }) {
               <Route path="/inventory" element={<InventoryPage store={store} />} />
               <Route path="/analytics" element={<AnalyticsPage store={store} />} />
               <Route path="/settings" element={<SettingsPage store={store} />} />
+              <Route path="*" element={<Navigate to={withStore("/home", location.search)} replace />} />
             </Routes>
           </main>
         </div>
@@ -551,11 +554,33 @@ function ShellLayout({ store }: { store: Store }) {
 }
 
 export function App() {
+  return (
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <StoreApp />
+    </BrowserRouter>
+  );
+}
+
+function StoreApp() {
   const queryClient = useQueryClient();
+  const [params, setParams] = useSearchParams();
   const storesQuery = useQuery({
     queryKey: ["stores"],
     queryFn: fetchStores,
   });
+  const storeId = params.get("store");
+  const stores = storesQuery.data ?? [];
+  const selectedStore = storeId ? stores.find((store) => store.id === storeId) : stores[0];
+
+  useEffect(() => {
+    if (!storeId && selectedStore) {
+      setParams((current) => {
+        const next = new URLSearchParams(current);
+        next.set("store", selectedStore.id);
+        return next;
+      }, { replace: true });
+    }
+  }, [storeId, selectedStore, setParams]);
 
   if (storesQuery.isLoading) {
     return (
@@ -570,15 +595,16 @@ export function App() {
       <div className="mx-auto mt-12 max-w-lg rounded-lg border border-red-300 bg-red-50 p-6 text-sm text-red-900">
         <h1 className="text-base font-bold">백엔드 API 서버에 연결할 수 없습니다</h1>
         <p className="mt-2">
-          FastAPI 서버가 실행 중인지 확인해 주세요. (기본 주소:{" "}
-          <code>http://localhost:8000/api/v1</code>)
+          잠시 후 새로고침해 주세요. 문제가 계속되면 서비스 관리자에게 문의해 주세요.
         </p>
       </div>
     );
   }
 
-  const firstStore = (storesQuery.data ?? [])[0];
-  if (!firstStore) {
+  if (storeId && !selectedStore) {
+    return <div className="p-10 text-center">주소에 지정된 매장을 찾을 수 없습니다.</div>;
+  }
+  if (!selectedStore) {
     return (
       <StoreBootstrapWizard
         onCreated={() => {
@@ -588,9 +614,5 @@ export function App() {
     );
   }
 
-  return (
-    <BrowserRouter>
-      <ShellLayout store={firstStore} />
-    </BrowserRouter>
-  );
+  return <ShellLayout key={selectedStore.id} store={selectedStore} />;
 }
