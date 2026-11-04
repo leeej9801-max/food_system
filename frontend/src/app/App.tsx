@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { AppLink as Link } from "../components/AppLink";
@@ -378,11 +378,24 @@ function ShellLayout({ store }: { store: Store }) {
   ];
 
   const currentNav = navItems.find((item) => location.pathname.startsWith(item.to));
+  const headerRef = useRef<HTMLElement>(null);
+
+  // 홈 기록 화면이 문서 스크롤 없이 남은 높이를 쓰도록 헤더 높이를 CSS 변수로 알린다 (U-31)
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const apply = () =>
+      document.documentElement.style.setProperty("--app-header-height", `${el.offsetHeight}px`);
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="min-h-[var(--app-viewport-height)] bg-ground text-gray-900">
       {/* 태블릿 친화형 컴팩트 상단 상태 & 네비게이션 바 (U-08) */}
-      <header className="sticky top-0 z-30 border-b border-gray-200 bg-white px-4 py-2">
+      <header ref={headerRef} className="sticky top-0 z-30 border-b border-gray-200 bg-white px-4 py-2">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-x-6 gap-y-2">
           {/* 좌측: 사이드 메뉴 토글 + 매장 정보 + 도트 홀 스위치 */}
           <div className="flex flex-wrap items-center gap-3">

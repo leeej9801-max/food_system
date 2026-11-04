@@ -1,9 +1,10 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
+    Date,
     DateTime,
     ForeignKey,
     Index,
@@ -35,6 +36,8 @@ class Store(Base):
     timezone: Mapped[str] = mapped_column(String(64), nullable=False, default="Asia/Seoul")
     business_days: Mapped[str | None] = mapped_column(String(64), nullable=True)
     opening_hours: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # 도면 고정물(입구·카운터·칸막이·주방) JSON 목록. 테이블과 같은 24×28 좌표계 (U-31)
+    floor_fixtures: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
@@ -155,6 +158,8 @@ class StoreTable(Base):
     seats: Mapped[int] = mapped_column(Integer, nullable=False, default=4)
     grid_x: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     grid_y: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # H(가로로 긴 테이블, 의자 위·아래) | V(세로로 긴 테이블, 의자 좌·우)
+    orientation: Mapped[str] = mapped_column(String(1), nullable=False, default="H")
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
@@ -193,6 +198,10 @@ class VisitSession(Base):
     opened_by: Mapped[str] = mapped_column(String(20), nullable=False, default="STAFF")
     # U-19: NEXT_PARTY | CLEARED | TIMEOUT | END_OF_DAY (LEFT일 때만)
     closed_reason: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # U-31 세션 단위 선택값 (PROVISIONAL 선택지). *_source: GUEST | STAFF, 손님 값은 직원이 덮어쓰지 않음
+    purpose: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    relationship_type: Mapped[str | None] = mapped_column("relationship", String(20), nullable=True)
+    context_source: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
     store: Mapped["Store"] = relationship("Store", back_populates="visit_sessions")
     table: Mapped["StoreTable"] = relationship("StoreTable", back_populates="visit_sessions")
@@ -262,6 +271,10 @@ class SessionSlot(Base):
         String(36), ForeignKey("guest_devices.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     display_opt_out: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # U-31 사람별 선택값. profile_source: GUEST | STAFF (손님 값 우선)
+    gender: Mapped[str] = mapped_column(String(12), nullable=False, default="UNRECORDED")
+    age_band: Mapped[str] = mapped_column(String(32), nullable=False, default="UNRECORDED")
+    profile_source: Mapped[str | None] = mapped_column(String(10), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
@@ -457,3 +470,15 @@ class AuditEvent(Base):
     action: Mapped[str] = mapped_column(String(32), nullable=False)
     change_summary: Mapped[str] = mapped_column(Text, nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class Holiday(Base):
+    """전역 공휴일 달력 (매장 데이터가 아니라 RLS 없음, U-28)."""
+
+    __tablename__ = "holidays"
+
+    holiday_date: Mapped[date] = mapped_column(Date, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    # KASI(천문연 특일정보) | MANUAL
+    source: Mapped[str] = mapped_column(String(10), nullable=False, default="MANUAL")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)

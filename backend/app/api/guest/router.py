@@ -5,7 +5,12 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.session import get_db
-from app.schemas import GuestSessionOpen, GuestSlotDisplayUpdate, GuestTableResponse
+from app.schemas import (
+    GuestSessionContextUpdate,
+    GuestSessionOpen,
+    GuestSlotDisplayUpdate,
+    GuestTableResponse,
+)
 from app.services import guest as guest_service
 from app.services.guest import GuestScope
 
@@ -73,10 +78,19 @@ def claim_slot(
 
 
 @guest_router.patch("/session/slots/{slot_no}", response_model=GuestTableResponse)
-def update_slot_display(
+def update_slot(
     slot_no: int,
     payload: GuestSlotDisplayUpdate,
     scope: GuestScope = Depends(guest_scope),
     db: Session = Depends(get_db),
 ) -> GuestTableResponse:
-    return guest_service.set_display_opt_out(db, scope, slot_no, payload.display_opt_out)
+    return guest_service.update_my_slot(db, scope, slot_no, payload)
+
+
+@guest_router.patch("/session", response_model=GuestTableResponse)
+def update_session(
+    payload: GuestSessionContextUpdate,
+    scope: GuestScope = Depends(guest_scope),
+    db: Session = Depends(get_db),
+) -> GuestTableResponse:
+    return guest_service.update_session_context(db, scope, payload)

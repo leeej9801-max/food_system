@@ -23,7 +23,9 @@ from app.main import create_app
 from scripts.ensure_runtime_role import ensure_runtime_role
 
 OWNER_URL = os.environ.get("RLS_TEST_DATABASE_URL")
-pytestmark = pytest.mark.skipif(not OWNER_URL, reason="RLS_TEST_DATABASE_URL 미설정 (PostgreSQL 필요)")
+pytestmark = pytest.mark.skipif(
+    not OWNER_URL, reason="RLS_TEST_DATABASE_URL 미설정 (PostgreSQL 필요)"
+)
 
 TEST_DB = "rls_api_test"
 RUNTIME_ROLE = "rls_api_runtime"
@@ -81,7 +83,9 @@ def stores(client) -> dict:
     """두 매장을 API로 만들고 양식당 데모 마스터를 각각 넣는다. 매장 A에만 판매 CSV를 반영한다."""
     out = {}
     for key in ("A", "B"):
-        r = client.post("/api/v1/stores", json={"name": f"격리 매장 {key}", "initial_table_count": 2})
+        r = client.post(
+            "/api/v1/stores", json={"name": f"격리 매장 {key}", "initial_table_count": 2}
+        )
         assert r.status_code == 201, r.text
         sid = r.json()["id"]
         assert client.post(f"/api/v1/stores/{sid}/seed-western-demo").status_code == 200
@@ -155,7 +159,9 @@ def test_own_store_writes_still_work(client, stores):
     assert summary.status_code == 200 and len(summary.json()) == 5
 
 
-def test_store_list_is_shared_but_unscoped_db_sees_no_tenant_rows(client, stores, runtime_sessionmaker):
+def test_store_list_is_shared_but_unscoped_db_sees_no_tenant_rows(
+    client, stores, runtime_sessionmaker
+):
     names = {s["name"] for s in client.get("/api/v1/stores").json()}
     assert {"격리 매장 A", "격리 매장 B"} <= names
     with runtime_sessionmaker() as db:
@@ -235,3 +241,55 @@ def test_runtime_role_cannot_insert_slot_for_other_store(runtime_sessionmaker, s
                 ),
                 {"b": stores["B"]["id"], "v": visit_id},
             )
+
+
+# --- 홀 배치·객층·맥락·공휴일 (WO-20261105-001, alembic 0008) ---
+
+
+def test_profile_and_context_work_under_rls(client, qr):
+    a = qr["A"]
+    base = f"/api/guest/v1/qr/{a['token']}/session"
+    client.post(f"{base}/slots/1/claim")
+    mine = client.patch(f"{base}/slots/1", json={"gender": "FEMALE", "age_band": "30S"})
+    assert mine.status_code == 200
+    ctx = client.patch(base, json={"purpose": "GATHERING", "relationship": "FRIENDS"})
+    assert ctx.json()["session"]["purpose"] == "GATHERING"
+
+    visits = client.get(f"/api/v1/stores/{a['store_id']}/visits").json()["sessions"]
+    visit = next(v for v in visits if v["table_id"] == a["table_id"] and v["status"] == "SEATED")
+    assert visit["slots"][0]["profile_source"] == "GUEST"
+    staff = client.patch(
+        f"/api/v1/stores/{a['store_id']}/visits/{visit['id']}/slots/2", json={"gender": "MALE"}
+    )
+    assert staff.status_code == 200
+
+
+def test_staff_cannot_edit_other_store_slot_profile(client, qr):
+    a, b = qr["A"], qr["B"]
+    visits = client.get(f"/api/v1/stores/{a['store_id']}/visits").json()["sessions"]
+    visit_a = next(v for v in visits if v["table_id"] == a["table_id"] and v["status"] == "SEATED")
+    # 매장 B 경로로 매장 A 방문의 자리를 고칠 수 없다
+    r = client.patch(
+        f"/api/v1/stores/{b['store_id']}/visits/{visit_a['id']}/slots/2", json={"age_band": "40S"}
+    )
+    assert r.status_code == 404
+
+
+def test_runtime_role_cannot_update_other_store_slot(runtime_sessionmaker, stores):
+    with runtime_sessionmaker() as db:
+        apply_store_scope(db, RequestContext(store_id=stores["B"]["id"]))
+        # 매장 B 범위에서는 매장 A 자리가 보이지 않아 0행이 바뀐다
+        changed = db.execute(
+            text("UPDATE session_slots SET gender = 'MALE' WHERE store_id = :a"),
+            {"a": stores["A"]["id"]},
+        ).rowcount
+        assert changed == 0
+
+
+def test_holidays_are_global_for_runtime_role(client, runtime_sessionmaker):
+    r = client.post("/api/v1/holidays", json={"holiday_date": "2026-12-25", "name": "기독탄신일"})
+    assert r.status_code == 201
+    # 매장 범위 없이도 읽힌다 (전역 표, RLS 없음)
+    with runtime_sessionmaker() as db:
+        assert db.execute(text("SELECT count(*) FROM holidays")).scalar_one() == 1
+    assert len(client.get("/api/v1/holidays?year=2026").json()) == 1

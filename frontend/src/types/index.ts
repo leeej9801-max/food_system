@@ -4,8 +4,39 @@ export interface Store {
   timezone: string;
   business_days: string | null;
   opening_hours: string | null;
+  floor_fixtures: FloorFixture[];
   created_at: string;
   updated_at: string;
+}
+
+// 홀 좌표계: 가로 24칸 × 세로 28칸, 1칸 ≈ 34cm (U-31)
+export const FLOOR_COLS = 24;
+export const FLOOR_ROWS = 28;
+
+export type FixtureKindType = "ENTRANCE" | "COUNTER" | "PARTITION" | "KITCHEN" | "WALL";
+
+export interface FloorFixture {
+  kind: FixtureKindType;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label: string | null;
+}
+
+export type OrientationType = "H" | "V";
+export type GenderType = "FEMALE" | "MALE" | "UNRECORDED";
+// PROVISIONAL 선택지 (WO-20261105-001 §8, 사장님 확인 필요)
+export type PurposeType = "MEAL" | "DATE" | "GATHERING" | "FAMILY" | "COMPANY" | "OTHER";
+export type RelationshipType = "ALONE" | "COUPLE" | "FRIENDS" | "FAMILY" | "COWORKERS" | "OTHER";
+
+export interface VisitSlot {
+  slot_no: number;
+  state: string;
+  is_claimed: boolean;
+  gender: GenderType;
+  age_band: AgeBandType;
+  profile_source: "GUEST" | "STAFF" | null;
 }
 
 export type RecipeStatusType = "UNREGISTERED" | "PARTIAL" | "COMPLETE";
@@ -97,6 +128,13 @@ export interface VisitSession {
   left_at: string | null;
   source: string;
   notes: string | null;
+  party_size_source: string;
+  opened_by: string;
+  closed_reason: string | null;
+  purpose: PurposeType | null;
+  relationship: RelationshipType | null;
+  context_source: "GUEST" | "STAFF" | null;
+  slots: VisitSlot[];
 }
 
 export interface StoreTable {
@@ -106,6 +144,7 @@ export interface StoreTable {
   seats: number;
   grid_x: number;
   grid_y: number;
+  orientation: OrientationType;
   is_active: boolean;
   active_visit: VisitSession | null;
   created_at: string;

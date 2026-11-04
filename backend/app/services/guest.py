@@ -16,13 +16,20 @@ from app.core.errors import AppError
 from app.db.models import GuestDevice, SessionSlot, StoreTable, TableQrToken, VisitSession, utcnow
 from app.db.tenancy import RequestContext, bind_store_scope
 from app.schemas import (
+    GuestSessionContextUpdate,
     GuestSessionOpen,
     GuestSessionResponse,
+    GuestSlotDisplayUpdate,
     GuestSlotResponse,
     GuestTableResponse,
     TableQrTokenResponse,
 )
 from app.services.menus import record_audit
+from app.services.visit_profile import (
+    apply_slot_profile,
+    apply_visit_context,
+    close_expired_sessions,
+)
 
 OPEN_STATUSES = ("SEATED", "PAID")
 REMOVABLE_STATES = ("EMPTY", "SILHOUETTE")
@@ -173,6 +180,7 @@ def enter_guest_scope(
     if table is None or not table.is_active:
         raise _not_found()
     device, new_raw = get_or_create_device(db, raw_device_token)
+    close_expired_sessions(db, store_id)  # 지난 영업일 세션에 합류하지 않게
     db.commit()
     return GuestScope(store_id=store_id, table_id=table_id, device_id=device.id), new_raw
 
@@ -222,6 +230,8 @@ def _to_session(visit: VisitSession, device_id: str) -> GuestSessionResponse:
         party_size=visit.party_size,
         party_size_source=visit.party_size_source,
         opened_at=visit.seated_at,
+        purpose=visit.purpose,
+        relationship=visit.relationship_type,
         slots=[
             GuestSlotResponse(
                 slot_no=s.slot_no,
@@ -229,6 +239,8 @@ def _to_session(visit: VisitSession, device_id: str) -> GuestSessionResponse:
                 is_claimed=s.claimed_by_device_id is not None,
                 is_mine=s.claimed_by_device_id == device_id,
                 display_opt_out=s.display_opt_out,
+                gender=s.gender,
+                age_band=s.age_band,
             )
             for s in sorted(visit.slots, key=lambda s: s.slot_no)
         ],
@@ -360,15 +372,32 @@ def claim_slot(db: Session, scope: GuestScope, slot_no: int) -> GuestTableRespon
     return view_table(db, scope)
 
 
-def set_display_opt_out(
-    db: Session, scope: GuestScope, slot_no: int, opt_out: bool
+def update_my_slot(
+    db: Session, scope: GuestScope, slot_no: int, payload: GuestSlotDisplayUpdate
 ) -> GuestTableResponse:
+    """내 자리의 화면 표시 여부와 성별·연령대를 바꾼다. 남의 자리는 403."""
     visit = _require_open_session(db, scope)
     slot = _get_slot(visit, slot_no)
     if slot.claimed_by_device_id != scope.device_id:
         raise AppError(
-            status_code=403, code="SLOT_NOT_MINE", message="내 자리만 화면 표시를 바꿀 수 있습니다."
+            status_code=403, code="SLOT_NOT_MINE", message="내 자리만 바꿀 수 있습니다."
         )
-    slot.display_opt_out = opt_out
+    if payload.display_opt_out is not None:
+        slot.display_opt_out = payload.display_opt_out
+    apply_slot_profile(
+        visit, slot, source="GUEST", gender=payload.gender, age_band=payload.age_band
+    )
+    db.commit()
+    return view_table(db, scope)
+
+
+def update_session_context(
+    db: Session, scope: GuestScope, payload: GuestSessionContextUpdate
+) -> GuestTableResponse:
+    """방문 목적·동반 관계는 세션 단위로 손님 누구나 고른다(U-31). 손님 값이 직원 값보다 우선."""
+    visit = _require_open_session(db, scope)
+    apply_visit_context(
+        visit, source="GUEST", purpose=payload.purpose, relationship=payload.relationship
+    )
     db.commit()
     return view_table(db, scope)

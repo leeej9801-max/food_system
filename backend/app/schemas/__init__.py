@@ -1,4 +1,5 @@
-from datetime import datetime
+import json
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
@@ -39,6 +40,22 @@ class StoreUpdate(BaseModel):
         return trimmed
 
 
+FixtureKindType = Literal["ENTRANCE", "COUNTER", "PARTITION", "KITCHEN", "WALL"]
+
+# 홀 좌표계: 가로 24칸 × 세로 28칸, 1칸 ≈ 34cm (U-31)
+FLOOR_COLS = 24
+FLOOR_ROWS = 28
+
+
+class FloorFixture(BaseModel):
+    kind: FixtureKindType
+    x: int = Field(..., ge=0, lt=FLOOR_COLS)
+    y: int = Field(..., ge=0, lt=FLOOR_ROWS)
+    w: int = Field(..., ge=1, le=FLOOR_COLS)
+    h: int = Field(..., ge=1, le=FLOOR_ROWS)
+    label: str | None = Field(default=None, max_length=20)
+
+
 class StoreResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -47,8 +64,18 @@ class StoreResponse(BaseModel):
     timezone: str
     business_days: str | None
     opening_hours: str | None
+    floor_fixtures: list[FloorFixture] = []
     created_at: datetime
     updated_at: datetime
+
+    @field_validator("floor_fixtures", mode="before")
+    @classmethod
+    def parse_fixtures(cls, v: object) -> object:
+        if v is None:
+            return []
+        if isinstance(v, str):
+            return json.loads(v)
+        return v
 
 
 class MenuCreate(BaseModel):
@@ -245,6 +272,10 @@ AgeBandType = Literal[
     "MIXED",
 ]
 VisitStatusType = Literal["SEATED", "PAID", "LEFT"]
+GenderType = Literal["FEMALE", "MALE", "UNRECORDED"]
+# PROVISIONAL (U-31): 선택지는 사장님 확인 전
+PurposeType = Literal["MEAL", "DATE", "GATHERING", "FAMILY", "COMPANY", "OTHER"]
+RelationshipType = Literal["ALONE", "COUPLE", "FRIENDS", "FAMILY", "COWORKERS", "OTHER"]
 
 
 class VisitSessionResponse(BaseModel):
@@ -263,13 +294,21 @@ class VisitSessionResponse(BaseModel):
     party_size_source: str = "STAFF"
     opened_by: str = "STAFF"
     closed_reason: str | None = None
+    purpose: str | None = None
+    relationship: str | None = None
+    context_source: str | None = None
+    slots: list["VisitSlotResponse"] = []
+
+
+OrientationType = Literal["H", "V"]
 
 
 class StoreTableCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=50)
     seats: int = Field(default=4, ge=1, le=20)
-    grid_x: int = Field(default=0, ge=0, le=11)
-    grid_y: int = Field(default=0, ge=0, le=7)
+    grid_x: int = Field(default=0, ge=0, lt=FLOOR_COLS)
+    grid_y: int = Field(default=0, ge=0, lt=FLOOR_ROWS)
+    orientation: OrientationType = Field(default="H")
     is_active: bool = Field(default=True)
 
     @field_validator("name")
@@ -284,8 +323,9 @@ class StoreTableCreate(BaseModel):
 class StoreTableUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=50)
     seats: int | None = Field(default=None, ge=1, le=20)
-    grid_x: int | None = Field(default=None, ge=0, le=11)
-    grid_y: int | None = Field(default=None, ge=0, le=7)
+    grid_x: int | None = Field(default=None, ge=0, lt=FLOOR_COLS)
+    grid_y: int | None = Field(default=None, ge=0, lt=FLOOR_ROWS)
+    orientation: OrientationType | None = Field(default=None)
     is_active: bool | None = Field(default=None)
 
     @field_validator("name")
@@ -306,6 +346,7 @@ class StoreTableResponse(BaseModel):
     seats: int
     grid_x: int
     grid_y: int
+    orientation: str = "H"
     is_active: bool
     active_visit: VisitSessionResponse | None = None
     created_at: datetime
@@ -324,6 +365,38 @@ class VisitSessionUpdate(BaseModel):
     age_band: AgeBandType | None = Field(default=None)
     status: VisitStatusType | None = Field(default=None)
     notes: str | None = Field(default=None, max_length=200)
+    purpose: PurposeType | None = Field(default=None)
+    relationship: RelationshipType | None = Field(default=None)
+
+
+class VisitSlotResponse(BaseModel):
+    slot_no: int
+    state: str
+    is_claimed: bool
+    gender: str
+    age_band: str
+    profile_source: str | None
+
+
+VisitSessionResponse.model_rebuild()
+
+
+class SlotProfileUpdate(BaseModel):
+    gender: GenderType | None = Field(default=None)
+    age_band: AgeBandType | None = Field(default=None)
+
+
+class HolidayCreate(BaseModel):
+    holiday_date: date
+    name: str = Field(..., min_length=1, max_length=50)
+
+
+class HolidayResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    holiday_date: date
+    name: str
+    source: str
 
 
 class VisitSummaryResponse(BaseModel):
@@ -655,12 +728,16 @@ class GuestSlotResponse(BaseModel):
     is_claimed: bool
     is_mine: bool
     display_opt_out: bool
+    gender: str = "UNRECORDED"
+    age_band: str = "UNRECORDED"
 
 
 class GuestSessionResponse(BaseModel):
     party_size: int
     party_size_source: str
     opened_at: datetime
+    purpose: str | None = None
+    relationship: str | None = None
     slots: list[GuestSlotResponse]
 
 
@@ -682,4 +759,11 @@ class GuestSessionOpen(BaseModel):
 
 
 class GuestSlotDisplayUpdate(BaseModel):
-    display_opt_out: bool
+    display_opt_out: bool | None = None
+    gender: GenderType | None = None
+    age_band: AgeBandType | None = None
+
+
+class GuestSessionContextUpdate(BaseModel):
+    purpose: PurposeType | None = None
+    relationship: RelationshipType | None = None

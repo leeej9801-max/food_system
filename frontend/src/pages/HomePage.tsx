@@ -16,109 +16,76 @@ import {
   fetchVisitSummary,
   updateTable,
   updateVisitSession,
+  updateVisitSlot,
 } from "../api/stores";
-import { PixelFloorMap } from "../components/PixelFloorMap";
-import type { AgeBandType, Store, StoreTable } from "../types";
+import { FloorPlan } from "../components/FloorPlan";
+import type {
+  AgeBandType,
+  GenderType,
+  PurposeType,
+  RelationshipType,
+  Store,
+  StoreTable,
+  VisitSlot,
+} from "../types";
 
 interface HomePageProps {
   store: Store;
   metaverseMode: boolean;
 }
 
-type AgeKey = "10대" | "20대" | "30대" | "40대" | "50대" | "60대+";
+// 사람별·세션별 선택값 (U-31). 목적·관계 선택지는 PROVISIONAL (사장님 확인 전)
+const AGE_OPTIONS: Array<{ band: AgeBandType; label: string }> = [
+  { band: "10S", label: "10대" },
+  { band: "20S", label: "20대" },
+  { band: "30S", label: "30대" },
+  { band: "40S", label: "40대" },
+  { band: "50S", label: "50대" },
+  { band: "60S_PLUS", label: "60+" },
+];
 
-const AGE_KEYS: AgeKey[] = ["10대", "20대", "30대", "40대", "50대", "60대+"];
+const GENDER_OPTIONS: Array<{ value: GenderType; label: string }> = [
+  { value: "FEMALE", label: "여" },
+  { value: "MALE", label: "남" },
+];
 
-const AGE_KEY_TO_BAND: Record<AgeKey, AgeBandType> = {
-  "10대": "10S",
-  "20대": "20S",
-  "30대": "30S",
-  "40대": "40S",
-  "50대": "50S",
-  "60대+": "60S_PLUS",
-};
+const PURPOSE_OPTIONS: Array<{ value: PurposeType; label: string }> = [
+  { value: "MEAL", label: "식사" },
+  { value: "DATE", label: "데이트" },
+  { value: "GATHERING", label: "모임" },
+  { value: "FAMILY", label: "가족" },
+  { value: "COMPANY", label: "회식" },
+  { value: "OTHER", label: "기타" },
+];
 
-const BAND_TO_AGE_KEY: Partial<Record<AgeBandType, AgeKey>> = {
-  "10S": "10대",
-  "20S": "20대",
-  "30S": "30대",
-  "40S": "40대",
-  "50S": "50대",
-  "50S_PLUS": "50대",
-  "60S_PLUS": "60대+",
-};
+const RELATIONSHIP_OPTIONS: Array<{ value: RelationshipType; label: string }> = [
+  { value: "ALONE", label: "혼자" },
+  { value: "COUPLE", label: "연인" },
+  { value: "FRIENDS", label: "친구" },
+  { value: "FAMILY", label: "가족" },
+  { value: "COWORKERS", label: "동료" },
+  { value: "OTHER", label: "기타" },
+];
 
-const EMPTY_AGE_COUNTS: Record<AgeKey, number> = {
-  "10대": 0,
-  "20대": 0,
-  "30대": 0,
-  "40대": 0,
-  "50대": 0,
-  "60대+": 0,
-};
+const PARTY_SIZES = [1, 2, 3, 4, 5, 6, 7, 8];
 
-function formatAgeBreakdownNotes(
-  counts: Record<AgeKey, number>,
-  memo: string
-): string | null {
-  const parts = AGE_KEYS.filter((k) => counts[k] > 0).map(
-    (k) => `${k}(${counts[k]})`
-  );
-  const ageTag = parts.length > 0 ? `[연령: ${parts.join(", ")}]` : "";
-  const cleanMemo = memo.trim();
-  if (ageTag && cleanMemo) return `${ageTag} ${cleanMemo}`;
-  if (ageTag) return ageTag;
-  return cleanMemo || null;
+function chipClass(active: boolean, disabled = false): string {
+  if (disabled) {
+    return active
+      ? "border-gray-400 bg-gray-300 text-gray-700"
+      : "border-gray-200 bg-gray-50 text-gray-300";
+  }
+  return active
+    ? "border-gray-900 bg-gray-900 text-white"
+    : "border-gray-300 bg-white text-gray-800 active:bg-gray-100";
 }
 
-function parseAgeBreakdownFromSession(
-  ageBand: AgeBandType,
-  partySize: number,
-  notes: string | null
-): { counts: Record<AgeKey, number>; memo: string } {
-  const counts: Record<AgeKey, number> = { ...EMPTY_AGE_COUNTS };
-  let rawNotes = notes ?? "";
-
-  const match = rawNotes.match(/^\[연령:\s*([^\]]+)\]\s*(.*)$/);
-  if (match) {
-    const inside = match[1];
-    rawNotes = match[2] ?? "";
-    for (const token of inside.split(",")) {
-      const m = token.trim().match(/^(10대|20대|30대|40대|50대|60대\+)\((\d+)\)$/);
-      if (m) {
-        const key = m[1] as AgeKey;
-        counts[key] = Number(m[2]);
-      }
-    }
-    return { counts, memo: rawNotes };
-  }
-
-  const mappedKey = BAND_TO_AGE_KEY[ageBand];
-  if (mappedKey) {
-    counts[mappedKey] = partySize;
-  }
-  return { counts, memo: rawNotes };
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
 }
 
-function deriveAgeBand(counts: Record<AgeKey, number>): AgeBandType {
-  const activeKeys = AGE_KEYS.filter((k) => counts[k] > 0);
-  if (activeKeys.length === 0) return "UNRECORDED";
-  if (activeKeys.length === 1) return AGE_KEY_TO_BAND[activeKeys[0]];
-  return "MIXED";
-}
-
-function formatAgeSummaryBadge(
-  ageBand: AgeBandType,
-  notes: string | null
-): string | null {
-  if (notes) {
-    const match = notes.match(/^\[연령:\s*([^\]]+)\]/);
-    if (match) return match[1];
-  }
-  const key = BAND_TO_AGE_KEY[ageBand];
-  if (key) return key;
-  if (ageBand === "MIXED") return "혼성 연령";
-  return null;
+function errorText(err: unknown, fallback: string): string {
+  return err instanceof ApiClientError || err instanceof Error ? err.message : fallback;
 }
 
 export function HomePage({ store, metaverseMode }: HomePageProps) {
@@ -126,9 +93,6 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [editLayoutMode, setEditLayoutMode] = useState(false);
   const [partySize, setPartySize] = useState<number>(2);
-  const [ageCounts, setAgeCounts] = useState<Record<AgeKey, number>>({
-    ...EMPTY_AGE_COUNTS,
-  });
   const [notes, setNotes] = useState<string>("");
   const [banner, setBanner] = useState<{
     type: "success" | "error";
@@ -170,21 +134,15 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
   const tables = tablesQuery.data ?? [];
   const selectedTable: StoreTable | null =
     tables.find((t) => t.id === selectedTableId) ?? tables[0] ?? null;
+  const activeVisit = selectedTable?.active_visit ?? null;
 
   useEffect(() => {
     if (!selectedTable) return;
     if (selectedTable.active_visit) {
       setPartySize(selectedTable.active_visit.party_size);
-      const parsed = parseAgeBreakdownFromSession(
-        selectedTable.active_visit.age_band,
-        selectedTable.active_visit.party_size,
-        selectedTable.active_visit.notes
-      );
-      setAgeCounts(parsed.counts);
-      setNotes(parsed.memo);
+      setNotes(selectedTable.active_visit.notes ?? "");
     } else {
       setPartySize(Math.min(selectedTable.seats, 4));
-      setAgeCounts({ ...EMPTY_AGE_COUNTS });
       setNotes("");
     }
   }, [selectedTable?.id, selectedTable?.active_visit?.id]);
@@ -198,85 +156,69 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
     queryClient.invalidateQueries({ queryKey: ["sales-analytics", store.id] });
   }
 
-  // 연령대 스텝퍼 조작 시 총 인원수 자동 합산 연동
-  function handleAdjustAge(key: AgeKey, delta: number) {
-    setAgeCounts((prev) => {
-      const nextVal = Math.max(0, (prev[key] ?? 0) + delta);
-      const nextCounts = { ...prev, [key]: nextVal };
-      const sumAge = AGE_KEYS.reduce((acc, k) => acc + nextCounts[k], 0);
-      if (sumAge > 0) {
-        setPartySize(sumAge);
-      }
-      return nextCounts;
-    });
-  }
-
-  // 연령 미상 시 상단 빠른 인원수 터치
-  function handleQuickPartySize(num: number) {
-    setPartySize(num);
-    setAgeCounts({ ...EMPTY_AGE_COUNTS });
-  }
-
-  const totalAgeSelected = AGE_KEYS.reduce((acc, k) => acc + ageCounts[k], 0);
-
   const startVisitMutation = useMutation({
     mutationFn: () => {
       if (!selectedTable) throw new Error("테이블을 선택해 주세요.");
-      const band = deriveAgeBand(ageCounts);
-      const formattedNotes = formatAgeBreakdownNotes(ageCounts, notes);
       return createVisitSession(store.id, {
         table_id: selectedTable.id,
         party_size: partySize,
-        age_band: band,
-        notes: formattedNotes,
+        age_band: "UNRECORDED", // 사람별 입력에서 다시 계산
+        notes: notes.trim() || null,
       });
     },
     onSuccess: (created) => {
       refreshAll();
       setBanner({
         type: "success",
-        text: `${created.table_name}: ${created.party_size}명 착석 완료`,
+        text: `${created.table_name}: ${created.party_size}명 착석. 성별·연령은 손님이 안 넣으면 입력해 주세요.`,
       });
     },
     onError: (err: unknown) => {
-      const msg =
-        err instanceof ApiClientError || err instanceof Error
-          ? err.message
-          : "착석 기록에 실패했습니다.";
-      setBanner({ type: "error", text: msg });
+      setBanner({ type: "error", text: errorText(err, "착석 기록에 실패했습니다.") });
     },
   });
 
   const updateVisitMutation = useMutation({
     mutationFn: (payload: {
       party_size?: number;
-      age_band?: AgeBandType;
       status?: "SEATED" | "PAID" | "LEFT";
-      notes?: string | null;
+      purpose?: PurposeType;
+      relationship?: RelationshipType;
     }) => {
-      const activeVisit = selectedTable?.active_visit;
       if (!activeVisit) throw new Error("진행 중인 방문 세션이 없습니다.");
       return updateVisitSession(store.id, activeVisit.id, payload);
     },
-    onSuccess: (updated) => {
+    onSuccess: (updated, payload) => {
       refreshAll();
-      const statusText =
-        updated.status === "LEFT"
-          ? "퇴점 · 테이블 비우기 완료"
-          : updated.status === "PAID"
-          ? "결제 완료 표시됨 (착석 유지)"
-          : `${updated.party_size}명 정보 수정됨`;
-      setBanner({
-        type: "success",
-        text: `${updated.table_name}: ${statusText}`,
-      });
+      if (payload.status) {
+        setBanner({
+          type: "success",
+          text: `${updated.table_name}: ${
+            updated.status === "LEFT"
+              ? "퇴점 · 테이블 비우기 완료"
+              : updated.status === "PAID"
+                ? "결제 완료 (착석 유지)"
+                : "착석 중으로 되돌림"
+          }`,
+        });
+      }
     },
     onError: (err: unknown) => {
-      const msg =
-        err instanceof ApiClientError || err instanceof Error
-          ? err.message
-          : "상태 변경에 실패했습니다.";
-      setBanner({ type: "error", text: msg });
+      setBanner({ type: "error", text: errorText(err, "상태 변경에 실패했습니다.") });
+    },
+  });
+
+  const slotMutation = useMutation({
+    mutationFn: (params: { slotNo: number; gender?: GenderType; age_band?: AgeBandType }) => {
+      if (!activeVisit) throw new Error("진행 중인 방문 세션이 없습니다.");
+      return updateVisitSlot(store.id, activeVisit.id, params.slotNo, {
+        gender: params.gender,
+        age_band: params.age_band,
+      });
+    },
+    onSuccess: () => refreshAll(),
+    onError: (err: unknown) => {
+      setBanner({ type: "error", text: errorText(err, "객층 입력에 실패했습니다.") });
     },
   });
 
@@ -324,22 +266,32 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
   });
 
   const moveTableMutation = useMutation({
-    mutationFn: (params: { tableId: string; gridX: number; gridY: number }) =>
+    mutationFn: (params: {
+      tableId: string;
+      gridX?: number;
+      gridY?: number;
+      orientation?: "H" | "V";
+    }) =>
       updateTable(store.id, params.tableId, {
         grid_x: params.gridX,
         grid_y: params.gridY,
+        orientation: params.orientation,
       }),
-    onSuccess: (moved) => {
-      refreshAll();
-      setBanner({
-        type: "success",
-        text: `${moved.name} 위치가 (${moved.grid_x + 1}열, ${moved.grid_y + 1}행)으로 이동되었습니다.`,
-      });
+    onSuccess: () => refreshAll(),
+    onError: (err: unknown) => {
+      setBanner({ type: "error", text: errorText(err, "테이블 이동에 실패했습니다.") });
     },
   });
 
+  const slots: VisitSlot[] = activeVisit?.slots ?? [];
+  const contextByGuest = activeVisit?.context_source === "GUEST";
+  const busy = updateVisitMutation.isPending || slotMutation.isPending;
+
   return (
-    <div className="space-y-3">
+    <div
+      className="flex min-h-0 flex-col gap-2"
+      style={{ height: "calc(var(--app-viewport-height) - var(--app-header-height, 56px) - 2rem)" }}
+    >
       {banner && (
         <div
           role="status"
@@ -360,435 +312,248 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
         </div>
       )}
 
-      {/* 메인 태블릿 홀 화면: 좌측 홀 배치도(상단 네비바 iOS 스위치로 도트/심플 전환) + 우측 선택 테이블 터치 입력 패널 */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.85fr_1fr]">
-        {/* 좌측 홀 영역 */}
-        <div className="flex flex-col">
-          {metaverseMode ? (
-            <PixelFloorMap
-              tables={tables}
-              selectedTableId={selectedTable?.id ?? null}
-              onSelectTable={(id) => setSelectedTableId(id)}
-              editLayoutMode={editLayoutMode}
-              onToggleEditLayout={() => setEditLayoutMode((v) => !v)}
-              onMoveTable={(tableId, gridX, gridY) =>
-                moveTableMutation.mutate({ tableId, gridX, gridY })
-              }
-              isMovingTable={moveTableMutation.isPending}
-              activeTableCount={visitSummaryQuery.data?.active_table_count ?? 0}
-              activeGuestCount={visitSummaryQuery.data?.active_guest_count ?? 0}
-            />
-          ) : (
-            <section className="flex min-h-[calc(var(--app-viewport-height)-120px)] flex-col justify-between rounded-lg border-2 border-gray-300 bg-gray-200/70 p-4">
-              {/* 상단 홀 상태 바 (출입구 · 카운터 표시 및 범례) */}
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-300/80 bg-white/90 px-4 py-2.5">
-                <div className="flex items-center gap-3">
-                  <span className="rounded-lg bg-gray-800 px-2.5 py-1 text-xs font-bold text-white">
-                    매장 입구 · 카운터
-                  </span>
-                  <span className="text-sm font-bold text-gray-800">
-                    매장 홀 테이블 배치
-                  </span>
-                </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
-                  <span className="inline-flex items-center gap-1.5 text-gray-600">
-                    <span className="inline-block h-3 w-3 rounded-full border border-gray-400 bg-white" />
-                    빈 테이블
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 text-accent-700">
-                    <span className="inline-block h-3 w-3 rounded-full bg-accent-600" />
-                    착석중
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 text-amber-800">
-                    <span className="inline-block h-3 w-3 rounded-full bg-amber-500" />
-                    결제완료(재석)
-                  </span>
-                  <Link
-                    to="/settings"
-                    className="rounded-lg border border-gray-300 bg-gray-50 px-2.5 py-1 text-[12px] font-bold text-gray-700 hover:bg-gray-100"
-                  >
-                    + 테이블 배치 설정
-                  </Link>
-                </div>
-              </div>
-
-              {/* 심플 카드 홀 그리드 */}
-              {tables.length === 0 ? (
-                <div className="my-auto rounded-lg bg-white/80 p-10 text-center text-sm text-gray-600">
-                  등록된 홀 테이블이 없습니다.{" "}
-                  <Link to="/settings" className="font-bold text-accent-600 underline">
-                    설정 화면
-                  </Link>
-                  에서 테이블을 추가해 주세요.
-                </div>
-              ) : (
-                <div className="my-auto grid grid-cols-2 gap-4 py-2 sm:grid-cols-3 xl:grid-cols-3">
-                  {tables.map((t) => {
-                    const isSelected = selectedTable?.id === t.id;
-                    const active = t.active_visit;
-                    const ageSummary = active
-                      ? formatAgeSummaryBadge(active.age_band, active.notes)
-                      : null;
-                    const topChairs = Math.ceil(Math.min(t.seats, 8) / 2);
-                    const bottomChairs = Math.floor(Math.min(t.seats, 8) / 2);
-
-                    return (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => setSelectedTableId(t.id)}
-                        className={`group relative flex min-h-[155px] flex-col justify-between rounded-lg border-2 p-4 text-left transition active:scale-[0.99] ${
-                          isSelected
-                            ? "border-accent-600 bg-white ring-4 ring-accent-500/25"
-                            : active
-                            ? active.status === "PAID"
-                              ? "border-amber-400 bg-amber-50/95 hover:border-amber-500"
-                              : "border-accent-400 bg-accent-50/95 hover:border-accent-500"
-                            : "border-gray-300 bg-white/95 hover:border-gray-400"
-                        }`}
-                      >
-                        <div className="flex justify-center gap-2">
-                          {Array.from({ length: topChairs }).map((_, idx) => (
-                            <span
-                              key={idx}
-                              className={`h-2 w-6 rounded-full ${
-                                active
-                                  ? active.status === "PAID"
-                                    ? "bg-amber-400"
-                                    : "bg-accent-500"
-                                  : "bg-gray-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
-
-                        <div className="my-2">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-lg font-bold text-gray-900">
-                              {t.name}
-                            </span>
-                            <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[12px] font-bold text-gray-600">
-                              {t.seats}인석
-                            </span>
-                          </div>
-
-                          {active ? (
-                            <div className="mt-2 flex flex-wrap items-baseline justify-between gap-1">
-                              <span
-                                className={`text-2xl font-bold ${
-                                  active.status === "PAID"
-                                    ? "text-amber-900"
-                                    : "text-accent-900"
-                                }`}
-                              >
-                                {active.party_size}명
-                              </span>
-                              <span
-                                className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                                  active.status === "PAID"
-                                    ? "bg-amber-200 text-amber-950"
-                                    : "bg-accent-600 text-white"
-                                }`}
-                              >
-                                {active.status === "PAID" ? "결제완료" : "착석중"}
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="mt-3 text-sm font-bold text-gray-500">
-                              빈 테이블 (터치하여 착석)
-                            </div>
-                          )}
-
-                          {active && ageSummary && (
-                            <div className="mt-1.5 truncate rounded-md bg-white/80 px-2 py-0.5 text-[12px] font-bold text-gray-700">
-                              {ageSummary}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex justify-center gap-2">
-                          {Array.from({ length: bottomChairs }).map((_, idx) => (
-                            <span
-                              key={idx}
-                              className={`h-2 w-6 rounded-full ${
-                                active
-                                  ? active.status === "PAID"
-                                    ? "bg-amber-400"
-                                    : "bg-accent-500"
-                                  : "bg-gray-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+      {/* 기록 화면 (U-31): 문서 스크롤 없이 도면 + 입력 패널. 가로 화면은 좌우, 세로 화면은 위아래 */}
+      <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-2 landscape:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] landscape:grid-rows-1">
+        <section className="flex min-h-0 flex-col rounded-lg border border-gray-300 bg-white p-2">
+          <div className="mb-1 flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs font-bold">
+            <div className="flex items-center gap-3 text-gray-700">
+              <span>
+                이용 {visitSummaryQuery.data?.active_table_count ?? 0}테이블 ·{" "}
+                {visitSummaryQuery.data?.active_guest_count ?? 0}명
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="inline-block h-2.5 w-2.5 rounded-sm border border-blue-600 bg-blue-100" />
+                착석
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="inline-block h-2.5 w-2.5 rounded-sm border border-amber-600 bg-amber-100" />
+                결제
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {editLayoutMode && selectedTable && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    moveTableMutation.mutate({
+                      tableId: selectedTable.id,
+                      orientation: selectedTable.orientation === "V" ? "H" : "V",
+                    })
+                  }
+                  className="h-8 rounded-md border border-gray-300 px-2.5"
+                >
+                  {selectedTable.name} 방향 바꾸기
+                </button>
               )}
+              <button
+                type="button"
+                onClick={() => setEditLayoutMode((v) => !v)}
+                className={`h-8 rounded-md border px-2.5 ${chipClass(editLayoutMode)}`}
+              >
+                {editLayoutMode ? "배치 끝내기" : "배치 편집"}
+              </button>
+            </div>
+          </div>
+          {editLayoutMode && (
+            <p className="mb-1 shrink-0 text-[11px] text-gray-500">
+              테이블을 고른 뒤 도면의 빈 곳을 누르면 그 위치로 옮깁니다.
+            </p>
+          )}
+          <div className="min-h-0 flex-1">
+            {tables.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-sm text-gray-600">
+                등록된 테이블이 없습니다.&nbsp;
+                <Link to="/settings" className="font-bold text-accent-600 underline">
+                  설정
+                </Link>
+                에서 추가해 주세요.
+              </div>
+            ) : (
+              <FloorPlan
+                tables={tables}
+                fixtures={store.floor_fixtures ?? []}
+                selectedTableId={selectedTable?.id ?? null}
+                onSelectTable={(id) => setSelectedTableId(id)}
+                editMode={editLayoutMode}
+                onMoveTable={(tableId, gridX, gridY) =>
+                  moveTableMutation.mutate({ tableId, gridX, gridY })
+                }
+                pixel={metaverseMode}
+              />
+            )}
+          </div>
+        </section>
 
-              <div className="mt-3 flex items-center justify-between rounded-lg border border-gray-300/70 bg-white/80 px-4 py-2 text-xs font-bold text-gray-600">
-                <span>주방 · 서빙 패스 라인</span>
-                <span>
-                  이용 중:{" "}
-                  <strong className="text-gray-900">
-                    {visitSummaryQuery.data?.active_table_count ?? 0}테이블 (
-                    {visitSummaryQuery.data?.active_guest_count ?? 0}명)
-                  </strong>
+        <aside
+          className="flex min-h-0 flex-col gap-2 rounded-lg border border-gray-300 bg-white p-3 text-sm"
+          data-testid="visit-panel"
+        >
+          {!selectedTable ? (
+            <p className="text-gray-500">테이블을 선택해 주세요.</p>
+          ) : (
+            <>
+              <div className="flex shrink-0 items-baseline justify-between">
+                <h2 className="text-base font-bold text-gray-900">{selectedTable.name}</h2>
+                <span className="text-xs font-semibold text-gray-600">
+                  {activeVisit
+                    ? `${activeVisit.status === "PAID" ? "결제 완료" : "착석"} · ${formatTime(activeVisit.seated_at)}부터`
+                    : "빈 테이블"}
                 </span>
               </div>
-            </section>
-          )}
-        </div>
 
-        {/* 우측: 선택된 테이블 터치 입력 패널 */}
-        <aside className="flex flex-col justify-between rounded-lg border-2 border-gray-300 bg-white p-5">
-          {!selectedTable ? (
-            <div className="py-12 text-center text-sm font-semibold text-gray-500">
-              좌측 배치도에서 테이블을 터치해 주세요.
-            </div>
-          ) : (
-            <div className="space-y-5">
-              {/* 선택된 테이블 헤더 */}
-              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      {selectedTable.name}
-                    </h2>
-                    <span className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-700">
-                      기본 {selectedTable.seats}인석
-                    </span>
-                  </div>
-                  {selectedTable.active_visit && (
-                    <div className="mt-1 text-xs font-semibold text-gray-500">
-                      입점 시각:{" "}
-                      {new Date(selectedTable.active_visit.seated_at).toLocaleTimeString(
-                        "ko-KR",
-                        { hour: "2-digit", minute: "2-digit" }
-                      )}
-                    </div>
-                  )}
+              <div className="shrink-0">
+                <div className="mb-1 text-[11px] font-bold text-gray-500">
+                  인원{activeVisit?.party_size_source === "GUEST_QR" ? " (손님 입력)" : ""}
                 </div>
-
-                <div className="text-right">
-                  <div className="text-xs font-bold text-gray-500">현재 인원</div>
-                  <div className="text-3xl font-bold text-accent-600">
-                    {partySize}명
-                  </div>
-                </div>
-              </div>
-
-              {/* 1. 방문 인원수 빠른 터치 (연령 미상 시 원탭) */}
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-800">
-                    빠른 인원수 터치{" "}
-                    <span className="font-normal text-gray-500">
-                      (연령대 미선택 시 바로 적용)
-                    </span>
-                  </label>
-                  {totalAgeSelected > 0 && (
+                <div className="grid grid-cols-8 gap-1">
+                  {PARTY_SIZES.map((n) => (
                     <button
+                      key={n}
                       type="button"
-                      onClick={() => setAgeCounts({ ...EMPTY_AGE_COUNTS })}
-                      className="text-[12px] font-bold text-accent-600 underline"
+                      disabled={busy}
+                      onClick={() => {
+                        setPartySize(n);
+                        if (activeVisit && activeVisit.party_size !== n) {
+                          updateVisitMutation.mutate({ party_size: n });
+                        }
+                      }}
+                      className={`h-9 rounded-md border text-sm font-bold ${chipClass(
+                        (activeVisit?.party_size ?? partySize) === n
+                      )}`}
                     >
-                      연령 카운트 초기화
-                    </button>
-                  )}
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => handleQuickPartySize(num)}
-                      className={`h-11 rounded-lg border text-sm font-bold transition active:scale-95 ${
-                        partySize === num && totalAgeSelected === 0
-                          ? "border-accent-600 bg-accent-50 text-accent-800"
-                          : "border-gray-300 bg-gray-50 text-gray-800 hover:bg-gray-100"
-                      }`}
-                    >
-                      {num}명
+                      {n === 8 ? "8+" : n}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* 2. 연령대 터치 스텝퍼: [-] 20대 (N) [+] */}
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-800">
-                    연령대 터치 카운터{" "}
-                    <span className="font-normal text-gray-500">
-                      (+ 터치 시 총 인원 자동 합산)
-                    </span>
-                  </label>
-                  {totalAgeSelected > 0 && (
-                    <span className="rounded-full bg-accent-100 px-2.5 py-0.5 text-[12px] font-bold text-accent-900">
-                      연령 합계 {totalAgeSelected}명
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-2.5">
-                  {AGE_KEYS.map((key) => {
-                    const count = ageCounts[key] ?? 0;
-                    const active = count > 0;
-                    return (
-                      <div
-                        key={key}
-                        className={`flex h-13 items-center justify-between rounded-lg border-2 px-2 transition ${
-                          active
-                            ? "border-accent-600 bg-accent-50/80"
-                            : "border-gray-200 bg-gray-50"
-                        }`}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => handleAdjustAge(key, -1)}
-                          disabled={count === 0}
-                          aria-label={`${key} 감소`}
-                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-base font-bold text-gray-700 disabled:opacity-35 active:bg-gray-200"
-                        >
-                          -
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleAdjustAge(key, 1)}
-                          className="flex flex-1 flex-col items-center justify-center px-1 text-center"
-                        >
-                          <span
-                            className={`text-sm font-bold ${
-                              active ? "text-accent-950" : "text-gray-700"
-                            }`}
-                          >
-                            {key}{" "}
-                            <span
-                              className={
-                                active ? "text-accent-600" : "text-gray-500"
-                              }
-                            >
-                              ({count})
-                            </span>
-                          </span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleAdjustAge(key, 1)}
-                          aria-label={`${key} 증가`}
-                          className={`flex h-9 w-9 items-center justify-center rounded-lg text-base font-bold transition active:scale-95 ${
-                            active
-                              ? "bg-accent-600 text-white"
-                              : "border border-gray-300 bg-white text-gray-800"
-                          }`}
-                        >
-                          +
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 3. 간단 현장 메모 */}
-              <div>
-                <input
-                  type="text"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="선택 메모 (예: 창가 요청, 유아 동반, 단골)"
-                  className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm"
-                />
-              </div>
-
-              {/* 4. 착석 / 결제 / 퇴점 핵심 액션 버튼 */}
-              {!selectedTable.active_visit ? (
-                <button
-                  type="button"
-                  onClick={() => startVisitMutation.mutate()}
-                  disabled={startVisitMutation.isPending}
-                  className="w-full rounded-lg bg-accent-600 py-4 text-base font-bold text-white hover:bg-accent-700 disabled:opacity-50"
-                >
-                  {startVisitMutation.isPending
-                    ? "기록 중..."
-                    : `${selectedTable.name} · ${partySize}명 착석 시작`}
-                </button>
-              ) : (
-                <div className="space-y-2.5">
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateVisitMutation.mutate({
-                          party_size: partySize,
-                          age_band: deriveAgeBand(ageCounts),
-                          notes: formatAgeBreakdownNotes(ageCounts, notes),
-                        })
-                      }
-                      disabled={updateVisitMutation.isPending}
-                      className="rounded-lg border border-gray-300 bg-white py-3 text-xs font-bold text-gray-800 hover:bg-gray-100"
-                    >
-                      인원 · 연령 수정 저장
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateVisitMutation.mutate({
-                          status:
-                            selectedTable.active_visit?.status === "PAID"
-                              ? "SEATED"
-                              : "PAID",
-                        })
-                      }
-                      disabled={updateVisitMutation.isPending}
-                      className="rounded-lg border border-amber-400 bg-amber-100 py-3 text-xs font-bold text-amber-950 hover:bg-amber-200"
-                    >
-                      {selectedTable.active_visit.status === "PAID"
-                        ? "결제완료 취소 (착석중)"
-                        : "결제 완료 (재석 유지)"}
-                    </button>
-                  </div>
-
+              {!activeVisit ? (
+                <>
+                  <input
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    maxLength={200}
+                    placeholder="메모 (선택)"
+                    className="h-9 shrink-0 rounded-md border border-gray-300 px-2 text-sm"
+                  />
                   <button
                     type="button"
-                    onClick={() => updateVisitMutation.mutate({ status: "LEFT" })}
-                    disabled={updateVisitMutation.isPending}
-                    className="w-full rounded-lg bg-gray-900 py-4 text-base font-bold text-white hover:bg-gray-800"
+                    disabled={startVisitMutation.isPending}
+                    onClick={() => startVisitMutation.mutate()}
+                    className="h-12 shrink-0 rounded-lg bg-gray-900 text-base font-bold text-white disabled:opacity-50"
                   >
-                    퇴점 · 테이블 비우기
+                    {partySize}명 착석 시작
                   </button>
-                </div>
-              )}
-            </div>
-          )}
+                  <p className="text-[11px] text-gray-500">
+                    착석 후 사람별 성별·연령과 방문 목적을 고릅니다. 손님이 QR로 넣으면 그 값이 우선입니다.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="flex min-h-0 flex-1 flex-col">
+                    <div className="mb-1 shrink-0 text-[11px] font-bold text-gray-500">
+                      사람별 성별·연령
+                    </div>
+                    <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+                      {slots.map((slot) => {
+                        const byGuest = slot.profile_source === "GUEST";
+                        return (
+                          <div key={slot.slot_no} className="flex items-center gap-1" data-testid="slot-row">
+                            <span className="w-7 shrink-0 text-xs font-bold text-gray-600">
+                              {byGuest ? "손님" : `${slot.slot_no}번`}
+                            </span>
+                            {GENDER_OPTIONS.map((g) => (
+                              <button
+                                key={g.value}
+                                type="button"
+                                disabled={byGuest || busy}
+                                onClick={() => slotMutation.mutate({ slotNo: slot.slot_no, gender: g.value })}
+                                className={`h-8 w-8 shrink-0 rounded-md border text-xs font-bold ${chipClass(slot.gender === g.value, byGuest)}`}
+                              >
+                                {g.label}
+                              </button>
+                            ))}
+                            <div className="grid flex-1 grid-cols-6 gap-0.5">
+                              {AGE_OPTIONS.map((a) => (
+                                <button
+                                  key={a.band}
+                                  type="button"
+                                  disabled={byGuest || busy}
+                                  onClick={() => slotMutation.mutate({ slotNo: slot.slot_no, age_band: a.band })}
+                                  className={`h-8 rounded-md border text-[11px] font-bold ${chipClass(slot.age_band === a.band, byGuest)}`}
+                                >
+                                  {a.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-          {/* 우측 패널 하단: 주문 수정 · 환불 관리 모달 진입 버튼 */}
-          <div className="mt-5 border-t border-gray-200 pt-4">
-            <button
-              type="button"
-              onClick={() => setOrderModalOpen(true)}
-              className="flex w-full items-center justify-between rounded-lg border-2 border-gray-300 bg-gray-50 px-4 py-3 text-left hover:bg-gray-100"
-            >
-              <div>
-                <div className="text-xs font-bold text-gray-900">
-                  주문 수정 · 환불(취소) 관리
-                </div>
-                <div className="text-[12px] font-medium text-gray-500">
-                  {integrationQuery.data?.mode === "CSV_UPLOAD"
-                    ? "현재 CSV/수동 모드: 직접 수량 변경·환불 가능"
-                    : "현재 POS 연동 모드: POS 단말 자동 동기화"}
-                </div>
-              </div>
-              <span className="rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-bold text-white">
-                열기 →
-              </span>
-            </button>
-          </div>
+                  {(
+                    [
+                      ["방문 목적", PURPOSE_OPTIONS, activeVisit.purpose, "purpose"],
+                      ["동반 관계", RELATIONSHIP_OPTIONS, activeVisit.relationship, "relationship"],
+                    ] as const
+                  ).map(([label, options, current, key]) => (
+                    <div key={key} className="shrink-0">
+                      <div className="mb-1 text-[11px] font-bold text-gray-500">
+                        {label}
+                        {contextByGuest ? " (손님 입력)" : ""}
+                      </div>
+                      <div className="grid grid-cols-6 gap-1">
+                        {options.map((o) => (
+                          <button
+                            key={o.value}
+                            type="button"
+                            disabled={contextByGuest || busy}
+                            onClick={() => updateVisitMutation.mutate({ [key]: o.value })}
+                            className={`h-8 rounded-md border text-xs font-bold ${chipClass(current === o.value, contextByGuest)}`}
+                          >
+                            {o.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="grid shrink-0 grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        updateVisitMutation.mutate({
+                          status: activeVisit.status === "PAID" ? "SEATED" : "PAID",
+                        })
+                      }
+                      className="h-11 rounded-lg border-2 border-amber-500 bg-amber-50 text-sm font-bold text-amber-900"
+                    >
+                      {activeVisit.status === "PAID" ? "결제 취소" : "결제 완료"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => updateVisitMutation.mutate({ status: "LEFT" })}
+                      className="h-11 rounded-lg bg-gray-900 text-sm font-bold text-white"
+                    >
+                      퇴점 (비우기)
+                    </button>
+                  </div>
+                </>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setOrderModalOpen(true)}
+                className="mt-auto h-9 shrink-0 rounded-md border border-gray-300 bg-gray-50 text-xs font-bold text-gray-700"
+              >
+                주문 수정 · 환불 ({integrationQuery.data?.mode === "CSV_UPLOAD" ? "CSV/수동" : "POS 연동"})
+              </button>
+            </>
+          )}
         </aside>
       </div>
 

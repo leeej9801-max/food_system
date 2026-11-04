@@ -7,16 +7,23 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.errors import AppError
 from app.db.models import StoreTable, VisitSession, utcnow
 from app.schemas import (
+    SlotProfileUpdate,
     StoreTableCreate,
     StoreTableResponse,
     StoreTableUpdate,
     VisitSessionCreate,
     VisitSessionResponse,
     VisitSessionUpdate,
+    VisitSlotResponse,
     VisitSummaryResponse,
 )
 from app.services.guest import add_slots, sync_slots_to_party_size
 from app.services.menus import get_store_or_404, record_audit
+from app.services.visit_profile import (
+    apply_slot_profile,
+    apply_visit_context,
+    close_expired_sessions,
+)
 
 
 def _to_visit_response(session: VisitSession, table_name: str) -> VisitSessionResponse:
@@ -39,6 +46,20 @@ def _to_visit_response(session: VisitSession, table_name: str) -> VisitSessionRe
         party_size_source=session.party_size_source,
         opened_by=session.opened_by,
         closed_reason=session.closed_reason,
+        purpose=session.purpose,
+        relationship=session.relationship_type,
+        context_source=session.context_source,
+        slots=[
+            VisitSlotResponse(
+                slot_no=slot.slot_no,
+                state=slot.state,
+                is_claimed=slot.claimed_by_device_id is not None,
+                gender=slot.gender,
+                age_band=slot.age_band,
+                profile_source=slot.profile_source,
+            )
+            for slot in sorted(session.slots, key=lambda slot: slot.slot_no)
+        ],
     )
 
 
@@ -55,6 +76,7 @@ def _to_table_response(table: StoreTable) -> StoreTableResponse:
         seats=table.seats,
         grid_x=table.grid_x,
         grid_y=table.grid_y,
+        orientation=table.orientation,
         is_active=table.is_active,
         active_visit=active_visit,
         created_at=table.created_at,
@@ -66,9 +88,11 @@ def list_tables(
     db: Session, *, store_id: str, include_inactive: bool = False
 ) -> list[StoreTableResponse]:
     get_store_or_404(db, store_id)
+    if close_expired_sessions(db, store_id):
+        db.commit()
     stmt = (
         select(StoreTable)
-        .options(selectinload(StoreTable.visit_sessions))
+        .options(selectinload(StoreTable.visit_sessions).selectinload(VisitSession.slots))
         .where(StoreTable.store_id == store_id)
         .execution_options(populate_existing=True)
     )
@@ -83,7 +107,7 @@ def get_table_or_404(db: Session, *, store_id: str, table_id: str) -> StoreTable
     get_store_or_404(db, store_id)
     stmt = (
         select(StoreTable)
-        .options(selectinload(StoreTable.visit_sessions))
+        .options(selectinload(StoreTable.visit_sessions).selectinload(VisitSession.slots))
         .where(StoreTable.id == table_id, StoreTable.store_id == store_id)
         .execution_options(populate_existing=True)
     )
@@ -103,6 +127,7 @@ def create_table(
         seats=payload.seats,
         grid_x=payload.grid_x,
         grid_y=payload.grid_y,
+        orientation=payload.orientation,
         is_active=payload.is_active,
     )
     db.add(table)
@@ -154,6 +179,8 @@ def _occupied(table_name: str) -> AppError:
 def create_visit_session(
     db: Session, *, store_id: str, payload: VisitSessionCreate
 ) -> VisitSessionResponse:
+    get_store_or_404(db, store_id)
+    close_expired_sessions(db, store_id)  # 어제 안 닫힌 세션이 새 착석을 막지 않게
     table = get_table_or_404(db, store_id=store_id, table_id=payload.table_id)
     if not table.is_active:
         raise AppError(
@@ -237,6 +264,9 @@ def update_visit_session(
         visit.age_band = data["age_band"]
     if "notes" in data:
         visit.notes = data["notes"].strip() if data["notes"] else None
+    apply_visit_context(
+        visit, source="STAFF", purpose=data.get("purpose"), relationship=data.get("relationship")
+    )
 
     if "status" in data and data["status"] is not None:
         next_status = data["status"]
@@ -282,9 +312,11 @@ def update_visit_session(
 
 def list_visit_summary(db: Session, *, store_id: str) -> VisitSummaryResponse:
     get_store_or_404(db, store_id)
+    if close_expired_sessions(db, store_id):
+        db.commit()
     stmt = (
         select(VisitSession)
-        .options(selectinload(VisitSession.table))
+        .options(selectinload(VisitSession.table), selectinload(VisitSession.slots))
         .where(VisitSession.store_id == store_id)
         .order_by(VisitSession.seated_at.desc())
         .execution_options(populate_existing=True)
@@ -298,3 +330,38 @@ def list_visit_summary(db: Session, *, store_id: str) -> VisitSummaryResponse:
         total_guest_count=sum(s.party_size for s in sessions),
         sessions=[_to_visit_response(s, s.table.name) for s in sessions],
     )
+
+
+def update_slot_profile(
+    db: Session, *, store_id: str, visit_id: str, slot_no: int, payload: SlotProfileUpdate
+) -> VisitSessionResponse:
+    """직원이 사람별 성별·연령대를 입력한다. 손님이 입력한 자리는 409 (U-31)."""
+    get_store_or_404(db, store_id)
+    visit = db.scalars(
+        select(VisitSession)
+        .options(selectinload(VisitSession.table), selectinload(VisitSession.slots))
+        .where(VisitSession.id == visit_id, VisitSession.store_id == store_id)
+    ).first()
+    if visit is None:
+        raise AppError(
+            status_code=404,
+            code="VISIT_NOT_FOUND",
+            message="방문 세션을 찾을 수 없습니다.",
+        )
+    slot = next((s for s in visit.slots if s.slot_no == slot_no), None)
+    if slot is None:
+        raise AppError(status_code=404, code="SLOT_NOT_FOUND", message="자리를 찾을 수 없습니다.")
+    apply_slot_profile(
+        visit, slot, source="STAFF", gender=payload.gender, age_band=payload.age_band
+    )
+    record_audit(
+        db,
+        store_id=store_id,
+        entity_type="visit_session",
+        entity_id=visit.id,
+        action="slot_profile",
+        summary={"slot_no": slot_no, "gender": slot.gender, "age_band": slot.age_band},
+    )
+    db.commit()
+    db.refresh(visit)
+    return _to_visit_response(visit, visit.table.name)

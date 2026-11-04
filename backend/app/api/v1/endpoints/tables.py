@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.schemas import (
+    SlotProfileUpdate,
     StoreTableCreate,
     StoreTableResponse,
     StoreTableUpdate,
@@ -80,6 +81,19 @@ def patch_visit(
 ) -> VisitSessionResponse:
     return table_service.update_visit_session(
         db, store_id=store_id, visit_id=visit_id, payload=payload
+    )
+
+
+@router.patch("/visits/{visit_id}/slots/{slot_no}", response_model=VisitSessionResponse)
+def patch_visit_slot(
+    store_id: str,
+    visit_id: str,
+    slot_no: int,
+    payload: SlotProfileUpdate,
+    db: Session = Depends(get_db),
+) -> VisitSessionResponse:
+    return table_service.update_slot_profile(
+        db, store_id=store_id, visit_id=visit_id, slot_no=slot_no, payload=payload
     )
 
 

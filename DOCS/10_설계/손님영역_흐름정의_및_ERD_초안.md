@@ -55,7 +55,7 @@ QR 스캔 → 인원 한 번 터치(`[1][2][3][4+]`, 첫 스캔자만) → 내 �
 - `+`: 자리 추가(일행 수 +1). 좌석 수 초과 시 확인. `-`: 빈 실루엣만 지움. 이미 만든 캐릭터 수보다 적게 줄일 수 없음.
 - 대신 꾸미기: 빈 자리를 누르면 어른·어린이·어르신 프리셋, 관계 "가족" 선택 시 가족 세트 한 번에 생성. 나중에 본인이 스캔하면 "이 캐릭터가 나예요"로 가져감.
 - 인원이 다르게 들어오면 조용히 덮어쓰지 않고 "4명으로 등록돼 있어요. 맞나요?" 확인.
-- 방문 목적·관계는 세션 단위로 첫 사람이 한 번 고름. 연령대는 사람 단위 선택 입력.
+- 방문 목적·관계는 세션 단위로 첫 사람이 한 번 고름. 성별·연령대는 사람 단위 선택 입력(U-31, 2026-11-05 성별 추가). 손님이 넣지 않으면 직원이 넣고, 손님 값이 우선한다.
 
 ## 4. 시점별 케이스
 
@@ -118,8 +118,8 @@ erDiagram
 |---|---|---|
 | `store_tables` | 매장 | 기존 + `store_id` |
 | `table_qr_tokens` | 매장 | `store_id`, `table_id`, 추측 불가 토큰, `rotated_at` |
-| `visit_sessions` | 매장 | 기존 + `party_size_source`(GUEST_QR/STAFF/CSV_BACKFILL), `opened_by`, `closed_reason`(NEXT_PARTY/CLEARED/TIMEOUT/END_OF_DAY), `purpose`, `relationship` |
-| `session_slots` | 매장 | `store_id`, `session_id`, `slot_no`, `state`, `character_id`, `age_band`, `created_by_device`, `claimed_by_device`, `display_opt_out` |
+| `visit_sessions` | 매장 | 기존 + `party_size_source`(GUEST_QR/STAFF/CSV_BACKFILL), `opened_by`, `closed_reason`(NEXT_PARTY/CLEARED/TIMEOUT/END_OF_DAY), `purpose`, `relationship`, `context_source`(GUEST/STAFF) |
+| `session_slots` | 매장 | `store_id`, `session_id`, `slot_no`, `state`, `character_id`, `gender`, `age_band`, `profile_source`(GUEST/STAFF), `created_by_device`, `claimed_by_device`, `display_opt_out` |
 | `stamps` | 매장 | `store_id`, `guest_profile_id`, `visit_session_id` |
 | `guest_devices` | 전역 | 익명 기기 토큰(쿠키), `created_at` |
 | `guest_profiles` | 전역 | 전역 ID, 연동 제공자(`KAKAO`/`NAVER`)와 제공자 사용자 ID (U-23: 연동 등록 시에만 생성, 연락처 미수집) |
