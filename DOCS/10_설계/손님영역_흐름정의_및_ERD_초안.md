@@ -85,7 +85,7 @@ QR 스캔 → 인원 한 번 터치(`[1][2][3][4+]`, 첫 스캔자만) → 내 �
 - 안내 문구: "QR로 캐릭터를 만드시면 저기 화면에 나와요. 음식 기다리시는 동안 해보세요. 방문 쿠폰도 드려요." (무료 음료는 영수증 리뷰 이벤트와 겹쳐 비용이 두 번 나가므로 기본값 아님)
 - 보상: 스탬프 = 캐릭터 아이템 해금(기본), 시즌·기념일 한정 아이템, 실물(음료·굿즈)은 잘되면 추가.
 - 단체 사진 카드: 우리 테이블 확대, 캐릭터가 카메라를 보고 웃는 포즈 + 매장 이름·로고, SNS 공유용. 실물 출력은 나중.
-- 등록: 처음부터 인증 요청하지 않음. 꾸미는 중 "다음에도 이 캐릭터로 등장하기"에서 동의 후 등록. 카카오 채널 고객 관리 연계는 `미검증`.
+- 등록: 처음부터 인증 요청하지 않음. 꾸미는 중 "다음에도 이 캐릭터로 등장하기"에서 카카오·네이버 연동 + 동의 후 등록 (U-23). 연동하지 않으면 개인정보는 저장하지 않음. 카카오 채널 고객 관리 연계는 `미검증`.
 - 핵심 지표: QR 스캔률(착석 테이블 중 스캔 비율), 꾸미기 완료율, 실루엣 → 캐릭터 전환율.
 
 ## 6. 구조와 API 경계
@@ -122,7 +122,7 @@ erDiagram
 | `session_slots` | 매장 | `store_id`, `session_id`, `slot_no`, `state`, `character_id`, `age_band`, `created_by_device`, `claimed_by_device`, `display_opt_out` |
 | `stamps` | 매장 | `store_id`, `guest_profile_id`, `visit_session_id` |
 | `guest_devices` | 전역 | 익명 기기 토큰(쿠키), `created_at` |
-| `guest_profiles` | 전역 | 전역 ID, 외부 인증 ID(카카오 등) 또는 연락처 해시 |
+| `guest_profiles` | 전역 | 전역 ID, 연동 제공자(`KAKAO`/`NAVER`)와 제공자 사용자 ID (U-23: 연동 등록 시에만 생성, 연락처 미수집) |
 | `characters` | 전역 | `owner_device_id` 또는 `guest_profile_id`, 외형(JSON) |
 | `consents` | 전역(+매장) | `guest_profile_id`, `store_id`(매장별 동의일 때만), 종류, 약관 버전, 동의·철회 시각 |
 | `items`, `item_unlocks` | 전역(+매장 한정 아이템은 `store_id`) | 아이템 카탈로그, 해금 기록 |
