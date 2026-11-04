@@ -14,6 +14,11 @@ if not env_file.exists():
         encoding="utf-8",
     )
     print("Created .env.deploy (secret values not displayed)")
+# ADR-013: the API connects as a separate store-scoped role; add its secret to older files too
+if "RUNTIME_DB_PASSWORD=" not in env_file.read_text(encoding="utf-8"):
+    with env_file.open("a", encoding="utf-8") as f:
+        f.write(f"RUNTIME_DB_PASSWORD={secrets.token_hex(32)}\n")
+    print("Added RUNTIME_DB_PASSWORD to .env.deploy (secret value not displayed)")
 
 backup_dir = root / ".deploy"
 backup_dir.mkdir(exist_ok=True)

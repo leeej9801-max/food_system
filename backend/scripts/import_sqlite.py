@@ -4,7 +4,7 @@ import argparse
 from datetime import UTC, datetime
 from pathlib import Path
 
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import create_engine, func, inspect, select
 from sqlalchemy.engine import Engine
 
 import app.db.models  # noqa: F401
@@ -13,16 +13,25 @@ from app.db.base import Base
 
 
 def copy_data(source: Engine, target: Engine) -> dict[str, int]:
+    """Run as the DB owner (migrate service): the runtime role is store-scoped by RLS."""
     tables = Base.metadata.sorted_tables
     counts: dict[str, int] = {}
+    recipe_store: dict[str, str] = {}
     with source.connect() as src, target.begin() as dest:
         for table in tables:
             if dest.scalar(select(func.count()).select_from(table)):
                 raise ValueError("Target DB is not empty; refusing to overwrite or merge data")
         for table in tables:
+            # a snapshot taken before migration 0006 has no recipe_items.store_id
+            source_cols = {c["name"] for c in inspect(src).get_columns(table.name)}
+            columns = [c for c in table.columns if c.name in source_cols]
             rows = []
-            for row in src.execute(select(table)).mappings():
+            for row in src.execute(select(*columns)).mappings():
                 values = dict(row)
+                if table.name == "recipes":
+                    recipe_store[values["id"]] = values["store_id"]
+                if table.name == "recipe_items" and "store_id" not in values:
+                    values["store_id"] = recipe_store[values["recipe_id"]]
                 for name, value in values.items():
                     if isinstance(value, datetime) and value.tzinfo is None:
                         values[name] = value.replace(tzinfo=UTC)

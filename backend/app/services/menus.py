@@ -15,6 +15,7 @@ from app.db.models import (
     StoreTable,
     utcnow,
 )
+from app.db.tenancy import RequestContext, bind_store_scope
 from app.schemas import MenuCreate, MenuResponse, MenuUpdate, StoreCreate, StoreUpdate
 
 
@@ -130,6 +131,8 @@ def create_store(db: Session, payload: StoreCreate) -> Store:
     )
     db.add(store)
     db.flush()
+    # 새 매장의 테이블·감사 로그는 그 매장 범위에서 써야 RLS를 통과한다 (ADR-013)
+    bind_store_scope(db, RequestContext(store_id=store.id))
 
     for idx in range(payload.initial_table_count):
         col = idx % 3

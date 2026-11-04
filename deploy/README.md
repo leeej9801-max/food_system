@@ -19,9 +19,27 @@ docker compose --env-file .env.deploy up -d food-db migrate
 
 ```powershell
 $foodBackup = 'C:\dev\food\.deploy\sqlite-before-docker-YYYYMMDD-HHMMSS.db'
-docker compose --env-file .env.deploy run --rm --no-deps --volume "${foodBackup}:/backup/source.db:ro" backend python -m scripts.import_sqlite /backup/source.db
+docker compose --env-file .env.deploy run --rm --no-deps --volume "${foodBackup}:/backup/source.db:ro" migrate python -m scripts.import_sqlite /backup/source.db
 docker compose --env-file .env.deploy up -d --wait
 ```
+
+이전은 `migrate` 서비스(소유자 `food` 계정)로 실행한다. `backend`는 매장 범위가 걸리는 런타임 계정이라 여러 매장 데이터를 한 번에 넣을 수 없다.
+
+## 매장 격리 (ADR-013, 2026-11-04~)
+- `migrate`: 소유자 `food` 계정으로 `alembic upgrade head` 후 `scripts.ensure_runtime_role`이 런타임 계정 `food_app`(LOGIN, NOSUPERUSER, NOBYPASSRLS, 소유 객체 없음)을 만들거나 비밀번호를 맞추고 권한을 준다.
+- `backend`: `food_app`으로 접속한다. 매장 테이블 15개에 `FORCE ROW LEVEL SECURITY`가 걸려 있어, 요청 경로의 `store_id` 범위 밖 행은 조회·수정되지 않는다.
+- `.env.deploy`에 `RUNTIME_DB_PASSWORD`가 필요하다. 기존 파일이면 `prepare_deployment.py`가 값을 추가한다(출력하지 않음). 이 값 없이 `docker compose`를 실행하면 설정 단계에서 멈춘다.
+
+**기존 배포(0005)를 격리 버전으로 올리는 순서:**
+```powershell
+backend/.venv/Scripts/python.exe backend/scripts/prepare_deployment.py   # RUNTIME_DB_PASSWORD 추가 + SQLite 백업
+docker compose --env-file .env.deploy exec -T food-db pg_dump -U food -d food -Fc -f /tmp/food-before-0006.dump
+$foodDbContainer = docker compose --env-file .env.deploy ps -q food-db
+docker cp "${foodDbContainer}:/tmp/food-before-0006.dump" '.deploy/food-before-0006.dump'
+docker compose --env-file .env.deploy up -d --build --wait
+docker compose --env-file .env.deploy logs --tail 20 migrate   # "runtime role ready" 확인
+```
+되돌리기: 이전 이미지로 되돌린 뒤 `migrate` 서비스로 `alembic downgrade 0005_inventory_receipts_counts` (컬럼·정책 제거), `backend`의 `DATABASE_URL`을 소유자 계정으로 복구.
 
 이전 스크립트는 원본을 읽기 전용으로 열고 UUID·FK·숫자·시각·이력을 유지한다. 기존 target 데이터가 있으면 중단하며 삽입 실패 시 전체 트랜잭션을 롤백한다. Alembic 버전은 새 DB의 migration으로 관리한다. `.env.deploy`, `.deploy/`는 git 및 이미지 빌드에서 제외한다.
 

@@ -127,6 +127,10 @@ class RecipeItem(Base):
     recipe_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # RLS 정책이 부모 조인 없이 걸리도록 매장 ID를 직접 가진다 (ADR-013)
+    store_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
     ingredient_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("ingredients.id", ondelete="RESTRICT"), nullable=False, index=True
     )
