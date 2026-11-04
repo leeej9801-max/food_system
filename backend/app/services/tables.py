@@ -1,6 +1,7 @@
 from typing import Literal
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.errors import AppError
@@ -14,6 +15,7 @@ from app.schemas import (
     VisitSessionUpdate,
     VisitSummaryResponse,
 )
+from app.services.guest import add_slots, sync_slots_to_party_size
 from app.services.menus import get_store_or_404, record_audit
 
 
@@ -34,6 +36,9 @@ def _to_visit_response(session: VisitSession, table_name: str) -> VisitSessionRe
         left_at=session.left_at,
         source=session.source,
         notes=session.notes,
+        party_size_source=session.party_size_source,
+        opened_by=session.opened_by,
+        closed_reason=session.closed_reason,
     )
 
 
@@ -138,6 +143,14 @@ def update_table(
     return _to_table_response(get_table_or_404(db, store_id=store_id, table_id=table.id))
 
 
+def _occupied(table_name: str) -> AppError:
+    return AppError(
+        status_code=409,
+        code="TABLE_ALREADY_OCCUPIED",
+        message=f"테이블 '{table_name}'에 이미 진행 중인 착석 세션이 있습니다.",
+    )
+
+
 def create_visit_session(
     db: Session, *, store_id: str, payload: VisitSessionCreate
 ) -> VisitSessionResponse:
@@ -151,11 +164,7 @@ def create_visit_session(
 
     active = [s for s in table.visit_sessions if s.status in ("SEATED", "PAID")]
     if active:
-        raise AppError(
-            status_code=409,
-            code="TABLE_ALREADY_OCCUPIED",
-            message=f"테이블 '{table.name}'에 이미 진행 중인 착석 세션이 있습니다.",
-        )
+        raise _occupied(table.name)
 
     visit = VisitSession(
         store_id=store_id,
@@ -166,9 +175,20 @@ def create_visit_session(
         seated_at=utcnow(),
         source="manual",
         notes=payload.notes.strip() if payload.notes else None,
+        party_size_source="STAFF",
+        opened_by="STAFF",
     )
+    visit.slots = []
     db.add(visit)
-    db.flush()
+    table_name = table.name
+    try:
+        db.flush()
+    except IntegrityError:
+        # 손님 QR이 같은 순간 먼저 열었다 (테이블당 열린 세션 1개)
+        db.rollback()
+        raise _occupied(table_name) from None
+    # U-17: 직원 입력만 있으면 인원수만큼 실루엣
+    add_slots(db, visit, visit.party_size)
     record_audit(
         db,
         store_id=store_id,
@@ -192,7 +212,7 @@ def update_visit_session(
     get_store_or_404(db, store_id)
     stmt = (
         select(VisitSession)
-        .options(selectinload(VisitSession.table))
+        .options(selectinload(VisitSession.table), selectinload(VisitSession.slots))
         .where(VisitSession.id == visit_id, VisitSession.store_id == store_id)
     )
     visit = db.scalars(stmt).first()
@@ -212,6 +232,7 @@ def update_visit_session(
 
     if "party_size" in data and data["party_size"] is not None:
         visit.party_size = data["party_size"]
+        sync_slots_to_party_size(db, visit)
     if "age_band" in data and data["age_band"] is not None:
         visit.age_band = data["age_band"]
     if "notes" in data:
@@ -228,8 +249,12 @@ def update_visit_session(
             visit.status = "LEFT"
             if visit.left_at is None:
                 visit.left_at = utcnow()
+            if visit.closed_reason is None:
+                visit.closed_reason = "CLEARED"  # U-19: 직원이 치움
         elif next_status == "SEATED":
             visit.status = "SEATED"
+        if visit.status != "LEFT":
+            visit.closed_reason = None
 
     after = {
         "party_size": visit.party_size,
@@ -244,7 +269,13 @@ def update_visit_session(
         action=f"status_{visit.status.lower()}",
         summary={"before": before, "after": after},
     )
-    db.commit()
+    table_name = visit.table.name
+    try:
+        db.commit()
+    except IntegrityError:
+        # 닫은 세션을 다시 열려는데 그 테이블에 이미 새 세션이 있다
+        db.rollback()
+        raise _occupied(table_name) from None
     db.refresh(visit)
     return _to_visit_response(visit, visit.table.name)
 

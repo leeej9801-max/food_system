@@ -260,6 +260,9 @@ class VisitSessionResponse(BaseModel):
     left_at: datetime | None
     source: str
     notes: str | None
+    party_size_source: str = "STAFF"
+    opened_by: str = "STAFF"
+    closed_reason: str | None = None
 
 
 class StoreTableCreate(BaseModel):
@@ -633,3 +636,50 @@ class SalesOrderCreateRequest(BaseModel):
 
 
 
+
+
+class TableQrTokenResponse(BaseModel):
+    table_id: str
+    token: str
+    rotated_at: datetime
+
+
+# --- 손님 API (/api/guest/v1). 기기 ID·매장 내부 정보는 내보내지 않는다. ---
+
+SlotStateType = Literal["EMPTY", "SILHOUETTE", "EDITING", "CUSTOM"]
+
+
+class GuestSlotResponse(BaseModel):
+    slot_no: int
+    state: SlotStateType
+    is_claimed: bool
+    is_mine: bool
+    display_opt_out: bool
+
+
+class GuestSessionResponse(BaseModel):
+    party_size: int
+    party_size_source: str
+    opened_at: datetime
+    slots: list[GuestSlotResponse]
+
+
+class GuestTableResponse(BaseModel):
+    table_name: str
+    seats: int
+    session: GuestSessionResponse | None
+    # 열기 요청 결과 표시용 (조회에서는 항상 false)
+    joined: bool = False
+    party_size_mismatch: bool = False
+    over_seats: bool = False
+
+
+class GuestSessionOpen(BaseModel):
+    # 첫 스캔자만 고른다. 이미 열린 세션에 합류할 때는 비워도 된다.
+    party_size: int | None = Field(default=None, ge=1, le=20)
+    # 케이스 H: 이전 손님 세션이 안 닫혔을 때 "지금 앉으셨나요?" 확인 후 true
+    new_party: bool = False
+
+
+class GuestSlotDisplayUpdate(BaseModel):
+    display_opt_out: bool

@@ -6,11 +6,13 @@ from app.schemas import (
     StoreTableCreate,
     StoreTableResponse,
     StoreTableUpdate,
+    TableQrTokenResponse,
     VisitSessionCreate,
     VisitSessionResponse,
     VisitSessionUpdate,
     VisitSummaryResponse,
 )
+from app.services import guest as guest_service
 from app.services import tables as table_service
 
 router = APIRouter(prefix="/stores/{store_id}", tags=["tables & visits"])
@@ -79,3 +81,24 @@ def patch_visit(
     return table_service.update_visit_session(
         db, store_id=store_id, visit_id=visit_id, payload=payload
     )
+
+
+@router.get("/tables/{table_id}/qr-token", response_model=TableQrTokenResponse)
+def get_table_qr_token(
+    store_id: str,
+    table_id: str,
+    db: Session = Depends(get_db),
+) -> TableQrTokenResponse:
+    table_service.get_table_or_404(db, store_id=store_id, table_id=table_id)
+    return guest_service.get_qr_token(db, store_id=store_id, table_id=table_id)
+
+
+@router.post("/tables/{table_id}/qr-token", response_model=TableQrTokenResponse)
+def rotate_table_qr_token(
+    store_id: str,
+    table_id: str,
+    db: Session = Depends(get_db),
+) -> TableQrTokenResponse:
+    """QR 토큰 발급 또는 회전. 회전하면 이전 QR은 바로 못 쓴다."""
+    table_service.get_table_or_404(db, store_id=store_id, table_id=table_id)
+    return guest_service.issue_qr_token(db, store_id=store_id, table_id=table_id)

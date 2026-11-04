@@ -1,4 +1,4 @@
-"""ADR-013 B안 적용 확인: 실제 마이그레이션(0006)과 런타임 계정으로 API를 돌려 매장 간 격리를 본다.
+"""ADR-013 B안 적용 확인: 실제 마이그레이션(0006, 0007)과 런타임 계정으로 API를 돌려 매장 간 격리를 본다.
 
 PostgreSQL 전용. RLS_TEST_DATABASE_URL(소유자 계정)이 없으면 skip. 일회용 DB rls_api_test를 만들고 지운다.
 """
@@ -12,11 +12,13 @@ from alembic.config import Config
 from fastapi import Request
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, make_url, text
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import Session, sessionmaker
 
 from alembic import command
 from app.core.config import settings
 from app.db.session import bind_request_scope, get_db
+from app.db.tenancy import RequestContext, apply_store_scope
 from app.main import create_app
 from scripts.ensure_runtime_role import ensure_runtime_role
 
@@ -159,3 +161,77 @@ def test_store_list_is_shared_but_unscoped_db_sees_no_tenant_rows(client, stores
     with runtime_sessionmaker() as db:
         assert db.execute(text("SELECT count(*) FROM menu_items")).scalar_one() == 0
         assert db.execute(text("SELECT count(*) FROM recipe_items")).scalar_one() == 0
+
+
+# --- 손님 영역 B 1단계 (WO-20261104-003, alembic 0007) ---
+
+
+@pytest.fixture(scope="module")
+def qr(client, stores) -> dict:
+    """매장마다 두 번째 테이블에 QR 토큰을 발급한다 (첫 테이블은 위 직원 세션 테스트가 쓴다)."""
+    out = {}
+    for key in ("A", "B"):
+        sid, tid = stores[key]["id"], stores[key]["tables"][1]["id"]
+        r = client.post(f"/api/v1/stores/{sid}/tables/{tid}/qr-token")
+        assert r.status_code == 200, r.text
+        out[key] = {"store_id": sid, "table_id": tid, "token": r.json()["token"]}
+    return out
+
+
+def test_guest_qr_flow_works_under_rls(client, stores, qr):
+    a = qr["A"]
+    view = client.get(f"/api/guest/v1/qr/{a['token']}")
+    assert view.status_code == 200, view.text
+    assert view.json()["table_name"] == stores["A"]["tables"][1]["name"]
+    opened = client.post(f"/api/guest/v1/qr/{a['token']}/session", json={"party_size": 2})
+    assert opened.status_code == 200, opened.text
+    assert len(opened.json()["session"]["slots"]) == 2
+    claim = client.post(f"/api/guest/v1/qr/{a['token']}/session/slots/1/claim")
+    assert claim.status_code == 200 and claim.json()["session"]["slots"][0]["is_mine"]
+
+    visits_a = client.get(f"/api/v1/stores/{a['store_id']}/visits").json()["sessions"]
+    assert any(v["opened_by"] == "GUEST_QR" for v in visits_a)
+    visits_b = client.get(f"/api/v1/stores/{qr['B']['store_id']}/visits").json()["sessions"]
+    assert all(v["opened_by"] != "GUEST_QR" for v in visits_b)
+    # 매장 B 토큰은 매장 B 테이블만 본다 (A의 세션이 안 보임)
+    assert client.get(f"/api/guest/v1/qr/{qr['B']['token']}").json()["session"] is None
+
+
+def test_staff_cannot_read_or_rotate_other_store_qr(client, qr):
+    a, b = qr["A"], qr["B"]
+    base = f"/api/v1/stores/{a['store_id']}/tables/{b['table_id']}/qr-token"
+    assert client.get(base).status_code == 404
+    assert client.post(base).status_code == 404
+    # 매장 B 토큰은 그대로 쓸 수 있다
+    assert client.get(f"/api/guest/v1/qr/{b['token']}").status_code == 200
+
+
+def test_runtime_role_cannot_list_tokens_or_slots(runtime_sessionmaker, qr):
+    with runtime_sessionmaker() as db:
+        assert db.execute(text("SELECT count(*) FROM table_qr_tokens")).scalar_one() == 0
+        assert db.execute(text("SELECT count(*) FROM session_slots")).scalar_one() == 0
+        # 함수는 맞는 토큰 1개만 푼다
+        rows = db.execute(
+            text("SELECT store_id, table_id FROM app_resolve_table_qr(:t)"), {"t": qr["A"]["token"]}
+        ).all()
+        assert rows == [(qr["A"]["store_id"], qr["A"]["table_id"])]
+        none = db.execute(text("SELECT count(*) FROM app_resolve_table_qr('')")).scalar_one()
+        assert none == 0
+
+
+def test_runtime_role_cannot_insert_slot_for_other_store(runtime_sessionmaker, stores, qr):
+    with runtime_sessionmaker() as db:
+        apply_store_scope(db, RequestContext(store_id=stores["A"]["id"]))
+        visit_id = db.execute(
+            text("SELECT id FROM visit_sessions WHERE table_id = :t AND status = 'SEATED'"),
+            {"t": qr["A"]["table_id"]},
+        ).scalar_one()
+        with pytest.raises(ProgrammingError, match="row-level security"):
+            db.execute(
+                text(
+                    "INSERT INTO session_slots (id, store_id, session_id, slot_no, state, "
+                    "display_opt_out, created_at, updated_at) VALUES "
+                    "('x', :b, :v, 9, 'SILHOUETTE', false, now(), now())"
+                ),
+                {"b": stores["B"]["id"], "v": visit_id},
+            )

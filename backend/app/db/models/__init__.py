@@ -6,11 +6,13 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -185,9 +187,89 @@ class VisitSession(Base):
     left_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     source: Mapped[str] = mapped_column(String(32), nullable=False, default="manual")
     notes: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # U-18: GUEST_QR | STAFF | CSV_BACKFILL (손님 > 직원, CSV_BACKFILL은 화면 표시에 안 씀)
+    party_size_source: Mapped[str] = mapped_column(String(20), nullable=False, default="STAFF")
+    # 세션을 연 신호: GUEST_QR | STAFF
+    opened_by: Mapped[str] = mapped_column(String(20), nullable=False, default="STAFF")
+    # U-19: NEXT_PARTY | CLEARED | TIMEOUT | END_OF_DAY (LEFT일 때만)
+    closed_reason: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     store: Mapped["Store"] = relationship("Store", back_populates="visit_sessions")
     table: Mapped["StoreTable"] = relationship("StoreTable", back_populates="visit_sessions")
+    slots: Mapped[list["SessionSlot"]] = relationship(
+        "SessionSlot", back_populates="session", order_by="SessionSlot.slot_no"
+    )
+
+    __table_args__ = (
+        # 테이블당 열린 세션은 1개 (동시에 열면 먼저 저장된 쪽만 성공)
+        Index(
+            "uq_visit_sessions_open_table",
+            "table_id",
+            unique=True,
+            postgresql_where=text("status IN ('SEATED', 'PAID')"),
+            sqlite_where=text("status IN ('SEATED', 'PAID')"),
+        ),
+    )
+
+
+class TableQrToken(Base):
+    """테이블 QR에 들어가는 추측 불가 토큰. 테이블당 활성 토큰 1개, 회전하면 교체."""
+
+    __tablename__ = "table_qr_tokens"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    store_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    table_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("store_tables.id", ondelete="RESTRICT"), nullable=False, unique=True
+    )
+    token: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    rotated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class GuestDevice(Base):
+    """익명 손님 기기 (전역, 개인정보 없음). 쿠키 토큰 원문은 저장하지 않고 해시만 둔다."""
+
+    __tablename__ = "guest_devices"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class SessionSlot(Base):
+    """방문 세션의 1명 자리. 캐릭터는 다음 단계에서 붙는다."""
+
+    __tablename__ = "session_slots"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    store_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    session_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("visit_sessions.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    slot_no: Mapped[int] = mapped_column(Integer, nullable=False)
+    # EMPTY | SILHOUETTE | EDITING | CUSTOM
+    state: Mapped[str] = mapped_column(String(20), nullable=False, default="SILHOUETTE")
+    created_by_device_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("guest_devices.id", ondelete="RESTRICT"), nullable=True
+    )
+    claimed_by_device_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("guest_devices.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    display_opt_out: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
+    )
+
+    session: Mapped["VisitSession"] = relationship("VisitSession", back_populates="slots")
+
+    __table_args__ = (UniqueConstraint("session_id", "slot_no", name="uq_session_slots_session_slot"),)
 
 
 class PosConnection(Base):

@@ -38,6 +38,11 @@ def ensure_runtime_role(owner_url: str, role: str, password: str) -> None:
             )
             conn.exec_driver_sql(f"GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {role}")
             conn.exec_driver_sql(f"REVOKE ALL ON alembic_version FROM {role}")
+            # 손님 QR 토큰 1개만 푸는 함수 (alembic 0007). 그 전 리비전이면 없다
+            if conn.scalar(text("SELECT to_regprocedure('app_resolve_table_qr(text)')")):
+                conn.exec_driver_sql(
+                    f"GRANT EXECUTE ON FUNCTION app_resolve_table_qr(text) TO {role}"
+                )
             conn.exec_driver_sql(
                 f"ALTER DEFAULT PRIVILEGES IN SCHEMA public "
                 f"GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {role}"

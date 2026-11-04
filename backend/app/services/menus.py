@@ -27,10 +27,11 @@ def record_audit(
     entity_id: str,
     action: str,
     summary: dict[str, Any],
+    actor: str = "local_operator",  # PROVISIONAL (P-05): 인증 도입 전 로컬 운영자 기본값
 ) -> None:
     event = AuditEvent(
         store_id=store_id,
-        actor="local_operator",  # PROVISIONAL (P-05): 인증 도입 전 로컬 운영자 기본값
+        actor=actor,
         entity_type=entity_type,
         entity_id=entity_id,
         action=action,
