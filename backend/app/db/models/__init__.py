@@ -108,7 +108,7 @@ class Recipe(Base):
         String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     menu_item_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("menu_items.id", ondelete="RESTRICT"), nullable=False, unique=True, index=True
+        String(36), ForeignKey("menu_items.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     # COMPLETE: 완성, PARTIAL: 일부 미입력(작성 중)
@@ -122,6 +122,9 @@ class Recipe(Base):
     items: Mapped[list["RecipeItem"]] = relationship(
         "RecipeItem", back_populates="recipe", cascade="all, delete-orphan"
     )
+
+    # DB(0002)는 unique 제약 + 일반 인덱스다. unique=True, index=True는 unique 인덱스라 alembic check가 어긋난다
+    __table_args__ = (UniqueConstraint("menu_item_id", name="recipes_menu_item_id_key"),)
 
 
 class RecipeItem(Base):
@@ -290,7 +293,7 @@ class PosConnection(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, unique=True, index=True
+        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     # TOSS_OPEN_API | TOSS_PLUGIN | CSV_UPLOAD
     mode: Mapped[str] = mapped_column(String(32), nullable=False, default="CSV_UPLOAD")
@@ -301,6 +304,9 @@ class PosConnection(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
     )
+
+    # DB(0004)와 같은 형태: unique 제약 + 일반 인덱스
+    __table_args__ = (UniqueConstraint("store_id", name="pos_connections_store_id_key"),)
 
 
 class PosProductMapping(Base):

@@ -45,6 +45,12 @@ jobs:
           cache-dependency-glob: backend/uv.lock
       - run: uv sync --locked --extra dev
       - run: uv run ruff check .
+      - name: 마이그레이션 적용 + 모델과 DB 일치 (DB-002)
+        env:
+          DATABASE_URL: postgresql+psycopg://owner:ci-only@localhost:5432/postgres
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check
       - name: Tests (SQLite API + PostgreSQL 격리, skip 금지)
         run: |
           uv run pytest -ra | tee "$RUNNER_TEMP/pytest.txt"
