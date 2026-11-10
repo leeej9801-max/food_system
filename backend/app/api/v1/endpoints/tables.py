@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
@@ -19,91 +21,91 @@ from app.services import tables as table_service
 router = APIRouter(prefix="/stores/{store_id}", tags=["tables & visits"])
 
 
-@router.get("/tables", response_model=list[StoreTableResponse])
+@router.get("/tables")
 def get_tables(
     store_id: str,
-    include_inactive: bool = Query(default=False),
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
+    include_inactive: Annotated[bool, Query()] = False,
 ) -> list[StoreTableResponse]:
     return table_service.list_tables(db, store_id=store_id, include_inactive=include_inactive)
 
 
-@router.post("/tables", response_model=StoreTableResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/tables", status_code=status.HTTP_201_CREATED)
 def post_table(
     store_id: str,
     payload: StoreTableCreate,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> StoreTableResponse:
     return table_service.create_table(db, store_id=store_id, payload=payload)
 
 
-@router.patch("/tables/{table_id}", response_model=StoreTableResponse)
+@router.patch("/tables/{table_id}")
 def patch_table(
     store_id: str,
     table_id: str,
     payload: StoreTableUpdate,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> StoreTableResponse:
     return table_service.update_table(db, store_id=store_id, table_id=table_id, payload=payload)
 
 
-@router.get("/visits", response_model=VisitSummaryResponse)
+@router.get("/visits")
 def get_visits(
     store_id: str,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> VisitSummaryResponse:
     return table_service.list_visit_summary(db, store_id=store_id)
 
 
-@router.post("/visits", response_model=VisitSessionResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/visits", status_code=status.HTTP_201_CREATED)
 def post_visit(
     store_id: str,
     payload: VisitSessionCreate,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> VisitSessionResponse:
     return table_service.create_visit_session(db, store_id=store_id, payload=payload)
 
 
-@router.patch("/visits/{visit_id}", response_model=VisitSessionResponse)
+@router.patch("/visits/{visit_id}")
 def patch_visit(
     store_id: str,
     visit_id: str,
     payload: VisitSessionUpdate,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> VisitSessionResponse:
     return table_service.update_visit_session(
         db, store_id=store_id, visit_id=visit_id, payload=payload
     )
 
 
-@router.patch("/visits/{visit_id}/slots/{slot_no}", response_model=VisitSessionResponse)
+@router.patch("/visits/{visit_id}/slots/{slot_no}")
 def patch_visit_slot(
     store_id: str,
     visit_id: str,
     slot_no: int,
     payload: SlotProfileUpdate,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> VisitSessionResponse:
     return table_service.update_slot_profile(
         db, store_id=store_id, visit_id=visit_id, slot_no=slot_no, payload=payload
     )
 
 
-@router.get("/tables/{table_id}/qr-token", response_model=TableQrTokenResponse)
+@router.get("/tables/{table_id}/qr-token")
 def get_table_qr_token(
     store_id: str,
     table_id: str,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> TableQrTokenResponse:
     table_service.get_table_or_404(db, store_id=store_id, table_id=table_id)
     return guest_service.get_qr_token(db, store_id=store_id, table_id=table_id)
 
 
-@router.post("/tables/{table_id}/qr-token", response_model=TableQrTokenResponse)
+@router.post("/tables/{table_id}/qr-token")
 def rotate_table_qr_token(
     store_id: str,
     table_id: str,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> TableQrTokenResponse:
     """QR 토큰 발급 또는 회전. 회전하면 이전 QR은 바로 못 쓴다."""
     table_service.get_table_or_404(db, store_id=store_id, table_id=table_id)

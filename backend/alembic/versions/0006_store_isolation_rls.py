@@ -11,7 +11,6 @@ RLS is enforced only for a role that is neither table owner nor superuser nor BY
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision: str = "0006_store_isolation_rls"

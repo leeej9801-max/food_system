@@ -8,6 +8,7 @@ import secrets
 from collections.abc import Generator
 
 import pytest
+from alembic import command
 from alembic.config import Config
 from fastapi import Request
 from fastapi.testclient import TestClient
@@ -15,7 +16,6 @@ from sqlalchemy import create_engine, make_url, text
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import Session, sessionmaker
 
-from alembic import command
 from app.core.config import settings
 from app.db.session import bind_request_scope, get_db
 from app.db.tenancy import RequestContext, apply_store_scope

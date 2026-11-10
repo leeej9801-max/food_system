@@ -36,5 +36,11 @@ line-length = 100
 target-version = "py312"
 
 [tool.ruff.lint]
-ignore = ["B008"]
+select = ["E", "F", "I", "UP", "FAST", "DTZ", "ASYNC", "BLE"]
+# 코드 줄 길이는 ruff format이 맞춘다. 남는 것은 한글 주석·문구(전각 2칸 계산)뿐이다
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+known-third-party = ["alembic"]
 
