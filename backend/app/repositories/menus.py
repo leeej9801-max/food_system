@@ -23,3 +23,14 @@ def list_active_with_recipes(db: Session, store_id: str) -> list[MenuItem]:
             .execution_options(populate_existing=True)
         ).all()
     )
+
+
+def list_recipes_with_items(db: Session, store_id: str) -> list[Recipe]:
+    return list(
+        db.scalars(
+            select(Recipe)
+            .options(selectinload(Recipe.items))
+            .where(Recipe.store_id == store_id)
+            .execution_options(populate_existing=True)
+        ).all()
+    )

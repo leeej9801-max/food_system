@@ -2,19 +2,19 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Literal
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
 from app.db.models import (
-    Ingredient,
     InventoryAdjustment,
     InventoryCount,
     InventoryReceipt,
-    Recipe,
-    SalesOrder,
     utcnow,
 )
+from app.repositories import ingredients as ingredient_repo
+from app.repositories import inventory as inventory_repo
+from app.repositories import menus as menu_repo
+from app.repositories import sales_orders as sales_order_repo
 from app.schemas import (
     AdjustmentReasonType,
     IngredientInventoryItem,
@@ -71,8 +71,7 @@ def create_receipt(
         notes=payload.notes.strip() if payload.notes else None,
         received_at=utcnow(),
     )
-    db.add(receipt)
-    db.flush()
+    inventory_repo.insert(db, receipt)
     record_audit(
         db,
         store_id=store_id,
@@ -114,15 +113,8 @@ def list_receipts(
     db: Session, *, store_id: str, ingredient_id: str | None = None
 ) -> list[InventoryReceiptResponse]:
     get_store_or_404(db, store_id)
-    ingredients_by_id = {
-        i.id: i.name
-        for i in db.scalars(select(Ingredient).where(Ingredient.store_id == store_id)).all()
-    }
-    stmt = select(InventoryReceipt).where(InventoryReceipt.store_id == store_id)
-    if ingredient_id:
-        stmt = stmt.where(InventoryReceipt.ingredient_id == ingredient_id)
-    stmt = stmt.order_by(InventoryReceipt.received_at.desc(), InventoryReceipt.id.desc())
-    rows = list(db.scalars(stmt).all())
+    ingredients_by_id = {i.id: i.name for i in ingredient_repo.list_by_store(db, store_id)}
+    rows = inventory_repo.list_receipts_latest_first(db, store_id, ingredient_id)
     return [
         InventoryReceiptResponse(
             id=r.id,
@@ -157,8 +149,7 @@ def create_count(
         notes=payload.notes.strip() if payload.notes else None,
         counted_at=utcnow(),
     )
-    db.add(count_row)
-    db.flush()
+    inventory_repo.insert(db, count_row)
     record_audit(
         db,
         store_id=store_id,
@@ -190,15 +181,8 @@ def list_counts(
     db: Session, *, store_id: str, ingredient_id: str | None = None
 ) -> list[InventoryCountResponse]:
     get_store_or_404(db, store_id)
-    ingredients_by_id = {
-        i.id: i.name
-        for i in db.scalars(select(Ingredient).where(Ingredient.store_id == store_id)).all()
-    }
-    stmt = select(InventoryCount).where(InventoryCount.store_id == store_id)
-    if ingredient_id:
-        stmt = stmt.where(InventoryCount.ingredient_id == ingredient_id)
-    stmt = stmt.order_by(InventoryCount.counted_at.desc(), InventoryCount.id.desc())
-    rows = list(db.scalars(stmt).all())
+    ingredients_by_id = {i.id: i.name for i in ingredient_repo.list_by_store(db, store_id)}
+    rows = inventory_repo.list_counts_latest_first(db, store_id, ingredient_id)
     return [
         InventoryCountResponse(
             id=c.id,
@@ -235,8 +219,7 @@ def create_adjustment(
         notes=payload.notes.strip() if payload.notes else None,
         occurred_at=utcnow(),
     )
-    db.add(adj)
-    db.flush()
+    inventory_repo.insert(db, adj)
     record_audit(
         db,
         store_id=store_id,
@@ -279,31 +262,10 @@ def get_inventory_summary(
     db: Session, *, store_id: str, include_inactive: bool = False
 ) -> list[IngredientInventoryItem]:
     get_store_or_404(db, store_id)
-    ing_stmt = select(Ingredient).where(Ingredient.store_id == store_id)
-    if not include_inactive:
-        ing_stmt = ing_stmt.where(Ingredient.is_active.is_(True))
-    ing_stmt = ing_stmt.order_by(Ingredient.name.asc())
-    ingredients = list(db.scalars(ing_stmt).all())
-
-    receipts = list(
-        db.scalars(
-            select(InventoryReceipt)
-            .where(InventoryReceipt.store_id == store_id)
-            .order_by(InventoryReceipt.received_at.desc(), InventoryReceipt.id.desc())
-        ).all()
-    )
-    counts = list(
-        db.scalars(
-            select(InventoryCount)
-            .where(InventoryCount.store_id == store_id)
-            .order_by(InventoryCount.counted_at.desc(), InventoryCount.id.desc())
-        ).all()
-    )
-    adjustments = list(
-        db.scalars(
-            select(InventoryAdjustment).where(InventoryAdjustment.store_id == store_id)
-        ).all()
-    )
+    ingredients = ingredient_repo.list_by_store(db, store_id, active_only=not include_inactive)
+    receipts = inventory_repo.list_receipts_latest_first(db, store_id)
+    counts = inventory_repo.list_counts_latest_first(db, store_id)
+    adjustments = inventory_repo.list_adjustments(db, store_id)
 
     # O(N) 사전 인덱싱으로 다수 식자재·입고·판매 건수에서도 선형 시간 보장
     receipts_by_ing: dict[str, list[InventoryReceipt]] = {}
@@ -319,14 +281,7 @@ def get_inventory_summary(
         adjustments_by_ing.setdefault(a.ingredient_id, []).append(a)
 
     # Load recipes by menu_item_id -> ingredient_id -> quantity
-    recipes = list(
-        db.scalars(
-            select(Recipe)
-            .options(selectinload(Recipe.items))
-            .where(Recipe.store_id == store_id)
-            .execution_options(populate_existing=True)
-        ).all()
-    )
+    recipes = menu_repo.list_recipes_with_items(db, store_id)
     ing_menu_qty: dict[str, list[tuple[str, Decimal]]] = {}
     for rec in recipes:
         for ri in rec.items:
@@ -335,17 +290,7 @@ def get_inventory_summary(
             )
 
     # Load completed sales orders & items
-    orders = list(
-        db.scalars(
-            select(SalesOrder)
-            .options(selectinload(SalesOrder.items))
-            .where(
-                SalesOrder.store_id == store_id,
-                SalesOrder.status == "COMPLETED",
-            )
-            .execution_options(populate_existing=True)
-        ).all()
-    )
+    orders = sales_order_repo.list_completed_with_items(db, store_id)
     sales_by_menu: dict[str, list[tuple[int, datetime, datetime | None]]] = {}
     for order in orders:
         rec_dt = _norm_dt(order.received_at) or utcnow()

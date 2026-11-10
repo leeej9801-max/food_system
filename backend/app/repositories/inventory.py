@@ -1,14 +1,37 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.models import InventoryReceipt
+from app.db.models import InventoryAdjustment, InventoryCount, InventoryReceipt
 
 
-def list_receipts_latest_first(db: Session, store_id: str) -> list[InventoryReceipt]:
+def insert(db: Session, row: InventoryReceipt | InventoryCount | InventoryAdjustment) -> None:
+    db.add(row)
+    db.flush()
+
+
+def list_receipts_latest_first(
+    db: Session, store_id: str, ingredient_id: str | None = None
+) -> list[InventoryReceipt]:
+    stmt = select(InventoryReceipt).where(InventoryReceipt.store_id == store_id)
+    if ingredient_id:
+        stmt = stmt.where(InventoryReceipt.ingredient_id == ingredient_id)
+    stmt = stmt.order_by(InventoryReceipt.received_at.desc(), InventoryReceipt.id.desc())
+    return list(db.scalars(stmt).all())
+
+
+def list_counts_latest_first(
+    db: Session, store_id: str, ingredient_id: str | None = None
+) -> list[InventoryCount]:
+    stmt = select(InventoryCount).where(InventoryCount.store_id == store_id)
+    if ingredient_id:
+        stmt = stmt.where(InventoryCount.ingredient_id == ingredient_id)
+    stmt = stmt.order_by(InventoryCount.counted_at.desc(), InventoryCount.id.desc())
+    return list(db.scalars(stmt).all())
+
+
+def list_adjustments(db: Session, store_id: str) -> list[InventoryAdjustment]:
     return list(
         db.scalars(
-            select(InventoryReceipt)
-            .where(InventoryReceipt.store_id == store_id)
-            .order_by(InventoryReceipt.received_at.desc(), InventoryReceipt.id.desc())
+            select(InventoryAdjustment).where(InventoryAdjustment.store_id == store_id)
         ).all()
     )
