@@ -1,21 +1,16 @@
 import json
 from typing import Any, Literal
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
-from app.db.models import (
-    AuditEvent,
-    MenuItem,
-    PosProductMapping,
-    Recipe,
-    SalesOrderItem,
-    Store,
-    StoreTable,
-    utcnow,
-)
+from app.db.models import AuditEvent, MenuItem, Store, StoreTable, utcnow
 from app.db.tenancy import RequestContext, bind_store_scope
+from app.repositories import audit as audit_repo
+from app.repositories import menus as menu_repo
+from app.repositories import pos_mappings as pos_mapping_repo
+from app.repositories import sales_orders as sales_order_repo
+from app.repositories import stores as store_repo
 from app.schemas import MenuCreate, MenuResponse, MenuUpdate, StoreCreate, StoreUpdate
 
 
@@ -37,25 +32,12 @@ def record_audit(
         action=action,
         change_summary=json.dumps(summary, ensure_ascii=False, default=str),
     )
-    db.add(event)
+    audit_repo.add(db, event)
 
 
 def get_linked_menu_ids(db: Session, *, store_id: str) -> set[str]:
-    mapped_ids = set(
-        db.scalars(
-            select(PosProductMapping.menu_item_id).where(PosProductMapping.store_id == store_id)
-        ).all()
-    )
-    sold_ids = set(
-        db.scalars(
-            select(SalesOrderItem.menu_item_id)
-            .where(
-                SalesOrderItem.store_id == store_id,
-                SalesOrderItem.menu_item_id.is_not(None),
-            )
-            .distinct()
-        ).all()
-    )
+    mapped_ids = set(pos_mapping_repo.list_menu_ids(db, store_id))
+    sold_ids = set(sales_order_repo.list_sold_menu_ids(db, store_id))
     return {m_id for m_id in (mapped_ids | sold_ids) if m_id is not None}
 
 
@@ -63,14 +45,7 @@ def _retroactive_link_unmapped_sales(db: Session, *, store_id: str, menu_item: M
     if not menu_item.is_active:
         return 0
     normalized_name = menu_item.name.strip().casefold()
-    unmapped_items = list(
-        db.scalars(
-            select(SalesOrderItem).where(
-                SalesOrderItem.store_id == store_id,
-                SalesOrderItem.mapping_status == "UNMAPPED",
-            )
-        ).all()
-    )
+    unmapped_items = sales_order_repo.list_unmapped_items(db, store_id)
     linked_count = 0
     for s_item in unmapped_items:
         if s_item.raw_product_name.strip().casefold() == normalized_name:
@@ -108,12 +83,11 @@ def to_menu_response(item: MenuItem, *, is_pos_linked: bool = False) -> MenuResp
 
 
 def list_stores(db: Session) -> list[Store]:
-    stmt = select(Store).order_by(Store.created_at.asc())
-    return list(db.scalars(stmt).all())
+    return store_repo.list_all(db)
 
 
 def get_store_or_404(db: Session, store_id: str) -> Store:
-    store = db.get(Store, store_id)
+    store = store_repo.get(db, store_id)
     if store is None:
         raise AppError(status_code=404, code="STORE_NOT_FOUND", message="매장을 찾을 수 없습니다.")
     return store
@@ -126,8 +100,7 @@ def create_store(db: Session, payload: StoreCreate) -> Store:
         business_days=payload.business_days,
         opening_hours=payload.opening_hours,
     )
-    db.add(store)
-    db.flush()
+    store_repo.insert(db, store)
     # 새 매장의 테이블·감사 로그는 그 매장 범위에서 써야 RLS를 통과한다 (ADR-013)
     bind_store_scope(db, RequestContext(store_id=store.id))
 
@@ -142,7 +115,7 @@ def create_store(db: Session, payload: StoreCreate) -> Store:
             grid_y=row,
             is_active=True,
         )
-        db.add(table)
+        store_repo.add_table(db, table)
 
     record_audit(
         db,
@@ -207,14 +180,7 @@ def _ensure_no_duplicate_active_menu_name(
 ) -> None:
     """PROVISIONAL (P-01): 동일 매장의 활성 메뉴 중 이름(공백 제거·대소문자 무시) 중복 시 409 거절."""
     normalized = name.strip().casefold()
-    stmt = select(MenuItem).where(
-        MenuItem.store_id == store_id,
-        MenuItem.is_active.is_(True),
-        func.lower(MenuItem.name) == normalized,
-    )
-    if exclude_menu_id is not None:
-        stmt = stmt.where(MenuItem.id != exclude_menu_id)
-    existing = db.scalars(stmt).first()
+    existing = menu_repo.find_active_by_name(db, store_id, normalized, exclude_menu_id)
     if existing is not None:
         raise AppError(
             status_code=409,
@@ -233,34 +199,12 @@ def list_menus(
     status: Literal["active", "inactive", "all"] = "all",
 ) -> list[MenuItem]:
     get_store_or_404(db, store_id)
-    stmt = (
-        select(MenuItem)
-        .options(selectinload(MenuItem.recipe).selectinload(Recipe.items))
-        .where(MenuItem.store_id == store_id)
-        .execution_options(populate_existing=True)
-    )
-    if status == "active":
-        stmt = stmt.where(MenuItem.is_active.is_(True))
-    elif status == "inactive":
-        stmt = stmt.where(MenuItem.is_active.is_(False))
-    if category:
-        stmt = stmt.where(MenuItem.category == category.strip())
-    if q:
-        keyword = f"%{q.strip()}%"
-        stmt = stmt.where(MenuItem.name.ilike(keyword))
-    stmt = stmt.order_by(MenuItem.is_active.desc(), MenuItem.name.asc())
-    return list(db.scalars(stmt).all())
+    return menu_repo.search(db, store_id, q=q, category=category, status=status)
 
 
 def get_menu_or_404(db: Session, *, store_id: str, menu_id: str) -> MenuItem:
     get_store_or_404(db, store_id)
-    stmt = (
-        select(MenuItem)
-        .options(selectinload(MenuItem.recipe).selectinload(Recipe.items))
-        .where(MenuItem.id == menu_id, MenuItem.store_id == store_id)
-        .execution_options(populate_existing=True)
-    )
-    item = db.scalars(stmt).first()
+    item = menu_repo.find_with_recipe(db, store_id, menu_id)
     if item is None:
         raise AppError(status_code=404, code="MENU_NOT_FOUND", message="메뉴를 찾을 수 없습니다.")
     return item
@@ -279,8 +223,7 @@ def create_menu(db: Session, *, store_id: str, payload: MenuCreate) -> MenuItem:
         description=payload.description,
         is_active=payload.is_active,
     )
-    db.add(item)
-    db.flush()
+    menu_repo.insert(db, item)
     retro_linked = _retroactive_link_unmapped_sales(db, store_id=store_id, menu_item=item)
     record_audit(
         db,
