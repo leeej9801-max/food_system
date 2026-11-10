@@ -35,8 +35,5 @@ def patch_store(
 
 
 @router.post("/{store_id}/seed-western-demo", status_code=status.HTTP_200_OK)
-def post_seed_western_demo(
-    store_id: str, db: Session = Depends(get_db)
-) -> dict[str, int]:
+def post_seed_western_demo(store_id: str, db: Session = Depends(get_db)) -> dict[str, int]:
     return demo_seed.seed_western_bistro_demo(db, store_id=store_id)
-

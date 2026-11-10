@@ -89,9 +89,7 @@ def upsert_product_mapping_endpoint(
     payload: ProductMappingUpsertRequest,
     db: Session = Depends(get_db),
 ) -> ProductMappingResponse:
-    return import_service.upsert_product_mapping(
-        db, store_id=store_id, payload=payload
-    )
+    return import_service.upsert_product_mapping(db, store_id=store_id, payload=payload)
 
 
 @router.get("/sales-orders", response_model=SalesOrdersListResponse)
@@ -112,9 +110,7 @@ def create_manual_sales_order_endpoint(
     payload: SalesOrderCreateRequest,
     db: Session = Depends(get_db),
 ) -> SalesOrderResponse:
-    return import_service.create_manual_sales_order(
-        db, store_id=store_id, payload=payload
-    )
+    return import_service.create_manual_sales_order(db, store_id=store_id, payload=payload)
 
 
 @router.patch("/sales-orders/{order_id}", response_model=SalesOrderResponse)
@@ -127,4 +123,3 @@ def update_sales_order_endpoint(
     return import_service.update_sales_order(
         db, store_id=store_id, order_id=order_id, payload=payload
     )
-

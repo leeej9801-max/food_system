@@ -103,7 +103,9 @@ def get_ingredient_or_404(db: Session, *, store_id: str, ingredient_id: str) -> 
     return item
 
 
-def get_ingredient_response(db: Session, *, store_id: str, ingredient_id: str) -> IngredientResponse:
+def get_ingredient_response(
+    db: Session, *, store_id: str, ingredient_id: str
+) -> IngredientResponse:
     item = get_ingredient_or_404(db, store_id=store_id, ingredient_id=ingredient_id)
     return _to_ingredient_response(item)
 
@@ -186,7 +188,10 @@ def update_ingredient(
     }
 
     for field, value in update_data.items():
-        if field in ("is_active", "base_unit", "purchase_unit", "conversion_factor") and value is None:
+        if (
+            field in ("is_active", "base_unit", "purchase_unit", "conversion_factor")
+            and value is None
+        ):
             continue
         setattr(item, field, value)
     item.updated_at = utcnow()

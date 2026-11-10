@@ -706,11 +706,6 @@ class SalesOrderCreateRequest(BaseModel):
     items: list[SalesOrderCreateItemInput] = Field(..., min_length=1)
 
 
-
-
-
-
-
 class TableQrTokenResponse(BaseModel):
     table_id: str
     token: str

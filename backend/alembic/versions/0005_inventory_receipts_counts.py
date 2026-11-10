@@ -45,9 +45,7 @@ def upgrade() -> None:
         sa.Column("received_at", sa.DateTime(timezone=True), nullable=False),
     )
     op.create_index("ix_inventory_receipts_store_id", "inventory_receipts", ["store_id"])
-    op.create_index(
-        "ix_inventory_receipts_ingredient_id", "inventory_receipts", ["ingredient_id"]
-    )
+    op.create_index("ix_inventory_receipts_ingredient_id", "inventory_receipts", ["ingredient_id"])
 
     op.create_table(
         "inventory_counts",
@@ -70,9 +68,7 @@ def upgrade() -> None:
         sa.Column("counted_at", sa.DateTime(timezone=True), nullable=False),
     )
     op.create_index("ix_inventory_counts_store_id", "inventory_counts", ["store_id"])
-    op.create_index(
-        "ix_inventory_counts_ingredient_id", "inventory_counts", ["ingredient_id"]
-    )
+    op.create_index("ix_inventory_counts_ingredient_id", "inventory_counts", ["ingredient_id"])
 
     op.create_table(
         "inventory_adjustments",
@@ -102,16 +98,12 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index(
-        "ix_inventory_adjustments_ingredient_id", table_name="inventory_adjustments"
-    )
+    op.drop_index("ix_inventory_adjustments_ingredient_id", table_name="inventory_adjustments")
     op.drop_index("ix_inventory_adjustments_store_id", table_name="inventory_adjustments")
     op.drop_table("inventory_adjustments")
     op.drop_index("ix_inventory_counts_ingredient_id", table_name="inventory_counts")
     op.drop_index("ix_inventory_counts_store_id", table_name="inventory_counts")
     op.drop_table("inventory_counts")
-    op.drop_index(
-        "ix_inventory_receipts_ingredient_id", table_name="inventory_receipts"
-    )
+    op.drop_index("ix_inventory_receipts_ingredient_id", table_name="inventory_receipts")
     op.drop_index("ix_inventory_receipts_store_id", table_name="inventory_receipts")
     op.drop_table("inventory_receipts")

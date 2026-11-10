@@ -23,7 +23,9 @@ def db_session() -> Generator[Session, None, None]:
         future=True,
     )
     Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
+    TestingSessionLocal = sessionmaker(
+        bind=engine, autoflush=False, autocommit=False, expire_on_commit=False
+    )
     session = TestingSessionLocal()
     try:
         yield session
@@ -121,7 +123,9 @@ def test_ac4_menu_deactivate_preserves_record_and_allows_reactivation(client: Te
 
     # 물리 삭제되지 않고 status=inactive 로 조회됨
     active_list = client.get(f"/api/v1/stores/{store_id}/menus", params={"status": "active"}).json()
-    inactive_list = client.get(f"/api/v1/stores/{store_id}/menus", params={"status": "inactive"}).json()
+    inactive_list = client.get(
+        f"/api/v1/stores/{store_id}/menus", params={"status": "inactive"}
+    ).json()
     assert len(active_list) == 0
     assert len(inactive_list) == 1
     assert inactive_list[0]["id"] == menu["id"]

@@ -26,8 +26,7 @@ def get_menus(
     )
     linked_ids = menu_service.get_linked_menu_ids(db, store_id=store_id)
     return [
-        menu_service.to_menu_response(item, is_pos_linked=(item.id in linked_ids))
-        for item in items
+        menu_service.to_menu_response(item, is_pos_linked=(item.id in linked_ids)) for item in items
     ]
 
 
@@ -60,9 +59,7 @@ def patch_menu(
     payload: MenuUpdate,
     db: Session = Depends(get_db),
 ) -> MenuResponse:
-    item = menu_service.update_menu(
-        db, store_id=store_id, menu_id=menu_id, payload=payload
-    )
+    item = menu_service.update_menu(db, store_id=store_id, menu_id=menu_id, payload=payload)
     linked_ids = menu_service.get_linked_menu_ids(db, store_id=store_id)
     return menu_service.to_menu_response(item, is_pos_linked=(item.id in linked_ids))
 

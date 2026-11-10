@@ -140,12 +140,8 @@ ORD-104,2026-10-25 19:20:00,까르보나라,0,16000,COMPLETED
     ).json()
     assert preview_dup["duplicate_file_warning"] is True
 
-    client.post(
-        f"/api/v1/stores/{store_id}/imports/sales-csv/{preview_dup['batch_id']}/commit"
-    )
-    status_after_dup = client.get(
-        f"/api/v1/stores/{store_id}/integrations/status"
-    ).json()
+    client.post(f"/api/v1/stores/{store_id}/imports/sales-csv/{preview_dup['batch_id']}/commit")
+    status_after_dup = client.get(f"/api/v1/stores/{store_id}/integrations/status").json()
     assert status_after_dup["total_orders_count"] == 2
     assert Decimal(status_after_dup["net_sales_amount"]) == Decimal("75000.00")
     assert status_after_dup["net_items_quantity"] == 4
@@ -164,9 +160,7 @@ ORD-104,2026-10-25 19:20:00,까르보나라,0,16000,COMPLETED
     assert map_body["menu_item_id"] == m_steak["id"]
     assert m_carb["id"] != m_steak["id"]
 
-    status_after_map = client.get(
-        f"/api/v1/stores/{store_id}/integrations/status"
-    ).json()
+    status_after_map = client.get(f"/api/v1/stores/{store_id}/integrations/status").json()
     assert status_after_map["unmapped_products"] == []
 
 
@@ -186,9 +180,7 @@ def test_wo007_utf8_bom_csv_and_retroactive_menu_creation_linking(
     assert preview["rows_error"] == 0
     assert preview["unmapped_product_names"] == ["Truffle Gnocchi"]
 
-    client.post(
-        f"/api/v1/stores/{store_id}/imports/sales-csv/{preview['batch_id']}/commit"
-    )
+    client.post(f"/api/v1/stores/{store_id}/imports/sales-csv/{preview['batch_id']}/commit")
     status1 = client.get(f"/api/v1/stores/{store_id}/integrations/status").json()
     assert status1["unmapped_products"] == ["Truffle Gnocchi"]
 
@@ -300,5 +292,3 @@ def test_wo008_sales_order_refund_and_pos_vs_csv_mode_branching(
     )
     assert locked_resp.status_code == 409
     assert locked_resp.json()["code"] == "POS_MODE_MANUAL_EDIT_LOCKED"
-
-

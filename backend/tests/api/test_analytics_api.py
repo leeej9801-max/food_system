@@ -188,9 +188,7 @@ ORD-303,2026-10-25 18:00:00,까르보나라,1,16000,CANCELLED
         f"/api/v1/stores/{store_id}/imports/sales-csv/preview",
         json={"file_name": "sales.csv", "csv_text": csv_text},
     ).json()
-    client.post(
-        f"/api/v1/stores/{store_id}/imports/sales-csv/{preview['batch_id']}/commit"
-    )
+    client.post(f"/api/v1/stores/{store_id}/imports/sales-csv/{preview['batch_id']}/commit")
 
     sales_resp = client.get(f"/api/v1/stores/{store_id}/analytics/sales")
     assert sales_resp.status_code == 200
@@ -230,4 +228,3 @@ def test_western_bistro_demo_seed_idempotent_and_no_fake_sales(
     sales = client.get(f"/api/v1/stores/{store_id}/analytics/sales").json()
     assert sales["total_completed_orders"] == 0
     assert Decimal(sales["total_net_sales"]) == Decimal("0.00")
-

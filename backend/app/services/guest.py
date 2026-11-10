@@ -379,9 +379,7 @@ def update_my_slot(
     visit = _require_open_session(db, scope)
     slot = _get_slot(visit, slot_no)
     if slot.claimed_by_device_id != scope.device_id:
-        raise AppError(
-            status_code=403, code="SLOT_NOT_MINE", message="내 자리만 바꿀 수 있습니다."
-        )
+        raise AppError(status_code=403, code="SLOT_NOT_MINE", message="내 자리만 바꿀 수 있습니다.")
     if payload.display_opt_out is not None:
         slot.display_opt_out = payload.display_opt_out
     apply_slot_profile(

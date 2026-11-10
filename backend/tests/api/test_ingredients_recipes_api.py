@@ -120,7 +120,12 @@ def test_ac3_ac4_ac5_recipe_upsert_links_menu_and_ingredient_and_audits(
     ).json()
     pasta = client.post(
         f"/api/v1/stores/{store_id}/ingredients",
-        json={"name": "스파게티면", "base_unit": "g", "purchase_unit": "kg", "conversion_factor": 1000},
+        json={
+            "name": "스파게티면",
+            "base_unit": "g",
+            "purchase_unit": "kg",
+            "conversion_factor": 1000,
+        },
     ).json()
     bacon = client.post(
         f"/api/v1/stores/{store_id}/ingredients",
@@ -192,9 +197,7 @@ def test_ac3_ac4_ac5_recipe_upsert_links_menu_and_ingredient_and_audits(
 
     # AC-5: 레시피 audit_events 기록 확인
     events = list(
-        db_session.scalars(
-            select(AuditEvent).where(AuditEvent.entity_type == "recipe")
-        ).all()
+        db_session.scalars(select(AuditEvent).where(AuditEvent.entity_type == "recipe")).all()
     )
     assert len(events) == 2
 

@@ -14,9 +14,15 @@ def test_import_preserves_ids_relationships_and_refuses_nonempty_target():
     Base.metadata.create_all(target)
     with source.begin() as connection:
         connection.execute(Store.__table__.insert(), {"id": "store-1", "name": "test"})
-        connection.execute(MenuItem.__table__.insert(), {
-            "id": "menu-1", "store_id": "store-1", "name": "pasta", "selling_price": 12000,
-        })
+        connection.execute(
+            MenuItem.__table__.insert(),
+            {
+                "id": "menu-1",
+                "store_id": "store-1",
+                "name": "pasta",
+                "selling_price": 12000,
+            },
+        )
     counts = copy_data(source, target)
     assert counts["stores"] == 1
     assert counts["menu_items"] == 1
@@ -35,9 +41,14 @@ def test_failed_import_rolls_back_all_previously_copied_tables():
     Base.metadata.create_all(target)
     with source.begin() as connection:
         connection.execute(Store.__table__.insert(), {"id": "store-1", "name": "test"})
-        connection.execute(MenuItem.__table__.insert(), {
-            "id": "menu-1", "store_id": "store-1", "name": "pasta",
-        })
+        connection.execute(
+            MenuItem.__table__.insert(),
+            {
+                "id": "menu-1",
+                "store_id": "store-1",
+                "name": "pasta",
+            },
+        )
     with target.begin() as connection:
         connection.exec_driver_sql(
             "CREATE TRIGGER reject_menu BEFORE INSERT ON menu_items "

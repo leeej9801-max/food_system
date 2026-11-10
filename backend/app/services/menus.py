@@ -43,9 +43,7 @@ def record_audit(
 def get_linked_menu_ids(db: Session, *, store_id: str) -> set[str]:
     mapped_ids = set(
         db.scalars(
-            select(PosProductMapping.menu_item_id).where(
-                PosProductMapping.store_id == store_id
-            )
+            select(PosProductMapping.menu_item_id).where(PosProductMapping.store_id == store_id)
         ).all()
     )
     sold_ids = set(
@@ -61,9 +59,7 @@ def get_linked_menu_ids(db: Session, *, store_id: str) -> set[str]:
     return {m_id for m_id in (mapped_ids | sold_ids) if m_id is not None}
 
 
-def _retroactive_link_unmapped_sales(
-    db: Session, *, store_id: str, menu_item: MenuItem
-) -> int:
+def _retroactive_link_unmapped_sales(db: Session, *, store_id: str, menu_item: MenuItem) -> int:
     if not menu_item.is_active:
         return 0
     normalized_name = menu_item.name.strip().casefold()
@@ -285,9 +281,7 @@ def create_menu(db: Session, *, store_id: str, payload: MenuCreate) -> MenuItem:
     )
     db.add(item)
     db.flush()
-    retro_linked = _retroactive_link_unmapped_sales(
-        db, store_id=store_id, menu_item=item
-    )
+    retro_linked = _retroactive_link_unmapped_sales(db, store_id=store_id, menu_item=item)
     record_audit(
         db,
         store_id=store_id,
@@ -349,9 +343,7 @@ def update_menu(db: Session, *, store_id: str, menu_id: str, payload: MenuUpdate
     item.updated_at = utcnow()
     db.flush()
 
-    retro_linked = _retroactive_link_unmapped_sales(
-        db, store_id=store_id, menu_item=item
-    )
+    retro_linked = _retroactive_link_unmapped_sales(db, store_id=store_id, menu_item=item)
 
     after_snapshot = {
         "name": item.name,

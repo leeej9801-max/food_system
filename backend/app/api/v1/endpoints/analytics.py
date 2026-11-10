@@ -30,6 +30,4 @@ def simulate_menu_costs_endpoint(
     payload: CostSimulationRequest,
     db: Session = Depends(get_db),
 ) -> CostSimulationResponse:
-    return analytics_service.simulate_menu_costs(
-        db, store_id=store_id, payload=payload
-    )
+    return analytics_service.simulate_menu_costs(db, store_id=store_id, payload=payload)

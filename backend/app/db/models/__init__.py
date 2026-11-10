@@ -38,7 +38,9 @@ class Store(Base):
     opening_hours: Mapped[str | None] = mapped_column(String(64), nullable=True)
     # 도면 고정물(입구·카운터·칸막이·주방) JSON 목록. 테이블과 같은 24×28 좌표계 (U-31)
     floor_fixtures: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
     )
@@ -46,7 +48,9 @@ class Store(Base):
     menu_items: Mapped[list["MenuItem"]] = relationship("MenuItem", back_populates="store")
     ingredients: Mapped[list["Ingredient"]] = relationship("Ingredient", back_populates="store")
     tables: Mapped[list["StoreTable"]] = relationship("StoreTable", back_populates="store")
-    visit_sessions: Mapped[list["VisitSession"]] = relationship("VisitSession", back_populates="store")
+    visit_sessions: Mapped[list["VisitSession"]] = relationship(
+        "VisitSession", back_populates="store"
+    )
 
 
 class MenuItem(Base):
@@ -64,13 +68,17 @@ class MenuItem(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     # PROVISIONAL (P-06): 물리 삭제 대신 비활성화(is_active=False)로 과거 판매/원가 근거 보존
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
     )
 
     store: Mapped["Store"] = relationship("Store", back_populates="menu_items")
-    recipe: Mapped["Recipe | None"] = relationship("Recipe", back_populates="menu_item", uselist=False)
+    recipe: Mapped["Recipe | None"] = relationship(
+        "Recipe", back_populates="menu_item", uselist=False
+    )
 
 
 class Ingredient(Base):
@@ -91,13 +99,17 @@ class Ingredient(Base):
     safety_stock: Mapped[Decimal | None] = mapped_column(Numeric(12, 3), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
     )
 
     store: Mapped["Store"] = relationship("Store", back_populates="ingredients")
-    recipe_items: Mapped[list["RecipeItem"]] = relationship("RecipeItem", back_populates="ingredient")
+    recipe_items: Mapped[list["RecipeItem"]] = relationship(
+        "RecipeItem", back_populates="ingredient"
+    )
 
 
 class Recipe(Base):
@@ -113,7 +125,9 @@ class Recipe(Base):
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     # COMPLETE: 완성, PARTIAL: 일부 미입력(작성 중)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="COMPLETE")
-    effective_from: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    effective_from: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
     )
@@ -164,7 +178,9 @@ class StoreTable(Base):
     # H(가로로 긴 테이블, 의자 위·아래) | V(세로로 긴 테이블, 의자 좌·우)
     orientation: Mapped[str] = mapped_column(String(1), nullable=False, default="H")
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
     )
@@ -190,7 +206,9 @@ class VisitSession(Base):
     age_band: Mapped[str] = mapped_column(String(32), nullable=False, default="UNRECORDED")
     # SEATED(착석중) -> PAID(결제완료, 아직 착석중) -> LEFT(퇴점·테이블 비우기 완료)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="SEATED", index=True)
-    seated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    seated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     left_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     source: Mapped[str] = mapped_column(String(32), nullable=False, default="manual")
@@ -237,8 +255,12 @@ class TableQrToken(Base):
         String(36), ForeignKey("store_tables.id", ondelete="RESTRICT"), nullable=False, unique=True
     )
     token: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
-    rotated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
+    rotated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
 
 
 class GuestDevice(Base):
@@ -248,8 +270,12 @@ class GuestDevice(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
-    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
 
 
 class SessionSlot(Base):
@@ -278,14 +304,18 @@ class SessionSlot(Base):
     gender: Mapped[str] = mapped_column(String(12), nullable=False, default="UNRECORDED")
     age_band: Mapped[str] = mapped_column(String(32), nullable=False, default="UNRECORDED")
     profile_source: Mapped[str | None] = mapped_column(String(10), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
     )
 
     session: Mapped["VisitSession"] = relationship("VisitSession", back_populates="slots")
 
-    __table_args__ = (UniqueConstraint("session_id", "slot_no", name="uq_session_slots_session_slot"),)
+    __table_args__ = (
+        UniqueConstraint("session_id", "slot_no", name="uq_session_slots_session_slot"),
+    )
 
 
 class PosConnection(Base):
@@ -300,7 +330,9 @@ class PosConnection(Base):
     # UNVERIFIED | READY_CSV
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="READY_CSV")
     last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    latest_data_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    latest_data_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
     )
@@ -323,7 +355,9 @@ class PosProductMapping(Base):
     menu_item_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("menu_items.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
 
 
 class ImportBatch(Base):
@@ -342,9 +376,13 @@ class ImportBatch(Base):
     rows_valid: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     rows_error: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     rows_unmapped: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    latest_sale_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    latest_sale_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     preview_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
-    uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    uploaded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
     committed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
@@ -368,7 +406,9 @@ class SalesOrder(Base):
     time_basis: Mapped[str] = mapped_column(String(32), nullable=False, default="order_time")
     # COMPLETED | CANCELLED
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="COMPLETED")
-    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    received_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
 
     items: Mapped[list["SalesOrderItem"]] = relationship(
         "SalesOrderItem", back_populates="order", cascade="all, delete-orphan"
@@ -390,9 +430,7 @@ class SalesOrderItem(Base):
     )
     raw_product_name: Mapped[str] = mapped_column(String(120), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    unit_price: Mapped[Decimal] = mapped_column(
-        Numeric(12, 2), nullable=False, default=Decimal(0)
-    )
+    unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=Decimal(0))
     # COMPLETED | CANCELLED
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="COMPLETED")
     # MAPPED | UNMAPPED
@@ -475,7 +513,9 @@ class AuditEvent(Base):
     entity_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     action: Mapped[str] = mapped_column(String(32), nullable=False)
     change_summary: Mapped[str] = mapped_column(Text, nullable=False)
-    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
 
 
 class Holiday(Base):
@@ -487,4 +527,6 @@ class Holiday(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     # KASI(천문연 특일정보) | MANUAL
     source: Mapped[str] = mapped_column(String(10), nullable=False, default="MANUAL")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )

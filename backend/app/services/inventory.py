@@ -41,9 +41,7 @@ def _norm_dt(dt: datetime | None) -> datetime | None:
 def create_receipt(
     db: Session, *, store_id: str, payload: InventoryReceiptCreate
 ) -> InventoryReceiptResponse:
-    ingredient = get_ingredient_or_404(
-        db, store_id=store_id, ingredient_id=payload.ingredient_id
-    )
+    ingredient = get_ingredient_or_404(db, store_id=store_id, ingredient_id=payload.ingredient_id)
     conv = Decimal(str(ingredient.conversion_factor))
     p_qty = Decimal(str(payload.purchase_quantity)).quantize(Decimal("0.001"))
     b_qty = (p_qty * conv).quantize(Decimal("0.001"))
@@ -118,9 +116,7 @@ def list_receipts(
     get_store_or_404(db, store_id)
     ingredients_by_id = {
         i.id: i.name
-        for i in db.scalars(
-            select(Ingredient).where(Ingredient.store_id == store_id)
-        ).all()
+        for i in db.scalars(select(Ingredient).where(Ingredient.store_id == store_id)).all()
     }
     stmt = select(InventoryReceipt).where(InventoryReceipt.store_id == store_id)
     if ingredient_id:
@@ -151,9 +147,7 @@ def list_receipts(
 def create_count(
     db: Session, *, store_id: str, payload: InventoryCountCreate
 ) -> InventoryCountResponse:
-    ingredient = get_ingredient_or_404(
-        db, store_id=store_id, ingredient_id=payload.ingredient_id
-    )
+    ingredient = get_ingredient_or_404(db, store_id=store_id, ingredient_id=payload.ingredient_id)
     actual_qty = Decimal(str(payload.actual_quantity)).quantize(Decimal("0.001"))
     count_row = InventoryCount(
         store_id=store_id,
@@ -198,9 +192,7 @@ def list_counts(
     get_store_or_404(db, store_id)
     ingredients_by_id = {
         i.id: i.name
-        for i in db.scalars(
-            select(Ingredient).where(Ingredient.store_id == store_id)
-        ).all()
+        for i in db.scalars(select(Ingredient).where(Ingredient.store_id == store_id)).all()
     }
     stmt = select(InventoryCount).where(InventoryCount.store_id == store_id)
     if ingredient_id:
@@ -225,9 +217,7 @@ def list_counts(
 def create_adjustment(
     db: Session, *, store_id: str, payload: InventoryAdjustmentCreate
 ) -> InventoryAdjustmentResponse:
-    ingredient = get_ingredient_or_404(
-        db, store_id=store_id, ingredient_id=payload.ingredient_id
-    )
+    ingredient = get_ingredient_or_404(db, store_id=store_id, ingredient_id=payload.ingredient_id)
     delta = Decimal(str(payload.quantity_delta)).quantize(Decimal("0.001"))
     if delta == 0:
         raise AppError(
@@ -311,9 +301,7 @@ def get_inventory_summary(
     )
     adjustments = list(
         db.scalars(
-            select(InventoryAdjustment).where(
-                InventoryAdjustment.store_id == store_id
-            )
+            select(InventoryAdjustment).where(InventoryAdjustment.store_id == store_id)
         ).all()
     )
 
@@ -379,9 +367,7 @@ def get_inventory_summary(
         latest_count = ing_counts[0] if ing_counts else None
         baseline_dt = _norm_dt(latest_count.counted_at) if latest_count else None
         baseline_qty = (
-            Decimal(str(latest_count.actual_quantity))
-            if latest_count
-            else Decimal("0.000")
+            Decimal(str(latest_count.actual_quantity)) if latest_count else Decimal("0.000")
         )
 
         receipts_sum = Decimal("0.000")
@@ -407,9 +393,9 @@ def get_inventory_summary(
                         continue
                 consumption_sum += recipe_qty * sale_qty
 
-        estimated = (
-            baseline_qty + receipts_sum - consumption_sum + adj_sum
-        ).quantize(Decimal("0.001"))
+        estimated = (baseline_qty + receipts_sum - consumption_sum + adj_sum).quantize(
+            Decimal("0.001")
+        )
 
         safety = (
             Decimal(str(ing.safety_stock)).quantize(Decimal("0.001"))
@@ -423,12 +409,8 @@ def get_inventory_summary(
         elif safety is not None and estimated <= safety:
             stock_status = "LOW_STOCK"
 
-        cost_label: Literal[
-            "최근 입고 단가 기준 (PROVISIONAL P-12)", "입고 단가 미등록"
-        ] = (
-            "최근 입고 단가 기준 (PROVISIONAL P-12)"
-            if latest_receipt
-            else "입고 단가 미등록"
+        cost_label: Literal["최근 입고 단가 기준 (PROVISIONAL P-12)", "입고 단가 미등록"] = (
+            "최근 입고 단가 기준 (PROVISIONAL P-12)" if latest_receipt else "입고 단가 미등록"
         )
 
         result.append(
@@ -441,20 +423,14 @@ def get_inventory_summary(
                 conversion_factor=Decimal(str(ing.conversion_factor)),
                 safety_stock=safety,
                 latest_unit_cost_per_purchase=(
-                    Decimal(str(latest_receipt.unit_cost_per_purchase))
-                    if latest_receipt
-                    else None
+                    Decimal(str(latest_receipt.unit_cost_per_purchase)) if latest_receipt else None
                 ),
                 latest_unit_cost_per_base=(
-                    Decimal(str(latest_receipt.unit_cost_per_base))
-                    if latest_receipt
-                    else None
+                    Decimal(str(latest_receipt.unit_cost_per_base)) if latest_receipt else None
                 ),
                 cost_basis_label=cost_label,
                 last_actual_quantity=(
-                    Decimal(str(latest_count.actual_quantity))
-                    if latest_count
-                    else None
+                    Decimal(str(latest_count.actual_quantity)) if latest_count else None
                 ),
                 last_counted_at=latest_count.counted_at if latest_count else None,
                 receipts_since_count_base=receipts_sum.quantize(Decimal("0.001")),

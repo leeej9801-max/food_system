@@ -103,16 +103,12 @@ def _normalize_status(raw: str) -> Literal["COMPLETED", "CANCELLED"]:
 def _build_menu_lookup(db: Session, *, store_id: str) -> dict[str, str]:
     """공백 제거 및 대소문자 무시(casefold) 기준으로 메뉴 마스터 및 외부 상품명 매핑 룩업 테이블 생성."""
     lookup: dict[str, str] = {}
-    menus = list(
-        db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all()
-    )
+    menus = list(db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all())
     for m in menus:
         if m.is_active:
             lookup[m.name.strip().casefold()] = m.id
     mappings = list(
-        db.scalars(
-            select(PosProductMapping).where(PosProductMapping.store_id == store_id)
-        ).all()
+        db.scalars(select(PosProductMapping).where(PosProductMapping.store_id == store_id)).all()
     )
     for mp in mappings:
         lookup[mp.external_product_name.strip().casefold()] = mp.menu_item_id
@@ -235,8 +231,7 @@ def preview_sales_csv(
     for idx, raw_row in enumerate(reader, start=2):
         rows_total += 1
         clean_row = {
-            str(k or "").lstrip("\ufeff").strip(): str(v or "").strip()
-            for k, v in raw_row.items()
+            str(k or "").lstrip("\ufeff").strip(): str(v or "").strip() for k, v in raw_row.items()
         }
 
         order_id = clean_row.get(mapping.order_id_col, "").strip()
@@ -308,9 +303,7 @@ def preview_sales_csv(
 
         status_val = _normalize_status(raw_status)
         menu_item_id = menu_lookup.get(product_name.casefold())
-        mapping_status: Literal["MAPPED", "UNMAPPED"] = (
-            "MAPPED" if menu_item_id else "UNMAPPED"
-        )
+        mapping_status: Literal["MAPPED", "UNMAPPED"] = "MAPPED" if menu_item_id else "UNMAPPED"
         if mapping_status == "UNMAPPED":
             unmapped_names.add(product_name)
 
@@ -372,14 +365,10 @@ def preview_sales_csv(
     )
 
 
-def commit_sales_csv(
-    db: Session, *, store_id: str, batch_id: str
-) -> CsvCommitResponse:
+def commit_sales_csv(db: Session, *, store_id: str, batch_id: str) -> CsvCommitResponse:
     get_store_or_404(db, store_id)
     batch = db.scalars(
-        select(ImportBatch).where(
-            ImportBatch.id == batch_id, ImportBatch.store_id == store_id
-        )
+        select(ImportBatch).where(ImportBatch.id == batch_id, ImportBatch.store_id == store_id)
     ).first()
     if batch is None:
         raise AppError(
@@ -429,9 +418,7 @@ def commit_sales_csv(
     for ext_id, rows in grouped_orders.items():
         first = rows[0]
         ordered_at_str = first.get("ordered_at")
-        ordered_at = (
-            datetime.fromisoformat(ordered_at_str) if ordered_at_str else None
-        )
+        ordered_at = datetime.fromisoformat(ordered_at_str) if ordered_at_str else None
         time_basis = first.get("time_basis", "order_time")
 
         all_cancelled = all(r.get("status") == "CANCELLED" for r in rows)
@@ -535,9 +522,7 @@ def upsert_product_mapping(
     ext_name = payload.external_product_name.strip()
     ext_norm = ext_name.casefold()
     menu = db.scalars(
-        select(MenuItem).where(
-            MenuItem.id == payload.menu_item_id, MenuItem.store_id == store_id
-        )
+        select(MenuItem).where(MenuItem.id == payload.menu_item_id, MenuItem.store_id == store_id)
     ).first()
     if menu is None:
         raise AppError(
@@ -547,16 +532,10 @@ def upsert_product_mapping(
         )
 
     existing_mappings = list(
-        db.scalars(
-            select(PosProductMapping).where(PosProductMapping.store_id == store_id)
-        ).all()
+        db.scalars(select(PosProductMapping).where(PosProductMapping.store_id == store_id)).all()
     )
     mapping = next(
-        (
-            m
-            for m in existing_mappings
-            if m.external_product_name.strip().casefold() == ext_norm
-        ),
+        (m for m in existing_mappings if m.external_product_name.strip().casefold() == ext_norm),
         None,
     )
 
@@ -573,9 +552,7 @@ def upsert_product_mapping(
         mapping.menu_item_id = menu.id
 
     items = list(
-        db.scalars(
-            select(SalesOrderItem).where(SalesOrderItem.store_id == store_id)
-        ).all()
+        db.scalars(select(SalesOrderItem).where(SalesOrderItem.store_id == store_id)).all()
     )
     updated_count = 0
     for item in items:
@@ -610,9 +587,7 @@ def upsert_product_mapping(
     )
 
 
-def list_product_mappings(
-    db: Session, *, store_id: str
-) -> list[ProductMappingResponse]:
+def list_product_mappings(db: Session, *, store_id: str) -> list[ProductMappingResponse]:
     get_store_or_404(db, store_id)
     mappings = list(
         db.scalars(
@@ -623,9 +598,7 @@ def list_product_mappings(
     )
     menus_by_id = {
         m.id: m.name
-        for m in db.scalars(
-            select(MenuItem).where(MenuItem.store_id == store_id)
-        ).all()
+        for m in db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all()
     }
     return [
         ProductMappingResponse(
@@ -702,10 +675,7 @@ def list_sales_orders(db: Session, *, store_id: str) -> SalesOrdersListResponse:
         ).all()
     )
     menus_by_id = {
-        m.id: m
-        for m in db.scalars(
-            select(MenuItem).where(MenuItem.store_id == store_id)
-        ).all()
+        m.id: m for m in db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all()
     }
 
     return SalesOrdersListResponse(
@@ -781,10 +751,7 @@ def update_sales_order(
     db.refresh(order)
 
     menus_by_id = {
-        m.id: m
-        for m in db.scalars(
-            select(MenuItem).where(MenuItem.store_id == store_id)
-        ).all()
+        m.id: m for m in db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all()
     }
     return _serialize_sales_order(order, menus_by_id)
 
@@ -805,10 +772,7 @@ def create_manual_sales_order(
         )
 
     menus_by_id = {
-        m.id: m
-        for m in db.scalars(
-            select(MenuItem).where(MenuItem.store_id == store_id)
-        ).all()
+        m.id: m for m in db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all()
     }
 
     now_ts = utcnow()
@@ -891,10 +855,7 @@ def create_manual_sales_order(
     db.commit()
 
     refreshed = db.scalars(
-        select(SalesOrder)
-        .options(selectinload(SalesOrder.items))
-        .where(SalesOrder.id == order.id)
+        select(SalesOrder).options(selectinload(SalesOrder.items)).where(SalesOrder.id == order.id)
     ).first()
     assert refreshed is not None
     return _serialize_sales_order(refreshed, menus_by_id)
-

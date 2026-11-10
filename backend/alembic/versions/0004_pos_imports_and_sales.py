@@ -53,9 +53,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.UniqueConstraint(
-            "store_id", "external_product_name", name="uq_store_ext_product_name"
-        ),
+        sa.UniqueConstraint("store_id", "external_product_name", name="uq_store_ext_product_name"),
     )
     op.create_index("ix_pos_product_mappings_store_id", "pos_product_mappings", ["store_id"])
     op.create_index(
@@ -164,9 +162,7 @@ def downgrade() -> None:
     op.drop_index("ix_import_batches_file_hash", table_name="import_batches")
     op.drop_index("ix_import_batches_store_id", table_name="import_batches")
     op.drop_table("import_batches")
-    op.drop_index(
-        "ix_pos_product_mappings_menu_item_id", table_name="pos_product_mappings"
-    )
+    op.drop_index("ix_pos_product_mappings_menu_item_id", table_name="pos_product_mappings")
     op.drop_index("ix_pos_product_mappings_store_id", table_name="pos_product_mappings")
     op.drop_table("pos_product_mappings")
     op.drop_index("ix_pos_connections_store_id", table_name="pos_connections")

@@ -66,9 +66,7 @@ def _to_visit_response(session: VisitSession, table_name: str) -> VisitSessionRe
 def _to_table_response(table: StoreTable) -> StoreTableResponse:
     active_sessions = [s for s in table.visit_sessions if s.status in ("SEATED", "PAID")]
     active_sessions.sort(key=lambda s: s.seated_at, reverse=True)
-    active_visit = (
-        _to_visit_response(active_sessions[0], table.name) if active_sessions else None
-    )
+    active_visit = _to_visit_response(active_sessions[0], table.name) if active_sessions else None
     return StoreTableResponse(
         id=table.id,
         store_id=table.store_id,
@@ -113,13 +111,13 @@ def get_table_or_404(db: Session, *, store_id: str, table_id: str) -> StoreTable
     )
     table = db.scalars(stmt).first()
     if table is None:
-        raise AppError(status_code=404, code="TABLE_NOT_FOUND", message="테이블을 찾을 수 없습니다.")
+        raise AppError(
+            status_code=404, code="TABLE_NOT_FOUND", message="테이블을 찾을 수 없습니다."
+        )
     return table
 
 
-def create_table(
-    db: Session, *, store_id: str, payload: StoreTableCreate
-) -> StoreTableResponse:
+def create_table(db: Session, *, store_id: str, payload: StoreTableCreate) -> StoreTableResponse:
     get_store_or_404(db, store_id)
     table = StoreTable(
         store_id=store_id,

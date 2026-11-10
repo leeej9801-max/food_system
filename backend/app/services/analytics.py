@@ -29,9 +29,7 @@ def get_sales_analytics(db: Session, *, store_id: str) -> SalesAnalyticsResponse
 
     menus_by_id = {
         m.id: m.name
-        for m in db.scalars(
-            select(MenuItem).where(MenuItem.store_id == store_id)
-        ).all()
+        for m in db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all()
     }
 
     orders = list(
@@ -56,18 +54,14 @@ def get_sales_analytics(db: Session, *, store_id: str) -> SalesAnalyticsResponse
     menu_agg: dict[tuple[str | None, str, str], dict[str, int | Decimal]] = {}
 
     for order in orders:
-        has_exact_hour = (
-            order.time_basis == "order_time" and order.ordered_at is not None
-        )
+        has_exact_hour = order.time_basis == "order_time" and order.ordered_at is not None
         hour_val = order.ordered_at.hour if order.ordered_at is not None else 0
 
         for item in order.items:
             if item.status != "COMPLETED":
                 continue
             qty = item.quantity
-            line_sales = (Decimal(str(item.unit_price)) * qty).quantize(
-                Decimal("0.01")
-            )
+            line_sales = (Decimal(str(item.unit_price)) * qty).quantize(Decimal("0.01"))
             total_qty += qty
             total_sales += line_sales
 
@@ -100,9 +94,7 @@ def get_sales_analytics(db: Session, *, store_id: str) -> SalesAnalyticsResponse
 
     rankings: list[MenuSalesRankItem] = []
     for (menu_id, name, map_status), vals in menu_agg.items():
-        m_status: Literal["MAPPED", "UNMAPPED"] = (
-            "MAPPED" if map_status == "MAPPED" else "UNMAPPED"
-        )
+        m_status: Literal["MAPPED", "UNMAPPED"] = "MAPPED" if map_status == "MAPPED" else "UNMAPPED"
         rankings.append(
             MenuSalesRankItem(
                 menu_item_id=menu_id,
@@ -214,13 +206,7 @@ def simulate_menu_costs(
                 )
                 continue
 
-            pct = Decimal(
-                str(
-                    payload.ingredient_change_percents.get(
-                        ri.ingredient_id, global_pct
-                    )
-                )
-            )
+            pct = Decimal(str(payload.ingredient_change_percents.get(ri.ingredient_id, global_pct)))
             mult = max(Decimal(0), Decimal(1) + (pct / Decimal(100)))
             sim_u_cost = (base_u_cost * mult).quantize(Decimal("0.0001"))
             b_line = (base_u_cost * qty).quantize(Decimal("0.01"))
@@ -241,9 +227,7 @@ def simulate_menu_costs(
                 )
             )
 
-        cost_status: MenuCostStatusType = (
-            "INCOMPLETE_COST" if missing_ings else "COMPLETE"
-        )
+        cost_status: MenuCostStatusType = "INCOMPLETE_COST" if missing_ings else "COMPLETE"
         base_margin = (
             (selling_price - base_total).quantize(Decimal("0.01"))
             if selling_price is not None

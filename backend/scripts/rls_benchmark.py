@@ -60,9 +60,13 @@ def main() -> int:
     owner = create_engine(owner_url)
     password = secrets.token_hex(16)
     with owner.begin() as conn:
-        exists = conn.execute(text("SELECT 1 FROM pg_roles WHERE rolname = :r"), {"r": ROLE}).first()
+        exists = conn.execute(
+            text("SELECT 1 FROM pg_roles WHERE rolname = :r"), {"r": ROLE}
+        ).first()
         verb = "ALTER" if exists else "CREATE"
-        conn.execute(text(f"{verb} ROLE {ROLE} LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '{password}'"))
+        conn.execute(
+            text(f"{verb} ROLE {ROLE} LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '{password}'")
+        )
         conn.exec_driver_sql(SETUP.format(stores=STORES, rows=ROWS_PER_STORE, role=ROLE))
         store = conn.execute(text("SELECT id FROM rls_bench.stores WHERE n = 1")).scalar_one()
 

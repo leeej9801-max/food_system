@@ -17,7 +17,9 @@ from sqlalchemy.orm import Session
 from app.db.tenancy import RequestContext, apply_store_scope
 
 OWNER_URL = os.environ.get("RLS_TEST_DATABASE_URL")
-pytestmark = pytest.mark.skipif(not OWNER_URL, reason="RLS_TEST_DATABASE_URL 미설정 (PostgreSQL 필요)")
+pytestmark = pytest.mark.skipif(
+    not OWNER_URL, reason="RLS_TEST_DATABASE_URL 미설정 (PostgreSQL 필요)"
+)
 
 RUNTIME_ROLE = "rls_spike_runtime"
 STORE_A = uuid.uuid4()
@@ -36,10 +38,7 @@ def runtime_engine():
         ).first()
         verb = "ALTER" if exists else "CREATE"
         conn.execute(
-            text(
-                f"{verb} ROLE {RUNTIME_ROLE} LOGIN NOSUPERUSER NOBYPASSRLS "
-                f"PASSWORD '{password}'"
-            )
+            text(f"{verb} ROLE {RUNTIME_ROLE} LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '{password}'")
         )
         conn.exec_driver_sql(sql.replace("{runtime_role}", RUNTIME_ROLE))
         _seed(conn)

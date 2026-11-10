@@ -25,14 +25,10 @@ def get_tables(
     include_inactive: bool = Query(default=False),
     db: Session = Depends(get_db),
 ) -> list[StoreTableResponse]:
-    return table_service.list_tables(
-        db, store_id=store_id, include_inactive=include_inactive
-    )
+    return table_service.list_tables(db, store_id=store_id, include_inactive=include_inactive)
 
 
-@router.post(
-    "/tables", response_model=StoreTableResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/tables", response_model=StoreTableResponse, status_code=status.HTTP_201_CREATED)
 def post_table(
     store_id: str,
     payload: StoreTableCreate,
@@ -48,9 +44,7 @@ def patch_table(
     payload: StoreTableUpdate,
     db: Session = Depends(get_db),
 ) -> StoreTableResponse:
-    return table_service.update_table(
-        db, store_id=store_id, table_id=table_id, payload=payload
-    )
+    return table_service.update_table(db, store_id=store_id, table_id=table_id, payload=payload)
 
 
 @router.get("/visits", response_model=VisitSummaryResponse)
@@ -61,9 +55,7 @@ def get_visits(
     return table_service.list_visit_summary(db, store_id=store_id)
 
 
-@router.post(
-    "/visits", response_model=VisitSessionResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/visits", response_model=VisitSessionResponse, status_code=status.HTTP_201_CREATED)
 def post_visit(
     store_id: str,
     payload: VisitSessionCreate,

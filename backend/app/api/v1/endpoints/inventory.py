@@ -33,9 +33,7 @@ def list_receipts_endpoint(
     ingredient_id: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> list[InventoryReceiptResponse]:
-    return inventory_service.list_receipts(
-        db, store_id=store_id, ingredient_id=ingredient_id
-    )
+    return inventory_service.list_receipts(db, store_id=store_id, ingredient_id=ingredient_id)
 
 
 @router.post(
@@ -57,9 +55,7 @@ def list_counts_endpoint(
     ingredient_id: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> list[InventoryCountResponse]:
-    return inventory_service.list_counts(
-        db, store_id=store_id, ingredient_id=ingredient_id
-    )
+    return inventory_service.list_counts(db, store_id=store_id, ingredient_id=ingredient_id)
 
 
 @router.post(
