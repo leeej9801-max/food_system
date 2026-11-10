@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { AppLink as Link } from "./AppLink";
 import type { AgeBandType, StoreTable } from "../types";
 
 interface PixelFloorMapProps {
@@ -425,7 +425,7 @@ export function PixelFloorMap({
   const selectedTable = tables.find((t) => t.id === selectedTableId) ?? null;
 
   return (
-    <section data-ui className="relative flex min-h-[calc(100vh-120px)] flex-col justify-between overflow-hidden rounded-2xl border-4 border-[#1e110a] bg-[#8b5a36] shadow-[0_8px_0_#1e110a]">
+    <section data-ui className="relative flex min-h-[calc(var(--app-viewport-height)-120px)] flex-col justify-between overflow-hidden rounded-2xl border-4 border-[#1e110a] bg-[#8b5a36] shadow-[0_8px_0_#1e110a]">
       {/* =================================================================== */}
       {/* 1. 상단 벽면: 입구(좌) · 와인랙 & BISTRO 보드(중좌) · 벽돌 화덕 & 셰프 & 바 카운터(우) */}
       {/* =================================================================== */}

@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { AppLink as Link } from "../components/AppLink";
 import { fetchSalesAnalytics, simulateMenuCosts } from "../api/analytics";
 import type { Store } from "../types";
 
@@ -395,9 +395,9 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
             <h2 className="text-base font-bold text-gray-900">
               시간대별 판매 수량 · 매출 분포
             </h2>
-            <p className="text-xs text-gray-500">
+            {/* <p className="text-xs text-gray-500">
               주문 시각(`order_time`)이 존재하는 완료 주문만 시간대 버킷에 집계하며, 일자만 존재하는 주문({sales?.unknown_hour_quantity ?? 0}개)은 0시 왜곡을 막기 위해 별도 분리합니다.
-            </p>
+            </p> */}
           </div>
 
           {(sales?.known_hour_quantity ?? 0) === 0 ? (
@@ -441,9 +441,9 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
             <h2 className="text-base font-bold text-gray-900">
               메뉴별 판매량 · 매출 순위 (취소 제외)
             </h2>
-            <p className="text-xs text-gray-500">
+            {/* <p className="text-xs text-gray-500">
               미매핑(`UNMAPPED`) 상품은 설정에서 내부 메뉴에 연결하면 즉시 통합 집계됩니다.
-            </p>
+            </p> */}
           </div>
 
           {(sales?.menu_rankings ?? []).length === 0 ? (

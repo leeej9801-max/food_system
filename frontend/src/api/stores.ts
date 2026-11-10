@@ -1,6 +1,10 @@
 import { apiRequest } from "./client";
 import type {
   AgeBandType,
+  GenderType,
+  OrientationType,
+  PurposeType,
+  RelationshipType,
   Store,
   StoreTable,
   VisitSession,
@@ -73,6 +77,7 @@ export function updateTable(
     seats: number;
     grid_x: number;
     grid_y: number;
+    orientation: OrientationType;
     is_active: boolean;
   }>
 ): Promise<StoreTable> {
@@ -109,9 +114,23 @@ export function updateVisitSession(
     age_band: AgeBandType;
     status: VisitStatusType;
     notes: string | null;
+    purpose: PurposeType;
+    relationship: RelationshipType;
   }>
 ): Promise<VisitSession> {
   return apiRequest<VisitSession>(`/stores/${storeId}/visits/${visitId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateVisitSlot(
+  storeId: string,
+  visitId: string,
+  slotNo: number,
+  payload: Partial<{ gender: GenderType; age_band: AgeBandType }>
+): Promise<VisitSession> {
+  return apiRequest<VisitSession>(`/stores/${storeId}/visits/${visitId}/slots/${slotNo}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });

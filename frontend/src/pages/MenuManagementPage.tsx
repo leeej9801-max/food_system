@@ -4,6 +4,7 @@ import { createMenu, fetchMenus, updateMenu } from "../api/menus";
 import { MenuFormModal } from "../components/MenuFormModal";
 import { RecipeEditorModal } from "../components/RecipeEditorModal";
 import { formatKrwPrice } from "../lib/menuValidation";
+import { useUrlState } from "../lib/useUrlState";
 import type { MenuItem, Store } from "../types";
 
 interface MenuManagementPageProps {
@@ -12,9 +13,11 @@ interface MenuManagementPageProps {
 
 export function MenuManagementPage({ store }: MenuManagementPageProps) {
   const queryClient = useQueryClient();
-  const [searchInput, setSearchInput] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [searchInput, setSearchInput] = useUrlState<string>("q", "");
+  const [categoryFilter, setCategoryFilter] = useUrlState<string>("category", "");
+  const [statusFilter, setStatusFilter] = useUrlState<"all" | "active" | "inactive">(
+    "status", "all", ["all", "active", "inactive"],
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMenu, setEditingMenu] = useState<MenuItem | null>(null);
   const [recipeTarget, setRecipeTarget] = useState<MenuItem | null>(null);

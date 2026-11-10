@@ -27,6 +27,7 @@ frontend/.vite/
 *.sqlite
 *.sqlite3
 postgres-data/
+.deploy/
 
 # OS / IDE
 .DS_Store

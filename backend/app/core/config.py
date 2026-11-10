@@ -4,6 +4,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_env: str = "development"
     api_prefix: str = "/api/v1"
+    guest_api_prefix: str = "/api/guest/v1"
+    # 손님 익명 기기 쿠키. HTTPS 배포에서는 true
+    guest_cookie_secure: bool = False
+    # 천문연 특일정보(공공데이터포털) 인증키. 값은 .env에만 둔다 (U-28)
+    kasi_service_key: str = ""
     # PROVISIONAL (P-07): 기본값은 로컬 개발 편의를 위해 SQLite 파일을 허용하되,
     # 파일럿/정식 개발 환경에서는 PostgreSQL DATABASE_URL을 .env로 주입한다.
     database_url: str = "sqlite:///./local_dev.db"

@@ -59,7 +59,7 @@ tags: [implementation-report]
 - 환경 변수 예시(`backend/.env.example`, `frontend/.env.example`):
   - `API_PREFIX=/api/v1`
   - `DATABASE_URL=postgresql+psycopg://app_user:change_me_local_only@localhost:5432/restaurant_ax` (기본 fallback: `sqlite:///./local_dev.db`)
-  - `VITE_API_BASE_URL=http://localhost:8000/api/v1`
+  - `VITE_API_BASE_URL=http://localhost:8001/api/v1`
 - 실행 명령은 루트 `README.md` 참조.
 
 ## 4. 실행한 테스트와 결과

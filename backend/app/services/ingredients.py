@@ -342,6 +342,7 @@ def upsert_menu_recipe(
         recipe.items.append(
             RecipeItem(
                 recipe_id=recipe.id,
+                store_id=recipe.store_id,
                 ingredient_id=ing.id,
                 quantity=item_in.quantity,
                 unit=ing.base_unit,

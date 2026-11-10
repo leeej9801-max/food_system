@@ -1,16 +1,19 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
+    Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -33,6 +36,8 @@ class Store(Base):
     timezone: Mapped[str] = mapped_column(String(64), nullable=False, default="Asia/Seoul")
     business_days: Mapped[str | None] = mapped_column(String(64), nullable=True)
     opening_hours: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # 도면 고정물(입구·카운터·칸막이·주방) JSON 목록. 테이블과 같은 24×28 좌표계 (U-31)
+    floor_fixtures: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
@@ -127,6 +132,10 @@ class RecipeItem(Base):
     recipe_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # RLS 정책이 부모 조인 없이 걸리도록 매장 ID를 직접 가진다 (ADR-013)
+    store_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
     ingredient_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("ingredients.id", ondelete="RESTRICT"), nullable=False, index=True
     )
@@ -149,6 +158,8 @@ class StoreTable(Base):
     seats: Mapped[int] = mapped_column(Integer, nullable=False, default=4)
     grid_x: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     grid_y: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # H(가로로 긴 테이블, 의자 위·아래) | V(세로로 긴 테이블, 의자 좌·우)
+    orientation: Mapped[str] = mapped_column(String(1), nullable=False, default="H")
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
@@ -181,9 +192,97 @@ class VisitSession(Base):
     left_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     source: Mapped[str] = mapped_column(String(32), nullable=False, default="manual")
     notes: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # U-18: GUEST_QR | STAFF | CSV_BACKFILL (손님 > 직원, CSV_BACKFILL은 화면 표시에 안 씀)
+    party_size_source: Mapped[str] = mapped_column(String(20), nullable=False, default="STAFF")
+    # 세션을 연 신호: GUEST_QR | STAFF
+    opened_by: Mapped[str] = mapped_column(String(20), nullable=False, default="STAFF")
+    # U-19: NEXT_PARTY | CLEARED | TIMEOUT | END_OF_DAY (LEFT일 때만)
+    closed_reason: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # U-31 세션 단위 선택값 (PROVISIONAL 선택지). *_source: GUEST | STAFF, 손님 값은 직원이 덮어쓰지 않음
+    purpose: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    relationship_type: Mapped[str | None] = mapped_column("relationship", String(20), nullable=True)
+    context_source: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
     store: Mapped["Store"] = relationship("Store", back_populates="visit_sessions")
     table: Mapped["StoreTable"] = relationship("StoreTable", back_populates="visit_sessions")
+    slots: Mapped[list["SessionSlot"]] = relationship(
+        "SessionSlot", back_populates="session", order_by="SessionSlot.slot_no"
+    )
+
+    __table_args__ = (
+        # 테이블당 열린 세션은 1개 (동시에 열면 먼저 저장된 쪽만 성공)
+        Index(
+            "uq_visit_sessions_open_table",
+            "table_id",
+            unique=True,
+            postgresql_where=text("status IN ('SEATED', 'PAID')"),
+            sqlite_where=text("status IN ('SEATED', 'PAID')"),
+        ),
+    )
+
+
+class TableQrToken(Base):
+    """테이블 QR에 들어가는 추측 불가 토큰. 테이블당 활성 토큰 1개, 회전하면 교체."""
+
+    __tablename__ = "table_qr_tokens"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    store_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    table_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("store_tables.id", ondelete="RESTRICT"), nullable=False, unique=True
+    )
+    token: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    rotated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class GuestDevice(Base):
+    """익명 손님 기기 (전역, 개인정보 없음). 쿠키 토큰 원문은 저장하지 않고 해시만 둔다."""
+
+    __tablename__ = "guest_devices"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class SessionSlot(Base):
+    """방문 세션의 1명 자리. 캐릭터는 다음 단계에서 붙는다."""
+
+    __tablename__ = "session_slots"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    store_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    session_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("visit_sessions.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    slot_no: Mapped[int] = mapped_column(Integer, nullable=False)
+    # EMPTY | SILHOUETTE | EDITING | CUSTOM
+    state: Mapped[str] = mapped_column(String(20), nullable=False, default="SILHOUETTE")
+    created_by_device_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("guest_devices.id", ondelete="RESTRICT"), nullable=True
+    )
+    claimed_by_device_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("guest_devices.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    display_opt_out: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # U-31 사람별 선택값. profile_source: GUEST | STAFF (손님 값 우선)
+    gender: Mapped[str] = mapped_column(String(12), nullable=False, default="UNRECORDED")
+    age_band: Mapped[str] = mapped_column(String(32), nullable=False, default="UNRECORDED")
+    profile_source: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
+    )
+
+    session: Mapped["VisitSession"] = relationship("VisitSession", back_populates="slots")
+
+    __table_args__ = (UniqueConstraint("session_id", "slot_no", name="uq_session_slots_session_slot"),)
 
 
 class PosConnection(Base):
@@ -371,3 +470,15 @@ class AuditEvent(Base):
     action: Mapped[str] = mapped_column(String(32), nullable=False)
     change_summary: Mapped[str] = mapped_column(Text, nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class Holiday(Base):
+    """전역 공휴일 달력 (매장 데이터가 아니라 RLS 없음, U-28)."""
+
+    __tablename__ = "holidays"
+
+    holiday_date: Mapped[date] = mapped_column(Date, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    # KASI(천문연 특일정보) | MANUAL
+    source: Mapped[str] = mapped_column(String(10), nullable=False, default="MANUAL")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)

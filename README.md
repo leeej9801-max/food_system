@@ -47,6 +47,10 @@ npm run dev
 
 - 브라우저 접속: `http://localhost:5173`
 
+## Docker 배포 (/food)
+
+전체 스택은 루트 `compose.yaml`을 사용합니다. 기존 데이터 백업·PostgreSQL 이전·실행·Cloudflare 경로 설정은 [배포 가이드](deploy/README.md)를 따릅니다. 로컬 점검 주소는 `http://localhost:8088/food/`입니다. 현재는 사용자 결정(U-14)에 따라 지인 소개용 데모로 로그인 없이 공유하며 같은 데이터의 조회·수정이 가능합니다. 실제 매장 운영/민감 데이터 사용 전 인증을 도입합니다. 기존 `db/docker-compose.yml`은 개발용이며 운영 스택과 별도입니다.
+
 ## 자동 테스트 및 검증 명령
 
 ```powershell
