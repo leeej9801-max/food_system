@@ -1,4 +1,6 @@
+import { z } from "zod";
 import { apiRequest } from "./client";
+import { csvCommitSchema, csvPreviewSchema, integrationStatusSchema, productMappingSchema, salesOrderSchema, salesOrdersListSchema, sampleCsvSchema } from "./schemas";
 import type {
   CsvColumnMapping,
   CsvCommitResponse,
@@ -11,14 +13,14 @@ import type {
 } from "../types";
 
 export function fetchIntegrationStatus(storeId: string): Promise<IntegrationStatus> {
-  return apiRequest<IntegrationStatus>(`/stores/${storeId}/integrations/status`);
+  return apiRequest(integrationStatusSchema, `/stores/${storeId}/integrations/status`);
 }
 
 export function updatePosMode(
   storeId: string,
   mode: PosModeType
 ): Promise<IntegrationStatus> {
-  return apiRequest<IntegrationStatus>(`/stores/${storeId}/integrations/mode`, {
+  return apiRequest(integrationStatusSchema, `/stores/${storeId}/integrations/mode`, {
     method: "PATCH",
     body: JSON.stringify({ mode }),
   });
@@ -27,8 +29,7 @@ export function updatePosMode(
 export function fetchSampleSalesCsv(
   storeId: string
 ): Promise<{ file_name: string; csv_text: string }> {
-  return apiRequest<{ file_name: string; csv_text: string }>(
-    `/stores/${storeId}/imports/sales-csv/sample`
+  return apiRequest(sampleCsvSchema, `/stores/${storeId}/imports/sales-csv/sample`
   );
 }
 
@@ -40,8 +41,7 @@ export function previewSalesCsv(
     mapping?: CsvColumnMapping;
   }
 ): Promise<CsvPreviewResponse> {
-  return apiRequest<CsvPreviewResponse>(
-    `/stores/${storeId}/imports/sales-csv/preview`,
+  return apiRequest(csvPreviewSchema, `/stores/${storeId}/imports/sales-csv/preview`,
     {
       method: "POST",
       body: JSON.stringify(payload),
@@ -53,8 +53,7 @@ export function commitSalesCsv(
   storeId: string,
   batchId: string
 ): Promise<CsvCommitResponse> {
-  return apiRequest<CsvCommitResponse>(
-    `/stores/${storeId}/imports/sales-csv/${batchId}/commit`,
+  return apiRequest(csvCommitSchema, `/stores/${storeId}/imports/sales-csv/${batchId}/commit`,
     {
       method: "POST",
     }
@@ -62,21 +61,21 @@ export function commitSalesCsv(
 }
 
 export function fetchProductMappings(storeId: string): Promise<ProductMapping[]> {
-  return apiRequest<ProductMapping[]>(`/stores/${storeId}/integrations/mappings`);
+  return apiRequest(z.array(productMappingSchema), `/stores/${storeId}/integrations/mappings`);
 }
 
 export function upsertProductMapping(
   storeId: string,
   payload: { external_product_name: string; menu_item_id: string }
 ): Promise<ProductMapping> {
-  return apiRequest<ProductMapping>(`/stores/${storeId}/integrations/mappings`, {
+  return apiRequest(productMappingSchema, `/stores/${storeId}/integrations/mappings`, {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
 export function fetchSalesOrders(storeId: string): Promise<SalesOrdersListResponse> {
-  return apiRequest<SalesOrdersListResponse>(`/stores/${storeId}/sales-orders`);
+  return apiRequest(salesOrdersListSchema, `/stores/${storeId}/sales-orders`);
 }
 
 export function updateSalesOrder(
@@ -87,7 +86,7 @@ export function updateSalesOrder(
     items?: Array<{ item_id: string; quantity: number }>;
   }
 ): Promise<SalesOrder> {
-  return apiRequest<SalesOrder>(`/stores/${storeId}/sales-orders/${orderId}`, {
+  return apiRequest(salesOrderSchema, `/stores/${storeId}/sales-orders/${orderId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
@@ -100,7 +99,7 @@ export function createManualSalesOrder(
     items: Array<{ menu_item_id: string; quantity: number }>;
   }
 ): Promise<SalesOrder> {
-  return apiRequest<SalesOrder>(`/stores/${storeId}/sales-orders`, {
+  return apiRequest(salesOrderSchema, `/stores/${storeId}/sales-orders`, {
     method: "POST",
     body: JSON.stringify(payload),
   });

@@ -1,4 +1,6 @@
+import { z } from "zod";
 import { apiRequest } from "./client";
+import { seedResultSchema, storeSchema, storeTableSchema, visitSessionSchema, visitSummarySchema } from "./schemas";
 import type {
   AgeBandType,
   GenderType,
@@ -13,7 +15,7 @@ import type {
 } from "../types";
 
 export function fetchStores(): Promise<Store[]> {
-  return apiRequest<Store[]>("/stores");
+  return apiRequest(z.array(storeSchema), "/stores");
 }
 
 export function createStore(payload: {
@@ -24,7 +26,7 @@ export function createStore(payload: {
   initial_table_count?: number;
   default_seats?: number;
 }): Promise<Store> {
-  return apiRequest<Store>("/stores", {
+  return apiRequest(storeSchema, "/stores", {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -39,7 +41,7 @@ export function updateStore(
     opening_hours: string;
   }>
 ): Promise<Store> {
-  return apiRequest<Store>(`/stores/${storeId}`, {
+  return apiRequest(storeSchema, `/stores/${storeId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
@@ -50,7 +52,7 @@ export function fetchTables(
   includeInactive = false
 ): Promise<StoreTable[]> {
   const q = includeInactive ? "?include_inactive=true" : "";
-  return apiRequest<StoreTable[]>(`/stores/${storeId}/tables${q}`);
+  return apiRequest(z.array(storeTableSchema), `/stores/${storeId}/tables${q}`);
 }
 
 export function createTable(
@@ -63,7 +65,7 @@ export function createTable(
     is_active?: boolean;
   }
 ): Promise<StoreTable> {
-  return apiRequest<StoreTable>(`/stores/${storeId}/tables`, {
+  return apiRequest(storeTableSchema, `/stores/${storeId}/tables`, {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -81,14 +83,14 @@ export function updateTable(
     is_active: boolean;
   }>
 ): Promise<StoreTable> {
-  return apiRequest<StoreTable>(`/stores/${storeId}/tables/${tableId}`, {
+  return apiRequest(storeTableSchema, `/stores/${storeId}/tables/${tableId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
 }
 
 export function fetchVisitSummary(storeId: string): Promise<VisitSummary> {
-  return apiRequest<VisitSummary>(`/stores/${storeId}/visits`);
+  return apiRequest(visitSummarySchema, `/stores/${storeId}/visits`);
 }
 
 export function createVisitSession(
@@ -100,7 +102,7 @@ export function createVisitSession(
     notes?: string | null;
   }
 ): Promise<VisitSession> {
-  return apiRequest<VisitSession>(`/stores/${storeId}/visits`, {
+  return apiRequest(visitSessionSchema, `/stores/${storeId}/visits`, {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -118,7 +120,7 @@ export function updateVisitSession(
     relationship: RelationshipType;
   }>
 ): Promise<VisitSession> {
-  return apiRequest<VisitSession>(`/stores/${storeId}/visits/${visitId}`, {
+  return apiRequest(visitSessionSchema, `/stores/${storeId}/visits/${visitId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
@@ -130,7 +132,7 @@ export function updateVisitSlot(
   slotNo: number,
   payload: Partial<{ gender: GenderType; age_band: AgeBandType }>
 ): Promise<VisitSession> {
-  return apiRequest<VisitSession>(`/stores/${storeId}/visits/${visitId}/slots/${slotNo}`, {
+  return apiRequest(visitSessionSchema, `/stores/${storeId}/visits/${visitId}/slots/${slotNo}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
@@ -143,11 +145,7 @@ export function seedWesternDemo(
   menus_created: number;
   receipts_created: number;
 }> {
-  return apiRequest<{
-    ingredients_created: number;
-    menus_created: number;
-    receipts_created: number;
-  }>(`/stores/${storeId}/seed-western-demo`, {
+  return apiRequest(seedResultSchema, `/stores/${storeId}/seed-western-demo`, {
     method: "POST",
   });
 }

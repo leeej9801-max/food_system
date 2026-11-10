@@ -1,4 +1,6 @@
+import { z } from "zod";
 import { apiRequest } from "./client";
+import { inventoryAdjustmentSchema, inventoryCountSchema, inventoryItemSchema, inventoryReceiptSchema } from "./schemas";
 import type {
   AdjustmentReasonType,
   IngredientInventoryItem,
@@ -11,8 +13,7 @@ export function fetchInventorySummary(
   storeId: string,
   includeInactive = false
 ): Promise<IngredientInventoryItem[]> {
-  return apiRequest<IngredientInventoryItem[]>(
-    `/stores/${storeId}/inventory/summary?include_inactive=${includeInactive}`
+  return apiRequest(z.array(inventoryItemSchema), `/stores/${storeId}/inventory/summary?include_inactive=${includeInactive}`
   );
 }
 
@@ -21,7 +22,7 @@ export function fetchReceipts(
   ingredientId?: string
 ): Promise<InventoryReceipt[]> {
   const q = ingredientId ? `?ingredient_id=${encodeURIComponent(ingredientId)}` : "";
-  return apiRequest<InventoryReceipt[]>(`/stores/${storeId}/inventory/receipts${q}`);
+  return apiRequest(z.array(inventoryReceiptSchema), `/stores/${storeId}/inventory/receipts${q}`);
 }
 
 export function createReceipt(
@@ -34,7 +35,7 @@ export function createReceipt(
     notes?: string | null;
   }
 ): Promise<InventoryReceipt> {
-  return apiRequest<InventoryReceipt>(`/stores/${storeId}/inventory/receipts`, {
+  return apiRequest(inventoryReceiptSchema, `/stores/${storeId}/inventory/receipts`, {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -45,7 +46,7 @@ export function fetchCounts(
   ingredientId?: string
 ): Promise<InventoryCount[]> {
   const q = ingredientId ? `?ingredient_id=${encodeURIComponent(ingredientId)}` : "";
-  return apiRequest<InventoryCount[]>(`/stores/${storeId}/inventory/counts${q}`);
+  return apiRequest(z.array(inventoryCountSchema), `/stores/${storeId}/inventory/counts${q}`);
 }
 
 export function createCount(
@@ -56,7 +57,7 @@ export function createCount(
     notes?: string | null;
   }
 ): Promise<InventoryCount> {
-  return apiRequest<InventoryCount>(`/stores/${storeId}/inventory/counts`, {
+  return apiRequest(inventoryCountSchema, `/stores/${storeId}/inventory/counts`, {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -71,8 +72,7 @@ export function createAdjustment(
     notes?: string | null;
   }
 ): Promise<InventoryAdjustment> {
-  return apiRequest<InventoryAdjustment>(
-    `/stores/${storeId}/inventory/adjustments`,
+  return apiRequest(inventoryAdjustmentSchema, `/stores/${storeId}/inventory/adjustments`,
     {
       method: "POST",
       body: JSON.stringify(payload),
