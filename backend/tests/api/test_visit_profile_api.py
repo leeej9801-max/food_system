@@ -124,7 +124,7 @@ def test_guest_profile_only_on_own_slot_and_staff_cannot_override(
     visits = f"/api/v1/stores/{table['store_id']}/visits"
     visit = staff.get(f"/api/v1/stores/{table['store_id']}/tables").json()[0]["active_visit"]
     blocked = staff.patch(f"{visits}/{visit['id']}/slots/1", json={"age_band": "30S"})
-    assert blocked.json()["error"]["code"] == "SLOT_PROFILE_BY_GUEST"
+    assert blocked.json()["code"] == "SLOT_PROFILE_BY_GUEST"
 
     # 손님이 비워 둔 자리는 직원이 채운다. 섞이면 세션 대표값은 MIXED
     filled = staff.patch(
@@ -141,9 +141,9 @@ def test_staff_slot_profile_not_found(staff: TestClient, table: dict) -> None:
     v = staff.post(visits, json={"table_id": table["table_id"], "party_size": 2}).json()
     assert len(v["slots"]) == 2
     r = staff.patch(f"{visits}/{v['id']}/slots/9", json={"gender": "MALE"})
-    assert r.json()["error"]["code"] == "SLOT_NOT_FOUND"
+    assert r.json()["code"] == "SLOT_NOT_FOUND"
     r = staff.patch(f"{visits}/nope/slots/1", json={"gender": "MALE"})
-    assert r.json()["error"]["code"] == "VISIT_NOT_FOUND"
+    assert r.json()["code"] == "VISIT_NOT_FOUND"
 
 
 # --- 방문 목적·관계 ---
@@ -161,7 +161,7 @@ def test_visit_context_guest_wins(staff: TestClient, phone: TestClient, table: d
     assert (guest["session"]["purpose"], guest["session"]["relationship"]) == ("DATE", "COUPLE")
 
     blocked = staff.patch(f"{visits}/{v['id']}", json={"purpose": "COMPANY"})
-    assert blocked.json()["error"]["code"] == "CONTEXT_BY_GUEST"
+    assert blocked.json()["code"] == "CONTEXT_BY_GUEST"
     # 다른 항목(인원)은 그대로 직원이 고칠 수 있다
     assert staff.patch(f"{visits}/{v['id']}", json={"party_size": 3}).status_code == 200
     assert (
@@ -247,7 +247,7 @@ def test_holidays_manual_and_day_type(staff: TestClient, db_session: Session) ->
     r = staff.post("/api/v1/holidays", json={"holiday_date": "2026-12-25", "name": "기독탄신일"})
     assert r.status_code == 201 and r.json()["source"] == "MANUAL"
     dup = staff.post("/api/v1/holidays", json={"holiday_date": "2026-12-25", "name": "x"})
-    assert dup.json()["error"]["code"] == "HOLIDAY_EXISTS"
+    assert dup.json()["code"] == "HOLIDAY_EXISTS"
     assert [h["name"] for h in staff.get("/api/v1/holidays?year=2026").json()] == ["기독탄신일"]
     assert staff.get("/api/v1/holidays?year=2027").json() == []
 

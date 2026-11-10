@@ -144,9 +144,9 @@ def test_ac5_validation_error_returns_field_details(client: TestClient) -> None:
         json={"name": "   ", "selling_price": -500},
     )
     assert resp.status_code == 422
-    err = resp.json()["error"]
+    err = resp.json()
     assert err["code"] == "VALIDATION_ERROR"
-    fields = {d["field"] for d in err["details"]}
+    fields = {d["field"] for d in err["errors"]}
     assert "name" in fields
     assert "selling_price" in fields
 
@@ -160,7 +160,7 @@ def test_ac6_duplicate_active_menu_name_returns_409(client: TestClient) -> None:
 
     dup = client.post(f"/api/v1/stores/{store_id}/menus", json={"name": " 제육볶음 "})
     assert dup.status_code == 409
-    assert dup.json()["error"]["code"] == "DUPLICATE_MENU_NAME"
+    assert dup.json()["code"] == "DUPLICATE_MENU_NAME"
 
 
 def test_ac7_store_isolation_returns_404_for_other_store_menu(client: TestClient) -> None:
@@ -170,7 +170,7 @@ def test_ac7_store_isolation_returns_404_for_other_store_menu(client: TestClient
 
     get_other = client.get(f"/api/v1/stores/{store_b['id']}/menus/{menu_a['id']}")
     assert get_other.status_code == 404
-    assert get_other.json()["error"]["code"] == "MENU_NOT_FOUND"
+    assert get_other.json()["code"] == "MENU_NOT_FOUND"
 
     patch_other = client.patch(
         f"/api/v1/stores/{store_b['id']}/menus/{menu_a['id']}",

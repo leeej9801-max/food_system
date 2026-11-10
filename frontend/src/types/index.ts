@@ -398,10 +398,13 @@ export interface ApiFieldError {
   message: string;
 }
 
+// RFC 9457 problem+json. code와 errors는 확장 필드다 (API-004)
 export interface ApiErrorBody {
-  error: {
-    code: string;
-    message: string;
-    details: ApiFieldError[];
-  };
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  instance: string;
+  code: string;
+  errors: ApiFieldError[];
 }

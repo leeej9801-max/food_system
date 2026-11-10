@@ -77,7 +77,7 @@ def test_ac1_ingredient_crud_duplicate_and_deactivate(client: TestClient) -> Non
         json={"name": "스파게티면", "base_unit": "g", "purchase_unit": "kg"},
     )
     assert dup.status_code == 409
-    assert dup.json()["error"]["code"] == "DUPLICATE_INGREDIENT_NAME"
+    assert dup.json()["code"] == "DUPLICATE_INGREDIENT_NAME"
 
     # 비활성화 후 조회
     deactivated = client.patch(
@@ -105,7 +105,7 @@ def test_ac2_ingredient_invalid_conversion_factor_returns_422(client: TestClient
         },
     )
     assert resp.status_code == 422
-    assert resp.json()["error"]["code"] == "VALIDATION_ERROR"
+    assert resp.json()["code"] == "VALIDATION_ERROR"
 
 
 def test_ac3_ac4_ac5_recipe_upsert_links_menu_and_ingredient_and_audits(
@@ -139,7 +139,7 @@ def test_ac3_ac4_ac5_recipe_upsert_links_menu_and_ingredient_and_audits(
         },
     )
     assert dup_resp.status_code == 422
-    assert dup_resp.json()["error"]["code"] == "DUPLICATE_RECIPE_INGREDIENT"
+    assert dup_resp.json()["code"] == "DUPLICATE_RECIPE_INGREDIENT"
 
     # 정상 레시피 등록 (version 1)
     put_v1 = client.put(

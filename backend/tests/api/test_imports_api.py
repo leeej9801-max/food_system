@@ -299,6 +299,6 @@ def test_wo008_sales_order_refund_and_pos_vs_csv_mode_branching(
         json={"order_status": "COMPLETED"},
     )
     assert locked_resp.status_code == 409
-    assert locked_resp.json()["error"]["code"] == "POS_MODE_MANUAL_EDIT_LOCKED"
+    assert locked_resp.json()["code"] == "POS_MODE_MANUAL_EDIT_LOCKED"
 
 

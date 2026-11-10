@@ -99,7 +99,7 @@ def test_other_store_resource_is_not_found(
     )
 
     assert resp.status_code == 404, resp.text
-    assert resp.json()["error"]["code"].endswith("_NOT_FOUND")
+    assert resp.json()["code"].endswith("_NOT_FOUND")
 
 
 def test_other_store_lists_do_not_include_my_rows(client: TestClient, stores: Stores) -> None:
@@ -142,4 +142,4 @@ def test_unknown_store_is_not_found(client: TestClient) -> None:
     resp = client.get("/api/v1/stores/00000000-0000-0000-0000-000000000000/menus")
 
     assert resp.status_code == 404
-    assert resp.json()["error"]["code"] == "STORE_NOT_FOUND"
+    assert resp.json()["code"] == "STORE_NOT_FOUND"

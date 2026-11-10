@@ -367,6 +367,24 @@
         "title": "CsvPreviewValidRow",
         "type": "object"
       },
+      "FieldError": {
+        "properties": {
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "message"
+        ],
+        "title": "FieldError",
+        "type": "object"
+      },
       "FloorFixture": {
         "properties": {
           "h": {
@@ -695,19 +713,6 @@
           "session"
         ],
         "title": "GuestTableResponse",
-        "type": "object"
-      },
-      "HTTPValidationError": {
-        "properties": {
-          "detail": {
-            "items": {
-              "$ref": "#/components/schemas/ValidationError"
-            },
-            "title": "Detail",
-            "type": "array"
-          }
-        },
-        "title": "HTTPValidationError",
         "type": "object"
       },
       "HolidayCreate": {
@@ -2163,6 +2168,53 @@
         "title": "PosModeUpdateRequest",
         "type": "object"
       },
+      "Problem": {
+        "description": "RFC 9457 오류 본문. `code`와 `errors`는 확장 필드다 (API-004).",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "errors": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "detail",
+          "instance",
+          "code"
+        ],
+        "title": "Problem",
+        "type": "object"
+      },
       "ProductMappingResponse": {
         "properties": {
           "external_product_name": {
@@ -3235,46 +3287,6 @@
         "title": "TableQrTokenResponse",
         "type": "object"
       },
-      "ValidationError": {
-        "properties": {
-          "ctx": {
-            "title": "Context",
-            "type": "object"
-          },
-          "input": {
-            "title": "Input"
-          },
-          "loc": {
-            "items": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            },
-            "title": "Location",
-            "type": "array"
-          },
-          "msg": {
-            "title": "Message",
-            "type": "string"
-          },
-          "type": {
-            "title": "Error Type",
-            "type": "string"
-          }
-        },
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
-        "title": "ValidationError",
-        "type": "object"
-      },
       "VisitSessionCreate": {
         "properties": {
           "age_band": {
@@ -3723,9 +3735,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -3791,9 +3803,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -3857,9 +3869,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -3915,9 +3927,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -3982,9 +3994,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4057,9 +4069,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4124,9 +4136,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4172,9 +4184,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4211,9 +4223,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4243,6 +4255,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Get Stores",
@@ -4275,9 +4297,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4317,9 +4339,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4367,9 +4389,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4419,9 +4441,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4461,9 +4483,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4513,9 +4535,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4560,9 +4582,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4612,9 +4634,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4694,9 +4716,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4744,9 +4766,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4795,9 +4817,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4854,9 +4876,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4909,9 +4931,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -4955,9 +4977,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5006,9 +5028,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5059,9 +5081,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5102,9 +5124,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5155,9 +5177,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5217,9 +5239,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5267,9 +5289,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5329,9 +5351,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5379,9 +5401,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5435,9 +5457,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5534,9 +5556,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5584,9 +5606,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5635,9 +5657,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5694,9 +5716,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5745,9 +5767,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5804,9 +5826,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5846,9 +5868,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5897,9 +5919,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -5959,9 +5981,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -6006,9 +6028,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -6062,9 +6084,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -6112,9 +6134,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -6173,9 +6195,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -6224,9 +6246,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -6274,9 +6296,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -6316,9 +6338,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -6366,9 +6388,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -6427,9 +6449,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -6497,9 +6519,9 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             },
@@ -6529,6 +6551,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Health",

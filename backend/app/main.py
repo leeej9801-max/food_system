@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.guest.router import guest_router
 from app.api.v1.router import api_router
 from app.core.config import settings
-from app.core.errors import register_exception_handlers
+from app.core.errors import PROBLEM_RESPONSES, register_exception_handlers
 
 
 def create_app() -> FastAPI:
@@ -12,6 +12,7 @@ def create_app() -> FastAPI:
         title="음식점 AX 데이터 수집·운영 최적화 API",
         version="0.1.0",
         description="1~2인 운영 음식점 데이터 파이프라인 백엔드 (POS 실연동 미검증)",
+        responses=PROBLEM_RESPONSES,
     )
     app.add_middleware(
         CORSMiddleware,

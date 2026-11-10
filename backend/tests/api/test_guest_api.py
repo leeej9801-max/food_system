@@ -99,7 +99,7 @@ def test_unknown_or_rotated_token_is_404(staff: TestClient, phone: TestClient, t
         f"/api/v1/stores/{table['store_id']}/tables/{table['table_id']}/qr-token"
     ).json()["token"]
     assert new != old
-    assert phone.get(f"{GUEST}/{old}").json()["error"]["code"] == "QR_TOKEN_NOT_FOUND"
+    assert phone.get(f"{GUEST}/{old}").json()["code"] == "QR_TOKEN_NOT_FOUND"
     assert phone.get(f"{GUEST}/{new}").status_code == 200
     got = staff.get(f"/api/v1/stores/{table['store_id']}/tables/{table['table_id']}/qr-token")
     assert got.json()["token"] == new
@@ -116,7 +116,7 @@ def test_first_scanner_opens_and_second_joins(
     staff: TestClient, phone: TestClient, phone2: TestClient, table: dict
 ) -> None:
     url = f"{GUEST}/{table['token']}/session"
-    assert phone.post(url, json={}).json()["error"]["code"] == "PARTY_SIZE_REQUIRED"
+    assert phone.post(url, json={}).json()["code"] == "PARTY_SIZE_REQUIRED"
 
     opened = phone.post(url, json={"party_size": 3}).json()
     assert opened["joined"] is False
@@ -186,7 +186,7 @@ def test_slot_add_remove_rules(phone: TestClient, phone2: TestClient, table: dic
 
     # 가져간 자리는 뺄 수 없다
     phone2.post(f"{base}/slots/1/claim")
-    assert phone.delete(f"{base}/slots/1").json()["error"]["code"] == "SLOT_NOT_REMOVABLE"
+    assert phone.delete(f"{base}/slots/1").json()["code"] == "SLOT_NOT_REMOVABLE"
 
     removed = phone.delete(f"{base}/slots/{table['seats'] + 1}").json()
     assert removed["session"]["party_size"] == table["seats"]
@@ -210,7 +210,7 @@ def test_claim_and_display_opt_out(phone: TestClient, phone2: TestClient, table:
     assert other[0]["is_mine"] is False and other[0]["is_claimed"] is True
     assert "claimed_by_device_id" not in other[0]
 
-    assert phone2.post(f"{base}/slots/1/claim").json()["error"]["code"] == "SLOT_ALREADY_CLAIMED"
+    assert phone2.post(f"{base}/slots/1/claim").json()["code"] == "SLOT_ALREADY_CLAIMED"
     assert phone.post(f"{base}/slots/1/claim").status_code == 200  # 같은 기기는 그대로
 
     # 케이스 L: 본인만 화면 표시 거부
@@ -222,7 +222,7 @@ def test_claim_and_display_opt_out(phone: TestClient, phone2: TestClient, table:
 
 def test_slot_actions_need_open_session(phone: TestClient, table: dict) -> None:
     r = phone.post(f"{GUEST}/{table['token']}/session/slots")
-    assert r.json()["error"]["code"] == "NO_OPEN_SESSION"
+    assert r.json()["code"] == "NO_OPEN_SESSION"
 
 
 def test_staff_party_size_and_clear(staff: TestClient, phone: TestClient, table: dict) -> None:
@@ -254,4 +254,4 @@ def test_guest_cannot_add_more_than_20_slots(phone: TestClient, table: dict) -> 
     base = f"{GUEST}/{table['token']}/session"
     assert phone.post(base, json={"party_size": 20}).status_code == 200
     r = phone.post(f"{base}/slots")
-    assert r.status_code == 409 and r.json()["error"]["code"] == "SLOT_LIMIT"
+    assert r.status_code == 409 and r.json()["code"] == "SLOT_LIMIT"

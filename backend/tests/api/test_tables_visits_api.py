@@ -104,7 +104,7 @@ def test_ac3_ac4_ac5_visit_lifecycle_separates_payment_and_leaving_and_preserves
         json={"table_id": t1_id, "party_size": 2},
     )
     assert dup_resp.status_code == 409
-    assert dup_resp.json()["error"]["code"] == "TABLE_ALREADY_OCCUPIED"
+    assert dup_resp.json()["code"] == "TABLE_ALREADY_OCCUPIED"
 
     # AC-4: 결제 완료(PAID)로 변경 -> paid_at 기록되지만 left_at은 여전히 None이고 테이블은 점유 상태 유지
     paid_resp = client.patch(

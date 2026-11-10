@@ -32,13 +32,8 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
     } catch {
       parsed = null;
     }
-    if (parsed?.error) {
-      throw new ApiClientError(
-        response.status,
-        parsed.error.code,
-        parsed.error.message,
-        parsed.error.details ?? []
-      );
+    if (parsed?.code) {
+      throw new ApiClientError(response.status, parsed.code, parsed.detail, parsed.errors ?? []);
     }
     throw new ApiClientError(
       response.status,
