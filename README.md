@@ -24,8 +24,7 @@
   cd c:\dev\food\db
   docker compose up -d
   ```
-  이후 `backend/.env`에 `backend/.env.example`의 PostgreSQL `DATABASE_URL`을 설정합니다.
-- **Docker 미실행 시 임시 로컬 개발 (PROVISIONAL P-07):** `.env` 없이 실행하면 기본적으로 `sqlite:///./local_dev.db`를 사용합니다.
+  이후 `backend/.env.example`을 `backend/.env`로 복사합니다. `DATABASE_URL`이 없으면 백엔드는 기동하지 않습니다 (SEC-001).
 
 ### 2. 백엔드 실행 (FastAPI)
 
