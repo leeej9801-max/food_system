@@ -29,6 +29,7 @@ CHARACTER = uuid.uuid4()
 
 @pytest.fixture(scope="module")
 def runtime_engine():
+    assert OWNER_URL
     owner = create_engine(OWNER_URL)
     password = secrets.token_hex(16)
     sql = (Path(__file__).with_name("rls_policies.sql")).read_text(encoding="utf-8")
@@ -125,7 +126,8 @@ def test_update_and_delete_other_store_affect_zero_rows(runtime_engine):
         dele = db.execute(
             text("DELETE FROM rls_spike.visit_sessions WHERE store_id = :s"), {"s": STORE_B}
         )
-        assert (upd.rowcount, dele.rowcount) == (0, 0)
+        counts = (upd.rowcount, dele.rowcount)  # pyright: ignore[reportAttributeAccessIssue]
+        assert counts == (0, 0)
         db.rollback()
 
 

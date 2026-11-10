@@ -22,4 +22,4 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.cors_allowed_origins.split(",") if origin.strip()]
 
 
-settings = Settings()
+settings = Settings()  # pyright: ignore[reportCallIssue]  # 값은 환경변수에서 온다

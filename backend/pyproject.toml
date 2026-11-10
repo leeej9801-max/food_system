@@ -22,10 +22,16 @@ dev = [
     "pytest>=8.3.0",
     "httpx>=0.27.0",
     "ruff>=0.7.0",
+    "pyright>=1.1",
 ]
 
 [tool.setuptools.packages.find]
 include = ["app*"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+include = ["app", "tests", "alembic", "scripts"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

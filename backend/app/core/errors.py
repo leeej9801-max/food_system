@@ -87,12 +87,13 @@ def _add_problem_schema(app: FastAPI) -> None:
     build = app.openapi
 
     def openapi() -> dict[str, Any]:
-        if app.openapi_schema is None:
-            schemas = build().setdefault("components", {}).setdefault("schemas", {})
+        schema = build()
+        schemas = schema.setdefault("components", {}).setdefault("schemas", {})
+        if "Problem" not in schemas:
             problem = Problem.model_json_schema(ref_template="#/components/schemas/{model}")
             schemas.update(problem.pop("$defs", {}))
             schemas["Problem"] = problem
-        return app.openapi_schema
+        return schema
 
     app.openapi = openapi
 

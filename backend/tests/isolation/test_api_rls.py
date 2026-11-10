@@ -33,6 +33,7 @@ RUNTIME_ROLE = "rls_api_runtime"
 
 @pytest.fixture(scope="module")
 def runtime_sessionmaker() -> Generator[sessionmaker, None, None]:
+    assert OWNER_URL
     admin = create_engine(OWNER_URL, isolation_level="AUTOCOMMIT")
     with admin.connect() as conn:
         conn.exec_driver_sql(f"DROP DATABASE IF EXISTS {TEST_DB} WITH (FORCE)")

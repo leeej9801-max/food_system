@@ -1,5 +1,5 @@
 import pytest
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import create_engine, func, insert, select
 from sqlalchemy.exc import IntegrityError
 
 from app.db.base import Base
@@ -13,9 +13,9 @@ def test_import_preserves_ids_relationships_and_refuses_nonempty_target():
     Base.metadata.create_all(source)
     Base.metadata.create_all(target)
     with source.begin() as connection:
-        connection.execute(Store.__table__.insert(), {"id": "store-1", "name": "test"})
+        connection.execute(insert(Store), {"id": "store-1", "name": "test"})
         connection.execute(
-            MenuItem.__table__.insert(),
+            insert(MenuItem),
             {
                 "id": "menu-1",
                 "store_id": "store-1",
@@ -40,9 +40,9 @@ def test_failed_import_rolls_back_all_previously_copied_tables():
     Base.metadata.create_all(source)
     Base.metadata.create_all(target)
     with source.begin() as connection:
-        connection.execute(Store.__table__.insert(), {"id": "store-1", "name": "test"})
+        connection.execute(insert(Store), {"id": "store-1", "name": "test"})
         connection.execute(
-            MenuItem.__table__.insert(),
+            insert(MenuItem),
             {
                 "id": "menu-1",
                 "store_id": "store-1",

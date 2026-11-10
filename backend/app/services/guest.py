@@ -7,6 +7,7 @@
 import hashlib
 import secrets
 from dataclasses import dataclass
+from typing import cast
 
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
@@ -22,6 +23,7 @@ from app.schemas import (
     GuestSlotDisplayUpdate,
     GuestSlotResponse,
     GuestTableResponse,
+    SlotStateType,
     TableQrTokenResponse,
 )
 from app.services.menus import record_audit
@@ -235,7 +237,7 @@ def _to_session(visit: VisitSession, device_id: str) -> GuestSessionResponse:
         slots=[
             GuestSlotResponse(
                 slot_no=s.slot_no,
-                state=s.state,
+                state=cast(SlotStateType, s.state),
                 is_claimed=s.claimed_by_device_id is not None,
                 is_mine=s.claimed_by_device_id == device_id,
                 display_opt_out=s.display_opt_out,

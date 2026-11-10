@@ -188,13 +188,17 @@ def _seat(db: Session, table: dict, seated_at: datetime) -> VisitSession:
 def test_business_close_times() -> None:
     store = Store(name="s", timezone="Asia/Seoul", opening_hours="11:00-21:00")
     # 12:00 KST 착석 → 퇴점 21:00 KST, 닫기는 다음 날 11:00 KST
-    left, run = business_close_at(store, datetime(2026, 11, 5, 3, 0, tzinfo=UTC))
+    close = business_close_at(store, datetime(2026, 11, 5, 3, 0, tzinfo=UTC))
+    assert close is not None
+    left, run = close
     assert left == datetime(2026, 11, 5, 12, 0, tzinfo=UTC)
     assert run == datetime(2026, 11, 6, 2, 0, tzinfo=UTC)
 
     overnight = Store(name="s", timezone="Asia/Seoul", opening_hours="17:00-02:00")
     # 01:00 KST(전날 영업) 착석 → 퇴점 02:00 KST 같은 날
-    left, run = business_close_at(overnight, datetime(2026, 11, 4, 16, 0, tzinfo=UTC))
+    close = business_close_at(overnight, datetime(2026, 11, 4, 16, 0, tzinfo=UTC))
+    assert close is not None
+    left, run = close
     assert left == datetime(2026, 11, 4, 17, 0, tzinfo=UTC)
     assert run == datetime(2026, 11, 5, 8, 0, tzinfo=UTC)
 
@@ -220,6 +224,7 @@ def test_auto_close_previous_business_day(
     staff.get(f"/api/v1/stores/{table['store_id']}/tables")  # 지연 닫기 실행 (지금 > 11/4 11:00)
     db_session.refresh(old)
     assert (old.status, old.closed_reason) == ("LEFT", "END_OF_DAY")
+    assert old.left_at is not None
     assert old.left_at.replace(tzinfo=UTC) == datetime(2026, 11, 3, 12, 0, tzinfo=UTC)
 
 
