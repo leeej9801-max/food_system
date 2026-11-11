@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
@@ -23,7 +24,7 @@ router = APIRouter(prefix="/stores/{store_id}", tags=["tables & visits"])
 
 @router.get("/tables")
 def get_tables(
-    store_id: str,
+    store_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     include_inactive: Annotated[bool, Query()] = False,
 ) -> list[StoreTableResponse]:
@@ -32,7 +33,7 @@ def get_tables(
 
 @router.post("/tables", status_code=status.HTTP_201_CREATED)
 def post_table(
-    store_id: str,
+    store_id: UUID,
     payload: StoreTableCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> StoreTableResponse:
@@ -41,8 +42,8 @@ def post_table(
 
 @router.patch("/tables/{table_id}")
 def patch_table(
-    store_id: str,
-    table_id: str,
+    store_id: UUID,
+    table_id: UUID,
     payload: StoreTableUpdate,
     db: Annotated[Session, Depends(get_db)],
 ) -> StoreTableResponse:
@@ -51,7 +52,7 @@ def patch_table(
 
 @router.get("/visits")
 def get_visits(
-    store_id: str,
+    store_id: UUID,
     db: Annotated[Session, Depends(get_db)],
 ) -> VisitSummaryResponse:
     return table_service.list_visit_summary(db, store_id=store_id)
@@ -59,7 +60,7 @@ def get_visits(
 
 @router.post("/visits", status_code=status.HTTP_201_CREATED)
 def post_visit(
-    store_id: str,
+    store_id: UUID,
     payload: VisitSessionCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> VisitSessionResponse:
@@ -68,8 +69,8 @@ def post_visit(
 
 @router.patch("/visits/{visit_id}")
 def patch_visit(
-    store_id: str,
-    visit_id: str,
+    store_id: UUID,
+    visit_id: UUID,
     payload: VisitSessionUpdate,
     db: Annotated[Session, Depends(get_db)],
 ) -> VisitSessionResponse:
@@ -80,8 +81,8 @@ def patch_visit(
 
 @router.patch("/visits/{visit_id}/slots/{slot_no}")
 def patch_visit_slot(
-    store_id: str,
-    visit_id: str,
+    store_id: UUID,
+    visit_id: UUID,
     slot_no: int,
     payload: SlotProfileUpdate,
     db: Annotated[Session, Depends(get_db)],
@@ -93,8 +94,8 @@ def patch_visit_slot(
 
 @router.get("/tables/{table_id}/qr-token")
 def get_table_qr_token(
-    store_id: str,
-    table_id: str,
+    store_id: UUID,
+    table_id: UUID,
     db: Annotated[Session, Depends(get_db)],
 ) -> TableQrTokenResponse:
     table_service.get_table_or_404(db, store_id=store_id, table_id=table_id)
@@ -103,8 +104,8 @@ def get_table_qr_token(
 
 @router.post("/tables/{table_id}/qr-token")
 def rotate_table_qr_token(
-    store_id: str,
-    table_id: str,
+    store_id: UUID,
+    table_id: UUID,
     db: Annotated[Session, Depends(get_db)],
 ) -> TableQrTokenResponse:
     """QR 토큰 발급 또는 회전. 회전하면 이전 QR은 바로 못 쓴다."""

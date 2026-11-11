@@ -19,16 +19,16 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.create_table(
         "inventory_receipts",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "ingredient_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("ingredients.id", ondelete="RESTRICT"),
             nullable=False,
         ),
@@ -48,16 +48,16 @@ def upgrade() -> None:
 
     op.create_table(
         "inventory_counts",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "ingredient_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("ingredients.id", ondelete="RESTRICT"),
             nullable=False,
         ),
@@ -71,16 +71,16 @@ def upgrade() -> None:
 
     op.create_table(
         "inventory_adjustments",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "ingredient_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("ingredients.id", ondelete="RESTRICT"),
             nullable=False,
         ),

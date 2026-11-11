@@ -19,10 +19,10 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.create_table(
         "pos_connections",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
             unique=True,
@@ -37,17 +37,17 @@ def upgrade() -> None:
 
     op.create_table(
         "pos_product_mappings",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column("external_product_name", sa.String(length=120), nullable=False),
         sa.Column(
             "menu_item_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("menu_items.id", ondelete="RESTRICT"),
             nullable=False,
         ),
@@ -61,10 +61,10 @@ def upgrade() -> None:
 
     op.create_table(
         "import_batches",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
@@ -91,16 +91,16 @@ def upgrade() -> None:
 
     op.create_table(
         "sales_orders",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "import_batch_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("import_batches.id", ondelete="SET NULL"),
             nullable=True,
         ),
@@ -116,22 +116,22 @@ def upgrade() -> None:
 
     op.create_table(
         "sales_order_items",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "order_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("sales_orders.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "menu_item_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("menu_items.id", ondelete="SET NULL"),
             nullable=True,
         ),

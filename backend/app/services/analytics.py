@@ -1,5 +1,6 @@
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Literal
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -19,7 +20,7 @@ from app.schemas import (
 from app.services.menus import get_store_or_404
 
 
-def get_sales_analytics(db: Session, *, store_id: str) -> SalesAnalyticsResponse:
+def get_sales_analytics(db: Session, *, store_id: UUID) -> SalesAnalyticsResponse:
     get_store_or_404(db, store_id)
 
     menus_by_id = {m.id: m.name for m in menu_repo.list_by_store(db, store_id)}
@@ -33,7 +34,7 @@ def get_sales_analytics(db: Session, *, store_id: str) -> SalesAnalyticsResponse
     total_qty = 0
     total_sales = Decimal("0.00")
 
-    menu_agg: dict[tuple[str | None, str, str], dict[str, int | Decimal]] = {}
+    menu_agg: dict[tuple[UUID | None, str, str], dict[str, int | Decimal]] = {}
 
     for order in orders:
         has_exact_hour = order.time_basis == "order_time" and order.ordered_at is not None
@@ -101,13 +102,13 @@ def get_sales_analytics(db: Session, *, store_id: str) -> SalesAnalyticsResponse
 
 
 def simulate_menu_costs(
-    db: Session, *, store_id: str, payload: CostSimulationRequest
+    db: Session, *, store_id: UUID, payload: CostSimulationRequest
 ) -> CostSimulationResponse:
     get_store_or_404(db, store_id)
 
     menus = menu_repo.list_active_with_recipes(db, store_id)
     receipts = inventory_repo.list_receipts_latest_first(db, store_id)
-    latest_cost_by_ing: dict[str, Decimal] = {}
+    latest_cost_by_ing: dict[UUID, Decimal] = {}
     for r in receipts:
         if r.ingredient_id not in latest_cost_by_ing:
             latest_cost_by_ing[r.ingredient_id] = Decimal(str(r.unit_cost_per_base))

@@ -221,7 +221,7 @@ def test_runtime_role_cannot_list_tokens_or_slots(runtime_sessionmaker, qr):
         rows = db.execute(
             text("SELECT store_id, table_id FROM app_resolve_table_qr(:t)"), {"t": qr["A"]["token"]}
         ).all()
-        assert rows == [(qr["A"]["store_id"], qr["A"]["table_id"])]
+        assert [tuple(map(str, r)) for r in rows] == [(qr["A"]["store_id"], qr["A"]["table_id"])]
         none = db.execute(text("SELECT count(*) FROM app_resolve_table_qr('')")).scalar_one()
         assert none == 0
 
@@ -238,7 +238,7 @@ def test_runtime_role_cannot_insert_slot_for_other_store(runtime_sessionmaker, s
                 text(
                     "INSERT INTO session_slots (id, store_id, session_id, slot_no, state, "
                     "display_opt_out, created_at, updated_at) VALUES "
-                    "('x', :b, :v, 9, 'SILHOUETTE', false, now(), now())"
+                    "(gen_random_uuid(), :b, :v, 9, 'SILHOUETTE', false, now(), now())"
                 ),
                 {"b": stores["B"]["id"], "v": visit_id},
             )

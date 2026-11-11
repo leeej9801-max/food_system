@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -16,7 +17,7 @@ from app.services import inventory as inv_service
 from app.services import menus as menu_service
 
 
-def seed_western_bistro_demo(db: Session, *, store_id: str) -> dict[str, int]:
+def seed_western_bistro_demo(db: Session, *, store_id: UUID) -> dict[str, int]:
     """양식당(Western Bistro) 프로토타입 시연용 마스터 데이터(식자재·메뉴·레시피·입고단가) 일괄 세팅.
     이미 존재하는 항목은 건너뛰어 멱등성을 보장하며, 가짜 매출은 자동 커밋하지 않는다.
     """
@@ -70,7 +71,7 @@ def seed_western_bistro_demo(db: Session, *, store_id: str) -> dict[str, int]:
         },
     ]
 
-    ing_map: dict[str, str] = {}
+    ing_map: dict[str, UUID] = {}
     created_ings = 0
     created_receipts = 0
 

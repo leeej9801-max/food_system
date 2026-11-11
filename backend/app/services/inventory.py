@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Literal
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -39,7 +40,7 @@ def _norm_dt(dt: datetime | None) -> datetime | None:
 
 
 def create_receipt(
-    db: Session, *, store_id: str, payload: InventoryReceiptCreate
+    db: Session, *, store_id: UUID, payload: InventoryReceiptCreate
 ) -> InventoryReceiptResponse:
     ingredient = get_ingredient_or_404(db, store_id=store_id, ingredient_id=payload.ingredient_id)
     conv = Decimal(str(ingredient.conversion_factor))
@@ -110,7 +111,7 @@ def create_receipt(
 
 
 def list_receipts(
-    db: Session, *, store_id: str, ingredient_id: str | None = None
+    db: Session, *, store_id: UUID, ingredient_id: UUID | None = None
 ) -> list[InventoryReceiptResponse]:
     get_store_or_404(db, store_id)
     ingredients_by_id = {i.id: i.name for i in ingredient_repo.list_by_store(db, store_id)}
@@ -137,7 +138,7 @@ def list_receipts(
 
 
 def create_count(
-    db: Session, *, store_id: str, payload: InventoryCountCreate
+    db: Session, *, store_id: UUID, payload: InventoryCountCreate
 ) -> InventoryCountResponse:
     ingredient = get_ingredient_or_404(db, store_id=store_id, ingredient_id=payload.ingredient_id)
     actual_qty = Decimal(str(payload.actual_quantity)).quantize(Decimal("0.001"))
@@ -178,7 +179,7 @@ def create_count(
 
 
 def list_counts(
-    db: Session, *, store_id: str, ingredient_id: str | None = None
+    db: Session, *, store_id: UUID, ingredient_id: UUID | None = None
 ) -> list[InventoryCountResponse]:
     get_store_or_404(db, store_id)
     ingredients_by_id = {i.id: i.name for i in ingredient_repo.list_by_store(db, store_id)}
@@ -199,7 +200,7 @@ def list_counts(
 
 
 def create_adjustment(
-    db: Session, *, store_id: str, payload: InventoryAdjustmentCreate
+    db: Session, *, store_id: UUID, payload: InventoryAdjustmentCreate
 ) -> InventoryAdjustmentResponse:
     ingredient = get_ingredient_or_404(db, store_id=store_id, ingredient_id=payload.ingredient_id)
     delta = Decimal(str(payload.quantity_delta)).quantize(Decimal("0.001"))
@@ -259,7 +260,7 @@ def create_adjustment(
 
 
 def get_inventory_summary(
-    db: Session, *, store_id: str, include_inactive: bool = False
+    db: Session, *, store_id: UUID, include_inactive: bool = False
 ) -> list[IngredientInventoryItem]:
     get_store_or_404(db, store_id)
     ingredients = ingredient_repo.list_by_store(db, store_id, active_only=not include_inactive)
@@ -268,21 +269,21 @@ def get_inventory_summary(
     adjustments = inventory_repo.list_adjustments(db, store_id)
 
     # O(N) 사전 인덱싱으로 다수 식자재·입고·판매 건수에서도 선형 시간 보장
-    receipts_by_ing: dict[str, list[InventoryReceipt]] = {}
+    receipts_by_ing: dict[UUID, list[InventoryReceipt]] = {}
     for r in receipts:
         receipts_by_ing.setdefault(r.ingredient_id, []).append(r)
 
-    counts_by_ing: dict[str, list[InventoryCount]] = {}
+    counts_by_ing: dict[UUID, list[InventoryCount]] = {}
     for c in counts:
         counts_by_ing.setdefault(c.ingredient_id, []).append(c)
 
-    adjustments_by_ing: dict[str, list[InventoryAdjustment]] = {}
+    adjustments_by_ing: dict[UUID, list[InventoryAdjustment]] = {}
     for a in adjustments:
         adjustments_by_ing.setdefault(a.ingredient_id, []).append(a)
 
     # Load recipes by menu_item_id -> ingredient_id -> quantity
     recipes = menu_repo.list_recipes_with_items(db, store_id)
-    ing_menu_qty: dict[str, list[tuple[str, Decimal]]] = {}
+    ing_menu_qty: dict[UUID, list[tuple[UUID, Decimal]]] = {}
     for rec in recipes:
         for ri in rec.items:
             ing_menu_qty.setdefault(ri.ingredient_id, []).append(
@@ -291,7 +292,7 @@ def get_inventory_summary(
 
     # Load completed sales orders & items
     orders = sales_order_repo.list_completed_with_items(db, store_id)
-    sales_by_menu: dict[str, list[tuple[int, datetime, datetime | None]]] = {}
+    sales_by_menu: dict[UUID, list[tuple[int, datetime, datetime | None]]] = {}
     for order in orders:
         rec_dt = _norm_dt(order.received_at) or utcnow()
         ord_dt = _norm_dt(order.ordered_at)

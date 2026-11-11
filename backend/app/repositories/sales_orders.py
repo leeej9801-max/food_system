@@ -1,10 +1,12 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.db.models import SalesOrder, SalesOrderItem
 
 
-def list_completed_with_items(db: Session, store_id: str) -> list[SalesOrder]:
+def list_completed_with_items(db: Session, store_id: UUID) -> list[SalesOrder]:
     return list(
         db.scalars(
             select(SalesOrder)
@@ -18,7 +20,7 @@ def list_completed_with_items(db: Session, store_id: str) -> list[SalesOrder]:
     )
 
 
-def list_sold_menu_ids(db: Session, store_id: str) -> list[str | None]:
+def list_sold_menu_ids(db: Session, store_id: UUID) -> list[UUID | None]:
     return list(
         db.scalars(
             select(SalesOrderItem.menu_item_id)
@@ -31,7 +33,7 @@ def list_sold_menu_ids(db: Session, store_id: str) -> list[str | None]:
     )
 
 
-def list_unmapped_items(db: Session, store_id: str) -> list[SalesOrderItem]:
+def list_unmapped_items(db: Session, store_id: UUID) -> list[SalesOrderItem]:
     return list(
         db.scalars(
             select(SalesOrderItem).where(

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -10,7 +12,7 @@ def insert(db: Session, row: InventoryReceipt | InventoryCount | InventoryAdjust
 
 
 def list_receipts_latest_first(
-    db: Session, store_id: str, ingredient_id: str | None = None
+    db: Session, store_id: UUID, ingredient_id: UUID | None = None
 ) -> list[InventoryReceipt]:
     stmt = select(InventoryReceipt).where(InventoryReceipt.store_id == store_id)
     if ingredient_id:
@@ -20,7 +22,7 @@ def list_receipts_latest_first(
 
 
 def list_counts_latest_first(
-    db: Session, store_id: str, ingredient_id: str | None = None
+    db: Session, store_id: UUID, ingredient_id: UUID | None = None
 ) -> list[InventoryCount]:
     stmt = select(InventoryCount).where(InventoryCount.store_id == store_id)
     if ingredient_id:
@@ -29,7 +31,7 @@ def list_counts_latest_first(
     return list(db.scalars(stmt).all())
 
 
-def list_adjustments(db: Session, store_id: str) -> list[InventoryAdjustment]:
+def list_adjustments(db: Session, store_id: UUID) -> list[InventoryAdjustment]:
     return list(
         db.scalars(
             select(InventoryAdjustment).where(InventoryAdjustment.store_id == store_id)

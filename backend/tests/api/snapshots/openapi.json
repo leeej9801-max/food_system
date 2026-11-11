@@ -26,6 +26,9 @@
                 }
               ]
             },
+            "propertyNames": {
+              "format": "uuid"
+            },
             "title": "Ingredient Change Percents",
             "type": "object"
           }
@@ -52,6 +55,7 @@
             "type": "array"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           }
@@ -103,6 +107,7 @@
       "CsvCommitResponse": {
         "properties": {
           "batch_id": {
+            "format": "uuid",
             "title": "Batch Id",
             "type": "string"
           },
@@ -173,6 +178,7 @@
       "CsvPreviewResponse": {
         "properties": {
           "batch_id": {
+            "format": "uuid",
             "title": "Batch Id",
             "type": "string"
           },
@@ -298,6 +304,7 @@
           "menu_item_id": {
             "anyOf": [
               {
+                "format": "uuid",
                 "type": "string"
               },
               {
@@ -869,6 +876,7 @@
             "type": "string"
           },
           "ingredient_id": {
+            "format": "uuid",
             "title": "Ingredient Id",
             "type": "string"
           },
@@ -995,6 +1003,7 @@
             "type": "string"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
@@ -1038,6 +1047,7 @@
             "title": "Safety Stock"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           },
@@ -1179,6 +1189,7 @@
             "type": "boolean"
           },
           "menu_item_id": {
+            "format": "uuid",
             "title": "Menu Item Id",
             "type": "string"
           },
@@ -1267,6 +1278,7 @@
             "type": "string"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           },
@@ -1299,7 +1311,7 @@
       "InventoryAdjustmentCreate": {
         "properties": {
           "ingredient_id": {
-            "minLength": 1,
+            "format": "uuid",
             "title": "Ingredient Id",
             "type": "string"
           },
@@ -1352,10 +1364,12 @@
             "type": "string"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
           "ingredient_id": {
+            "format": "uuid",
             "title": "Ingredient Id",
             "type": "string"
           },
@@ -1394,6 +1408,7 @@
             "type": "string"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           }
@@ -1427,7 +1442,7 @@
             "title": "Actual Quantity"
           },
           "ingredient_id": {
-            "minLength": 1,
+            "format": "uuid",
             "title": "Ingredient Id",
             "type": "string"
           },
@@ -1467,10 +1482,12 @@
             "type": "string"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
           "ingredient_id": {
+            "format": "uuid",
             "title": "Ingredient Id",
             "type": "string"
           },
@@ -1490,6 +1507,7 @@
             "title": "Notes"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           }
@@ -1510,7 +1528,7 @@
       "InventoryReceiptCreate": {
         "properties": {
           "ingredient_id": {
-            "minLength": 1,
+            "format": "uuid",
             "title": "Ingredient Id",
             "type": "string"
           },
@@ -1582,10 +1600,12 @@
             "type": "string"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
           "ingredient_id": {
+            "format": "uuid",
             "title": "Ingredient Id",
             "type": "string"
           },
@@ -1618,6 +1638,7 @@
             "type": "string"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           },
@@ -1693,6 +1714,7 @@
             "title": "Base Unit Cost"
           },
           "ingredient_id": {
+            "format": "uuid",
             "title": "Ingredient Id",
             "type": "string"
           },
@@ -1804,6 +1826,7 @@
             "type": "boolean"
           },
           "menu_item_id": {
+            "format": "uuid",
             "title": "Menu Item Id",
             "type": "string"
           },
@@ -1966,6 +1989,7 @@
             "title": "Description"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
@@ -2013,6 +2037,7 @@
             "title": "Selling Price"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           },
@@ -2049,6 +2074,7 @@
           "menu_item_id": {
             "anyOf": [
               {
+                "format": "uuid",
                 "type": "string"
               },
               {
@@ -2222,10 +2248,12 @@
             "type": "string"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
           "menu_item_id": {
+            "format": "uuid",
             "title": "Menu Item Id",
             "type": "string"
           },
@@ -2239,6 +2267,7 @@
             "type": "integer"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           }
@@ -2262,7 +2291,7 @@
             "type": "string"
           },
           "menu_item_id": {
-            "minLength": 1,
+            "format": "uuid",
             "title": "Menu Item Id",
             "type": "string"
           }
@@ -2277,7 +2306,7 @@
       "RecipeItemInput": {
         "properties": {
           "ingredient_id": {
-            "minLength": 1,
+            "format": "uuid",
             "title": "Ingredient Id",
             "type": "string"
           },
@@ -2317,10 +2346,12 @@
       "RecipeItemResponse": {
         "properties": {
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
           "ingredient_id": {
+            "format": "uuid",
             "title": "Ingredient Id",
             "type": "string"
           },
@@ -2386,6 +2417,7 @@
             "type": "array"
           },
           "menu_item_id": {
+            "format": "uuid",
             "title": "Menu Item Id",
             "type": "string"
           },
@@ -2474,6 +2506,7 @@
             "type": "array"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           },
@@ -2535,7 +2568,7 @@
       "SalesOrderCreateItemInput": {
         "properties": {
           "menu_item_id": {
-            "minLength": 1,
+            "format": "uuid",
             "title": "Menu Item Id",
             "type": "string"
           },
@@ -2597,6 +2630,7 @@
       "SalesOrderItemResponse": {
         "properties": {
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
@@ -2615,6 +2649,7 @@
           "menu_item_id": {
             "anyOf": [
               {
+                "format": "uuid",
                 "type": "string"
               },
               {
@@ -2663,7 +2698,7 @@
       "SalesOrderItemUpdateInput": {
         "properties": {
           "item_id": {
-            "minLength": 1,
+            "format": "uuid",
             "title": "Item Id",
             "type": "string"
           },
@@ -2688,6 +2723,7 @@
             "type": "string"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
@@ -2723,6 +2759,7 @@
             "type": "string"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           },
@@ -2816,6 +2853,7 @@
             "type": "string"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           }
@@ -2963,6 +3001,7 @@
             "type": "array"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
@@ -3079,6 +3118,7 @@
             "type": "integer"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
@@ -3100,6 +3140,7 @@
             "type": "integer"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           },
@@ -3271,6 +3312,7 @@
             "type": "string"
           },
           "table_id": {
+            "format": "uuid",
             "title": "Table Id",
             "type": "string"
           },
@@ -3324,7 +3366,7 @@
             "type": "integer"
           },
           "table_id": {
-            "minLength": 1,
+            "format": "uuid",
             "title": "Table Id",
             "type": "string"
           }
@@ -3365,6 +3407,7 @@
             "title": "Context Source"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
@@ -3466,10 +3509,12 @@
             "type": "string"
           },
           "store_id": {
+            "format": "uuid",
             "title": "Store Id",
             "type": "string"
           },
           "table_id": {
+            "format": "uuid",
             "title": "Table Id",
             "type": "string"
           },
@@ -4321,6 +4366,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4361,6 +4407,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4413,6 +4460,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4465,6 +4513,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4507,6 +4556,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4560,6 +4610,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4607,6 +4658,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4616,6 +4668,7 @@
             "name": "batch_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Batch Id",
               "type": "string"
             }
@@ -4659,6 +4712,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4738,6 +4792,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4790,6 +4845,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4799,6 +4855,7 @@
             "name": "ingredient_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Ingredient Id",
               "type": "string"
             }
@@ -4839,6 +4896,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4848,6 +4906,7 @@
             "name": "ingredient_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Ingredient Id",
               "type": "string"
             }
@@ -4900,6 +4959,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -4909,6 +4969,7 @@
             "name": "ingredient_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Ingredient Id",
               "type": "string"
             }
@@ -4955,6 +5016,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5000,6 +5062,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5053,6 +5116,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5106,6 +5170,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5149,6 +5214,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5201,6 +5267,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5212,6 +5279,7 @@
             "schema": {
               "anyOf": [
                 {
+                  "format": "uuid",
                   "type": "string"
                 },
                 {
@@ -5261,6 +5329,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5313,6 +5382,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5324,6 +5394,7 @@
             "schema": {
               "anyOf": [
                 {
+                  "format": "uuid",
                   "type": "string"
                 },
                 {
@@ -5373,6 +5444,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5425,6 +5497,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5481,6 +5554,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5578,6 +5652,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5630,6 +5705,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5639,6 +5715,7 @@
             "name": "menu_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Menu Id",
               "type": "string"
             }
@@ -5679,6 +5756,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5688,6 +5766,7 @@
             "name": "menu_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Menu Id",
               "type": "string"
             }
@@ -5740,6 +5819,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5749,6 +5829,7 @@
             "name": "menu_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Menu Id",
               "type": "string"
             }
@@ -5789,6 +5870,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5798,6 +5880,7 @@
             "name": "menu_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Menu Id",
               "type": "string"
             }
@@ -5850,6 +5933,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5891,6 +5975,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5944,6 +6029,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -5953,6 +6039,7 @@
             "name": "order_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Order Id",
               "type": "string"
             }
@@ -6006,6 +6093,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -6052,6 +6140,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -6106,6 +6195,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -6158,6 +6248,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -6167,6 +6258,7 @@
             "name": "table_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Table Id",
               "type": "string"
             }
@@ -6219,6 +6311,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -6228,6 +6321,7 @@
             "name": "table_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Table Id",
               "type": "string"
             }
@@ -6269,6 +6363,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -6278,6 +6373,7 @@
             "name": "table_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Table Id",
               "type": "string"
             }
@@ -6320,6 +6416,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -6360,6 +6457,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -6412,6 +6510,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -6421,6 +6520,7 @@
             "name": "visit_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Visit Id",
               "type": "string"
             }
@@ -6473,6 +6573,7 @@
             "name": "store_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Store Id",
               "type": "string"
             }
@@ -6482,6 +6583,7 @@
             "name": "visit_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "Visit Id",
               "type": "string"
             }

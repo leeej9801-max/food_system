@@ -5,6 +5,7 @@ import json
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Literal
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -51,7 +52,7 @@ def get_sample_sales_csv() -> str:
     return SAMPLE_WESTERN_BISTRO_CSV
 
 
-def _get_or_create_pos_connection(db: Session, *, store_id: str) -> PosConnection:
+def _get_or_create_pos_connection(db: Session, *, store_id: UUID) -> PosConnection:
     stmt = select(PosConnection).where(PosConnection.store_id == store_id)
     conn = db.scalars(stmt).first()
     if conn is None:
@@ -100,9 +101,9 @@ def _normalize_status(raw: str) -> Literal["COMPLETED", "CANCELLED"]:
     return "COMPLETED"
 
 
-def _build_menu_lookup(db: Session, *, store_id: str) -> dict[str, str]:
+def _build_menu_lookup(db: Session, *, store_id: UUID) -> dict[str, UUID]:
     """공백 제거 및 대소문자 무시(casefold) 기준으로 메뉴 마스터 및 외부 상품명 매핑 룩업 테이블 생성."""
-    lookup: dict[str, str] = {}
+    lookup: dict[str, UUID] = {}
     menus = list(db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all())
     for m in menus:
         if m.is_active:
@@ -115,7 +116,7 @@ def _build_menu_lookup(db: Session, *, store_id: str) -> dict[str, str]:
     return lookup
 
 
-def get_integration_status(db: Session, *, store_id: str) -> IntegrationStatusResponse:
+def get_integration_status(db: Session, *, store_id: UUID) -> IntegrationStatusResponse:
     get_store_or_404(db, store_id)
     conn = _get_or_create_pos_connection(db, store_id=store_id)
     db.commit()
@@ -168,7 +169,7 @@ def get_integration_status(db: Session, *, store_id: str) -> IntegrationStatusRe
 
 
 def update_pos_mode(
-    db: Session, *, store_id: str, payload: PosModeUpdateRequest
+    db: Session, *, store_id: UUID, payload: PosModeUpdateRequest
 ) -> IntegrationStatusResponse:
     get_store_or_404(db, store_id)
     conn = _get_or_create_pos_connection(db, store_id=store_id)
@@ -195,7 +196,7 @@ def update_pos_mode(
 
 
 def preview_sales_csv(
-    db: Session, *, store_id: str, payload: CsvPreviewRequest
+    db: Session, *, store_id: UUID, payload: CsvPreviewRequest
 ) -> CsvPreviewResponse:
     get_store_or_404(db, store_id)
     # Excel UTF-8 BOM(\ufeff) 제거 후 해시 및 파싱 수행
@@ -365,7 +366,7 @@ def preview_sales_csv(
     )
 
 
-def commit_sales_csv(db: Session, *, store_id: str, batch_id: str) -> CsvCommitResponse:
+def commit_sales_csv(db: Session, *, store_id: UUID, batch_id: UUID) -> CsvCommitResponse:
     get_store_or_404(db, store_id)
     batch = db.scalars(
         select(ImportBatch).where(ImportBatch.id == batch_id, ImportBatch.store_id == store_id)
@@ -516,7 +517,7 @@ def commit_sales_csv(db: Session, *, store_id: str, batch_id: str) -> CsvCommitR
 
 
 def upsert_product_mapping(
-    db: Session, *, store_id: str, payload: ProductMappingUpsertRequest
+    db: Session, *, store_id: UUID, payload: ProductMappingUpsertRequest
 ) -> ProductMappingResponse:
     get_store_or_404(db, store_id)
     ext_name = payload.external_product_name.strip()
@@ -587,7 +588,7 @@ def upsert_product_mapping(
     )
 
 
-def list_product_mappings(db: Session, *, store_id: str) -> list[ProductMappingResponse]:
+def list_product_mappings(db: Session, *, store_id: UUID) -> list[ProductMappingResponse]:
     get_store_or_404(db, store_id)
     mappings = list(
         db.scalars(
@@ -614,7 +615,7 @@ def list_product_mappings(db: Session, *, store_id: str) -> list[ProductMappingR
 
 
 def _serialize_sales_order(
-    order: SalesOrder, menus_by_id: dict[str, MenuItem]
+    order: SalesOrder, menus_by_id: dict[UUID, MenuItem]
 ) -> SalesOrderResponse:
     item_responses: list[SalesOrderItemResponse] = []
     total_qty = 0
@@ -655,7 +656,7 @@ def _serialize_sales_order(
     )
 
 
-def list_sales_orders(db: Session, *, store_id: str) -> SalesOrdersListResponse:
+def list_sales_orders(db: Session, *, store_id: UUID) -> SalesOrdersListResponse:
     get_store_or_404(db, store_id)
     conn = _get_or_create_pos_connection(db, store_id=store_id)
     pos_mode: PosModeType = conn.mode  # type: ignore[assignment]
@@ -690,8 +691,8 @@ def list_sales_orders(db: Session, *, store_id: str) -> SalesOrdersListResponse:
 def update_sales_order(
     db: Session,
     *,
-    store_id: str,
-    order_id: str,
+    store_id: UUID,
+    order_id: UUID,
     payload: SalesOrderUpdateRequest,
 ) -> SalesOrderResponse:
     get_store_or_404(db, store_id)
@@ -759,7 +760,7 @@ def update_sales_order(
 def create_manual_sales_order(
     db: Session,
     *,
-    store_id: str,
+    store_id: UUID,
     payload: SalesOrderCreateRequest,
 ) -> SalesOrderResponse:
     get_store_or_404(db, store_id)

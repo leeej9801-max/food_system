@@ -8,6 +8,7 @@ import hashlib
 import secrets
 from dataclasses import dataclass
 from typing import cast
+from uuid import UUID
 
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
@@ -42,7 +43,7 @@ MAX_SLOTS = 20  # GuestSessionOpen.party_size 상한과 같다
 # --- 슬롯 (직원 API와 함께 쓴다) ---
 
 
-def add_slots(db: Session, visit: VisitSession, count: int, device_id: str | None = None) -> None:
+def add_slots(db: Session, visit: VisitSession, count: int, device_id: UUID | None = None) -> None:
     start = max((s.slot_no for s in visit.slots), default=0)
     for i in range(1, count + 1):
         slot = SessionSlot(
@@ -80,7 +81,7 @@ def sync_slots_to_party_size(db: Session, visit: VisitSession) -> None:
 # --- QR 토큰 (직원 API) ---
 
 
-def issue_qr_token(db: Session, *, store_id: str, table_id: str) -> TableQrTokenResponse:
+def issue_qr_token(db: Session, *, store_id: UUID, table_id: UUID) -> TableQrTokenResponse:
     """발급 또는 회전. 회전하면 이전 토큰은 바로 쓸 수 없다."""
     row = db.scalars(
         select(TableQrToken).where(
@@ -106,7 +107,7 @@ def issue_qr_token(db: Session, *, store_id: str, table_id: str) -> TableQrToken
     return TableQrTokenResponse(table_id=table_id, token=row.token, rotated_at=row.rotated_at)
 
 
-def get_qr_token(db: Session, *, store_id: str, table_id: str) -> TableQrTokenResponse:
+def get_qr_token(db: Session, *, store_id: UUID, table_id: UUID) -> TableQrTokenResponse:
     row = db.scalars(
         select(TableQrToken).where(
             TableQrToken.store_id == store_id, TableQrToken.table_id == table_id
@@ -124,9 +125,9 @@ def get_qr_token(db: Session, *, store_id: str, table_id: str) -> TableQrTokenRe
 
 @dataclass(frozen=True)
 class GuestScope:
-    store_id: str
-    table_id: str
-    device_id: str
+    store_id: UUID
+    table_id: UUID
+    device_id: UUID
 
 
 def _not_found() -> AppError:
@@ -134,7 +135,7 @@ def _not_found() -> AppError:
     return AppError(status_code=404, code="QR_TOKEN_NOT_FOUND", message="QR을 다시 확인해 주세요.")
 
 
-def resolve_qr_token(db: Session, token: str) -> tuple[str, str] | None:
+def resolve_qr_token(db: Session, token: str) -> tuple[UUID, UUID] | None:
     if not token or len(token) > 64:
         return None
     if db.get_bind().dialect.name == "postgresql":
@@ -190,7 +191,7 @@ def enter_guest_scope(
 # --- 손님 동작 ---
 
 
-def _get_table(db: Session, store_id: str, table_id: str) -> StoreTable | None:
+def _get_table(db: Session, store_id: UUID, table_id: UUID) -> StoreTable | None:
     return db.scalars(
         select(StoreTable).where(StoreTable.id == table_id, StoreTable.store_id == store_id)
     ).first()
@@ -227,7 +228,7 @@ def _get_slot(visit: VisitSession, slot_no: int) -> SessionSlot:
     raise AppError(status_code=404, code="SLOT_NOT_FOUND", message="자리를 찾을 수 없습니다.")
 
 
-def _to_session(visit: VisitSession, device_id: str) -> GuestSessionResponse:
+def _to_session(visit: VisitSession, device_id: UUID) -> GuestSessionResponse:
     return GuestSessionResponse(
         party_size=visit.party_size,
         party_size_source=visit.party_size_source,

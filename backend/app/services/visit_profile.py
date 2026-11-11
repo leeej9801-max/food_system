@@ -5,6 +5,7 @@
 """
 
 from datetime import date, datetime, time, timedelta
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
@@ -110,7 +111,7 @@ def business_close_at(store: Store, seated_at: datetime) -> tuple[datetime, date
     return left_local.astimezone(utc), run_local.astimezone(utc)
 
 
-def close_expired_sessions(db: Session, store_id: str, now: datetime | None = None) -> int:
+def close_expired_sessions(db: Session, store_id: UUID, now: datetime | None = None) -> int:
     """지난 영업일의 열린 세션을 LEFT·END_OF_DAY로 닫는다. 닫은 수를 돌려준다."""
     store = db.get(Store, store_id)
     if store is None:

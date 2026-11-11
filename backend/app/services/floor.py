@@ -5,6 +5,7 @@ H(가로) 4×2칸, V(세로) 2×4칸(1200×600 기준). 의자는 화면에서 �
 """
 
 import json
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -41,7 +42,7 @@ MEAL_LOVE_FIXTURES: tuple[dict[str, object], ...] = (
 PRESETS = {"meal_love": (MEAL_LOVE_TABLES, MEAL_LOVE_FIXTURES)}
 
 
-def apply_floor_preset(db: Session, store_id: str, preset: str = "meal_love") -> dict[str, int]:
+def apply_floor_preset(db: Session, store_id: UUID, preset: str = "meal_love") -> dict[str, int]:
     """프리셋 테이블을 이름 기준으로 맞춘다. 있는 테이블은 위치만 고치고, 없으면 만든다.
 
     프리셋에 없는 테이블은 지우거나 끄지 않는다(방문 기록 보존). 다시 실행해도 중복 생성하지 않는다.

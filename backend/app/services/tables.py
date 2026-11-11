@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -83,7 +84,7 @@ def _to_table_response(table: StoreTable) -> StoreTableResponse:
 
 
 def list_tables(
-    db: Session, *, store_id: str, include_inactive: bool = False
+    db: Session, *, store_id: UUID, include_inactive: bool = False
 ) -> list[StoreTableResponse]:
     get_store_or_404(db, store_id)
     if close_expired_sessions(db, store_id):
@@ -101,7 +102,7 @@ def list_tables(
     return [_to_table_response(t) for t in tables]
 
 
-def get_table_or_404(db: Session, *, store_id: str, table_id: str) -> StoreTable:
+def get_table_or_404(db: Session, *, store_id: UUID, table_id: UUID) -> StoreTable:
     get_store_or_404(db, store_id)
     stmt = (
         select(StoreTable)
@@ -117,7 +118,7 @@ def get_table_or_404(db: Session, *, store_id: str, table_id: str) -> StoreTable
     return table
 
 
-def create_table(db: Session, *, store_id: str, payload: StoreTableCreate) -> StoreTableResponse:
+def create_table(db: Session, *, store_id: UUID, payload: StoreTableCreate) -> StoreTableResponse:
     get_store_or_404(db, store_id)
     table = StoreTable(
         store_id=store_id,
@@ -150,7 +151,7 @@ def create_table(db: Session, *, store_id: str, payload: StoreTableCreate) -> St
 
 
 def update_table(
-    db: Session, *, store_id: str, table_id: str, payload: StoreTableUpdate
+    db: Session, *, store_id: UUID, table_id: UUID, payload: StoreTableUpdate
 ) -> StoreTableResponse:
     table = get_table_or_404(db, store_id=store_id, table_id=table_id)
     data = payload.model_dump(exclude_unset=True)
@@ -175,7 +176,7 @@ def _occupied(table_name: str) -> AppError:
 
 
 def create_visit_session(
-    db: Session, *, store_id: str, payload: VisitSessionCreate
+    db: Session, *, store_id: UUID, payload: VisitSessionCreate
 ) -> VisitSessionResponse:
     get_store_or_404(db, store_id)
     close_expired_sessions(db, store_id)  # 어제 안 닫힌 세션이 새 착석을 막지 않게
@@ -232,7 +233,7 @@ def create_visit_session(
 
 
 def update_visit_session(
-    db: Session, *, store_id: str, visit_id: str, payload: VisitSessionUpdate
+    db: Session, *, store_id: UUID, visit_id: UUID, payload: VisitSessionUpdate
 ) -> VisitSessionResponse:
     get_store_or_404(db, store_id)
     stmt = (
@@ -308,7 +309,7 @@ def update_visit_session(
     return _to_visit_response(visit, visit.table.name)
 
 
-def list_visit_summary(db: Session, *, store_id: str) -> VisitSummaryResponse:
+def list_visit_summary(db: Session, *, store_id: UUID) -> VisitSummaryResponse:
     get_store_or_404(db, store_id)
     if close_expired_sessions(db, store_id):
         db.commit()
@@ -331,7 +332,7 @@ def list_visit_summary(db: Session, *, store_id: str) -> VisitSummaryResponse:
 
 
 def update_slot_profile(
-    db: Session, *, store_id: str, visit_id: str, slot_no: int, payload: SlotProfileUpdate
+    db: Session, *, store_id: UUID, visit_id: UUID, slot_no: int, payload: SlotProfileUpdate
 ) -> VisitSessionResponse:
     """직원이 사람별 성별·연령대를 입력한다. 손님이 입력한 자리는 409 (U-31)."""
     get_store_or_404(db, store_id)

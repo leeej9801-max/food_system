@@ -6,6 +6,7 @@ DB 접속은 DATABASE_URL을 쓴다. PostgreSQL에서는 RLS 때문에 매장 �
 """
 
 import sys
+from uuid import UUID
 
 from app.db.session import SessionLocal
 from app.db.tenancy import RequestContext, bind_store_scope
@@ -16,7 +17,7 @@ def main(argv: list[str]) -> int:
     if len(argv) < 2:
         print(__doc__)
         return 2
-    store_id = argv[1]
+    store_id = UUID(argv[1])
     preset = argv[2] if len(argv) > 2 else "meal_love"
     if preset not in PRESETS:
         print(f"unknown preset: {preset} (available: {', '.join(PRESETS)})")

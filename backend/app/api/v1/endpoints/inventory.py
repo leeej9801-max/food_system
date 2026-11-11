@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
@@ -20,7 +21,7 @@ router = APIRouter(prefix="/stores/{store_id}/inventory", tags=["inventory"])
 
 @router.get("/summary")
 def get_inventory_summary_endpoint(
-    store_id: str,
+    store_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     include_inactive: Annotated[bool, Query()] = False,
 ) -> list[IngredientInventoryItem]:
@@ -31,9 +32,9 @@ def get_inventory_summary_endpoint(
 
 @router.get("/receipts")
 def list_receipts_endpoint(
-    store_id: str,
+    store_id: UUID,
     db: Annotated[Session, Depends(get_db)],
-    ingredient_id: Annotated[str | None, Query()] = None,
+    ingredient_id: Annotated[UUID | None, Query()] = None,
 ) -> list[InventoryReceiptResponse]:
     return inventory_service.list_receipts(db, store_id=store_id, ingredient_id=ingredient_id)
 
@@ -43,7 +44,7 @@ def list_receipts_endpoint(
     status_code=status.HTTP_201_CREATED,
 )
 def create_receipt_endpoint(
-    store_id: str,
+    store_id: UUID,
     payload: InventoryReceiptCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> InventoryReceiptResponse:
@@ -52,9 +53,9 @@ def create_receipt_endpoint(
 
 @router.get("/counts")
 def list_counts_endpoint(
-    store_id: str,
+    store_id: UUID,
     db: Annotated[Session, Depends(get_db)],
-    ingredient_id: Annotated[str | None, Query()] = None,
+    ingredient_id: Annotated[UUID | None, Query()] = None,
 ) -> list[InventoryCountResponse]:
     return inventory_service.list_counts(db, store_id=store_id, ingredient_id=ingredient_id)
 
@@ -64,7 +65,7 @@ def list_counts_endpoint(
     status_code=status.HTTP_201_CREATED,
 )
 def create_count_endpoint(
-    store_id: str,
+    store_id: UUID,
     payload: InventoryCountCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> InventoryCountResponse:
@@ -76,7 +77,7 @@ def create_count_endpoint(
     status_code=status.HTTP_201_CREATED,
 )
 def create_adjustment_endpoint(
-    store_id: str,
+    store_id: UUID,
     payload: InventoryAdjustmentCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> InventoryAdjustmentResponse:

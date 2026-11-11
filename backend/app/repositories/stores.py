@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -9,7 +11,7 @@ def list_all(db: Session) -> list[Store]:
     return list(db.scalars(select(Store).order_by(Store.created_at.asc())).all())
 
 
-def get(db: Session, store_id: str) -> Store | None:
+def get(db: Session, store_id: UUID) -> Store | None:
     return db.get(Store, store_id)
 
 

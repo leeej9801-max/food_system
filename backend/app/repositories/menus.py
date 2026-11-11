@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
@@ -6,11 +7,11 @@ from sqlalchemy.orm import Session, selectinload
 from app.db.models import MenuItem, Recipe, RecipeItem
 
 
-def list_by_store(db: Session, store_id: str) -> list[MenuItem]:
+def list_by_store(db: Session, store_id: UUID) -> list[MenuItem]:
     return list(db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all())
 
 
-def list_active_with_recipes(db: Session, store_id: str) -> list[MenuItem]:
+def list_active_with_recipes(db: Session, store_id: UUID) -> list[MenuItem]:
     """활성 메뉴를 레시피·재료까지 불러온다. 이름순."""
     return list(
         db.scalars(
@@ -27,7 +28,7 @@ def list_active_with_recipes(db: Session, store_id: str) -> list[MenuItem]:
     )
 
 
-def list_recipes_with_items(db: Session, store_id: str) -> list[Recipe]:
+def list_recipes_with_items(db: Session, store_id: UUID) -> list[Recipe]:
     return list(
         db.scalars(
             select(Recipe)
@@ -44,7 +45,7 @@ def insert(db: Session, item: MenuItem) -> None:
 
 
 def find_active_by_name(
-    db: Session, store_id: str, normalized_name: str, exclude_menu_id: str | None = None
+    db: Session, store_id: UUID, normalized_name: str, exclude_menu_id: UUID | None = None
 ) -> MenuItem | None:
     stmt = select(MenuItem).where(
         MenuItem.store_id == store_id,
@@ -58,7 +59,7 @@ def find_active_by_name(
 
 def search(
     db: Session,
-    store_id: str,
+    store_id: UUID,
     *,
     q: str | None = None,
     category: str | None = None,
@@ -82,7 +83,7 @@ def search(
     return list(db.scalars(stmt.order_by(MenuItem.is_active.desc(), MenuItem.name.asc())).all())
 
 
-def find_with_recipe(db: Session, store_id: str, menu_id: str) -> MenuItem | None:
+def find_with_recipe(db: Session, store_id: UUID, menu_id: UUID) -> MenuItem | None:
     return db.scalars(
         select(MenuItem)
         .options(selectinload(MenuItem.recipe).selectinload(Recipe.items))

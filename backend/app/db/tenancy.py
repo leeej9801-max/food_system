@@ -5,6 +5,7 @@
 """
 
 from dataclasses import dataclass
+from uuid import UUID
 
 from sqlalchemy import event, text
 from sqlalchemy.engine import Connection
@@ -17,11 +18,11 @@ _CTX_KEY = "tenant_ctx"
 
 @dataclass(frozen=True)
 class RequestContext:
-    store_id: str
+    store_id: UUID
     actor: str = "beta-staff"  # PROVISIONAL (P-05): 인증 도입 시 로그인 사용자로 교체
 
 
-def authorize(ctx: RequestContext, store_id: str) -> None:
+def authorize(ctx: RequestContext, store_id: UUID) -> None:
     """베타에서는 모두 허용. 인증 도입 시 여기서 ctx.actor의 매장 권한을 검사한다."""
 
 
@@ -31,7 +32,7 @@ def _apply(connection: Connection, ctx: RequestContext) -> None:
         return
     connection.execute(
         text("SELECT set_config(:name, :value, true)"),
-        {"name": STORE_SCOPE_SETTING, "value": ctx.store_id},
+        {"name": STORE_SCOPE_SETTING, "value": str(ctx.store_id)},
     )
 
 

@@ -1,5 +1,6 @@
 import json
 from typing import Any, Literal
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -17,9 +18,9 @@ from app.schemas import MenuCreate, MenuResponse, MenuUpdate, StoreCreate, Store
 def record_audit(
     db: Session,
     *,
-    store_id: str,
+    store_id: UUID,
     entity_type: str,
-    entity_id: str,
+    entity_id: UUID,
     action: str,
     summary: dict[str, Any],
     actor: str = "local_operator",  # PROVISIONAL (P-05): 인증 도입 전 로컬 운영자 기본값
@@ -35,13 +36,13 @@ def record_audit(
     audit_repo.add(db, event)
 
 
-def get_linked_menu_ids(db: Session, *, store_id: str) -> set[str]:
+def get_linked_menu_ids(db: Session, *, store_id: UUID) -> set[UUID]:
     mapped_ids = set(pos_mapping_repo.list_menu_ids(db, store_id))
     sold_ids = set(sales_order_repo.list_sold_menu_ids(db, store_id))
     return {m_id for m_id in (mapped_ids | sold_ids) if m_id is not None}
 
 
-def _retroactive_link_unmapped_sales(db: Session, *, store_id: str, menu_item: MenuItem) -> int:
+def _retroactive_link_unmapped_sales(db: Session, *, store_id: UUID, menu_item: MenuItem) -> int:
     if not menu_item.is_active:
         return 0
     normalized_name = menu_item.name.strip().casefold()
@@ -86,7 +87,7 @@ def list_stores(db: Session) -> list[Store]:
     return store_repo.list_all(db)
 
 
-def get_store_or_404(db: Session, store_id: str) -> Store:
+def get_store_or_404(db: Session, store_id: UUID) -> Store:
     store = store_repo.get(db, store_id)
     if store is None:
         raise AppError(status_code=404, code="STORE_NOT_FOUND", message="매장을 찾을 수 없습니다.")
@@ -136,7 +137,7 @@ def create_store(db: Session, payload: StoreCreate) -> Store:
     return store
 
 
-def update_store(db: Session, store_id: str, payload: StoreUpdate) -> Store:
+def update_store(db: Session, store_id: UUID, payload: StoreUpdate) -> Store:
     store = get_store_or_404(db, store_id)
     data = payload.model_dump(exclude_unset=True)
     if not data:
@@ -174,9 +175,9 @@ def update_store(db: Session, store_id: str, payload: StoreUpdate) -> Store:
 def _ensure_no_duplicate_active_menu_name(
     db: Session,
     *,
-    store_id: str,
+    store_id: UUID,
     name: str,
-    exclude_menu_id: str | None = None,
+    exclude_menu_id: UUID | None = None,
 ) -> None:
     """PROVISIONAL (P-01): 동일 매장의 활성 메뉴 중 이름(공백 제거·대소문자 무시) 중복 시 409 거절."""
     normalized = name.strip().casefold()
@@ -193,7 +194,7 @@ def _ensure_no_duplicate_active_menu_name(
 def list_menus(
     db: Session,
     *,
-    store_id: str,
+    store_id: UUID,
     q: str | None = None,
     category: str | None = None,
     status: Literal["active", "inactive", "all"] = "all",
@@ -202,7 +203,7 @@ def list_menus(
     return menu_repo.search(db, store_id, q=q, category=category, status=status)
 
 
-def get_menu_or_404(db: Session, *, store_id: str, menu_id: str) -> MenuItem:
+def get_menu_or_404(db: Session, *, store_id: UUID, menu_id: UUID) -> MenuItem:
     get_store_or_404(db, store_id)
     item = menu_repo.find_with_recipe(db, store_id, menu_id)
     if item is None:
@@ -210,7 +211,7 @@ def get_menu_or_404(db: Session, *, store_id: str, menu_id: str) -> MenuItem:
     return item
 
 
-def create_menu(db: Session, *, store_id: str, payload: MenuCreate) -> MenuItem:
+def create_menu(db: Session, *, store_id: UUID, payload: MenuCreate) -> MenuItem:
     get_store_or_404(db, store_id)
     if payload.is_active:
         _ensure_no_duplicate_active_menu_name(db, store_id=store_id, name=payload.name)
@@ -245,7 +246,7 @@ def create_menu(db: Session, *, store_id: str, payload: MenuCreate) -> MenuItem:
     return get_menu_or_404(db, store_id=store_id, menu_id=item.id)
 
 
-def update_menu(db: Session, *, store_id: str, menu_id: str, payload: MenuUpdate) -> MenuItem:
+def update_menu(db: Session, *, store_id: UUID, menu_id: UUID, payload: MenuUpdate) -> MenuItem:
     item = get_menu_or_404(db, store_id=store_id, menu_id=menu_id)
     update_data = payload.model_dump(exclude_unset=True)
     if not update_data:

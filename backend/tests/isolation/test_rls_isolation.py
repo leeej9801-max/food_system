@@ -80,7 +80,7 @@ def _seed(conn) -> None:
 
 def _scoped(engine, store) -> Session:
     db = Session(engine)
-    apply_store_scope(db, RequestContext(store_id=str(store)))
+    apply_store_scope(db, RequestContext(store_id=store))
     return db
 
 

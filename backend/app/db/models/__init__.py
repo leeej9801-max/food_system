@@ -1,3 +1,5 @@
+import secrets
+import time
 import uuid
 from datetime import UTC, date, datetime
 from decimal import Decimal
@@ -13,6 +15,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    Uuid,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -24,14 +27,22 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-def new_uuid() -> str:
-    return str(uuid.uuid4())
+def new_uuid() -> uuid.UUID:
+    """UUID v7 (RFC 9562 5.7). 앞 48비트가 ms 시각이라 생성 순서대로 인덱스 끝에 붙는다.
+
+    PostgreSQL 17과 Python 3.12에는 v7 생성 함수가 없어 앱에서 만든다 (근거: ADR-016).
+    같은 ms 안의 순서는 보장하지 않는다.
+    """
+    value = (time.time_ns() // 1_000_000) << 80 | secrets.randbits(80)
+    value = value & ~(0xF << 76) | (0x7 << 76)  # version 7
+    value = value & ~(0x3 << 62) | (0x2 << 62)  # variant 10
+    return uuid.UUID(int=value)
 
 
 class Store(Base):
     __tablename__ = "stores"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     timezone: Mapped[str] = mapped_column(String(64), nullable=False, default="Asia/Seoul")
     business_days: Mapped[str | None] = mapped_column(String(64), nullable=True)
@@ -56,9 +67,9 @@ class Store(Base):
 class MenuItem(Base):
     __tablename__ = "menu_items"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     # PROVISIONAL (P-02): 판매가격은 선택 입력, 0 이상, 정밀 Decimal(12, 2)로 저장
@@ -84,9 +95,9 @@ class MenuItem(Base):
 class Ingredient(Base):
     __tablename__ = "ingredients"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     # PROVISIONAL (P-10): base_unit은 레시피/재고 기준 단위(g, ml, ea), purchase_unit은 구매 단위(kg, L, pack 등)
@@ -115,12 +126,12 @@ class Ingredient(Base):
 class Recipe(Base):
     __tablename__ = "recipes"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    menu_item_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("menu_items.id", ondelete="RESTRICT"), nullable=False, index=True
+    menu_item_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("menu_items.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     # COMPLETE: 완성, PARTIAL: 일부 미입력(작성 중)
@@ -145,16 +156,16 @@ class RecipeItem(Base):
     __tablename__ = "recipe_items"
     __table_args__ = (UniqueConstraint("recipe_id", "ingredient_id", name="uq_recipe_ingredient"),)
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    recipe_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    recipe_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True
     )
     # RLS 정책이 부모 조인 없이 걸리도록 매장 ID를 직접 가진다 (ADR-013)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    ingredient_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("ingredients.id", ondelete="RESTRICT"), nullable=False, index=True
+    ingredient_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("ingredients.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3), nullable=False)
     unit: Mapped[str] = mapped_column(String(16), nullable=False)
@@ -167,9 +178,9 @@ class RecipeItem(Base):
 class StoreTable(Base):
     __tablename__ = "store_tables"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     seats: Mapped[int] = mapped_column(Integer, nullable=False, default=4)
@@ -194,12 +205,12 @@ class StoreTable(Base):
 class VisitSession(Base):
     __tablename__ = "visit_sessions"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    table_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("store_tables.id", ondelete="RESTRICT"), nullable=False, index=True
+    table_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("store_tables.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     party_size: Mapped[int] = mapped_column(Integer, nullable=False, default=2)
     # PROVISIONAL (P-11): 대표 연령대 선택값 (UNRECORDED 기본)
@@ -247,12 +258,12 @@ class TableQrToken(Base):
 
     __tablename__ = "table_qr_tokens"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    table_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("store_tables.id", ondelete="RESTRICT"), nullable=False, unique=True
+    table_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("store_tables.id", ondelete="RESTRICT"), nullable=False, unique=True
     )
     token: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -268,7 +279,7 @@ class GuestDevice(Base):
 
     __tablename__ = "guest_devices"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
     token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
@@ -283,21 +294,21 @@ class SessionSlot(Base):
 
     __tablename__ = "session_slots"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    session_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("visit_sessions.id", ondelete="RESTRICT"), nullable=False, index=True
+    session_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("visit_sessions.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     slot_no: Mapped[int] = mapped_column(Integer, nullable=False)
     # EMPTY | SILHOUETTE | EDITING | CUSTOM
     state: Mapped[str] = mapped_column(String(20), nullable=False, default="SILHOUETTE")
-    created_by_device_id: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("guest_devices.id", ondelete="RESTRICT"), nullable=True
+    created_by_device_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("guest_devices.id", ondelete="RESTRICT"), nullable=True
     )
-    claimed_by_device_id: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("guest_devices.id", ondelete="RESTRICT"), nullable=True, index=True
+    claimed_by_device_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("guest_devices.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     display_opt_out: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     # U-31 사람별 선택값. profile_source: GUEST | STAFF (손님 값 우선)
@@ -321,9 +332,9 @@ class SessionSlot(Base):
 class PosConnection(Base):
     __tablename__ = "pos_connections"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     # TOSS_OPEN_API | TOSS_PLUGIN | CSV_UPLOAD
     mode: Mapped[str] = mapped_column(String(32), nullable=False, default="CSV_UPLOAD")
@@ -347,13 +358,13 @@ class PosProductMapping(Base):
         UniqueConstraint("store_id", "external_product_name", name="uq_store_ext_product_name"),
     )
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     external_product_name: Mapped[str] = mapped_column(String(120), nullable=False)
-    menu_item_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("menu_items.id", ondelete="RESTRICT"), nullable=False, index=True
+    menu_item_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("menu_items.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
@@ -363,9 +374,9 @@ class PosProductMapping(Base):
 class ImportBatch(Base):
     __tablename__ = "import_batches"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     file_name: Mapped[str] = mapped_column(String(200), nullable=False)
     file_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
@@ -392,12 +403,12 @@ class SalesOrder(Base):
         UniqueConstraint("store_id", "external_order_id", name="uq_store_ext_order_id"),
     )
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    import_batch_id: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("import_batches.id", ondelete="SET NULL"), nullable=True
+    import_batch_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("import_batches.id", ondelete="SET NULL"), nullable=True
     )
     source_mode: Mapped[str] = mapped_column(String(32), nullable=False, default="CSV_UPLOAD")
     external_order_id: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -418,15 +429,15 @@ class SalesOrder(Base):
 class SalesOrderItem(Base):
     __tablename__ = "sales_order_items"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    order_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("sales_orders.id", ondelete="CASCADE"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("sales_orders.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    menu_item_id: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("menu_items.id", ondelete="SET NULL"), nullable=True, index=True
+    menu_item_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("menu_items.id", ondelete="SET NULL"), nullable=True, index=True
     )
     raw_product_name: Mapped[str] = mapped_column(String(120), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
@@ -443,12 +454,12 @@ class SalesOrderItem(Base):
 class InventoryReceipt(Base):
     __tablename__ = "inventory_receipts"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    ingredient_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("ingredients.id", ondelete="RESTRICT"), nullable=False, index=True
+    ingredient_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("ingredients.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     purchase_quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3), nullable=False)
     purchase_unit: Mapped[str] = mapped_column(String(24), nullable=False)
@@ -467,12 +478,12 @@ class InventoryReceipt(Base):
 class InventoryCount(Base):
     __tablename__ = "inventory_counts"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    ingredient_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("ingredients.id", ondelete="RESTRICT"), nullable=False, index=True
+    ingredient_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("ingredients.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     actual_quantity: Mapped[Decimal] = mapped_column(Numeric(14, 3), nullable=False)
     base_unit: Mapped[str] = mapped_column(String(16), nullable=False)
@@ -485,12 +496,12 @@ class InventoryCount(Base):
 class InventoryAdjustment(Base):
     __tablename__ = "inventory_adjustments"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    ingredient_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("ingredients.id", ondelete="RESTRICT"), nullable=False, index=True
+    ingredient_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("ingredients.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     # 기본 단위 기준 증감량 (예: 폐기 시 음수 -200, 추가 보정 시 +100)
     quantity_delta: Mapped[Decimal] = mapped_column(Numeric(14, 3), nullable=False)
@@ -506,11 +517,11 @@ class InventoryAdjustment(Base):
 class AuditEvent(Base):
     __tablename__ = "audit_events"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    store_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
     actor: Mapped[str] = mapped_column(String(64), nullable=False, default="local_operator")
     entity_type: Mapped[str] = mapped_column(String(64), nullable=False)
-    entity_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    entity_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
     action: Mapped[str] = mapped_column(String(32), nullable=False)
     change_summary: Mapped[str] = mapped_column(Text, nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(

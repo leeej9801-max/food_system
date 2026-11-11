@@ -116,8 +116,11 @@ def test_staff_slot_profile_not_found(staff: TestClient, table: dict) -> None:
     assert len(v["slots"]) == 2
     r = staff.patch(f"{visits}/{v['id']}/slots/9", json={"gender": "MALE"})
     assert r.json()["code"] == "SLOT_NOT_FOUND"
-    r = staff.patch(f"{visits}/nope/slots/1", json={"gender": "MALE"})
+    r = staff.patch(f"{visits}/{table['store_id']}/slots/1", json={"gender": "MALE"})
     assert r.json()["code"] == "VISIT_NOT_FOUND"
+    # 형식이 틀린 id는 DB까지 가지 않고 422로 끝난다
+    r = staff.patch(f"{visits}/nope/slots/1", json={"gender": "MALE"})
+    assert r.status_code == 422
 
 
 # --- 방문 목적·관계 ---

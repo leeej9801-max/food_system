@@ -1,4 +1,5 @@
 from typing import Annotated, Literal
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
@@ -13,7 +14,7 @@ router = APIRouter(prefix="/stores/{store_id}/menus", tags=["menus"])
 
 @router.get("")
 def get_menus(
-    store_id: str,
+    store_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     q: Annotated[str | None, Query(description="메뉴명 검색어")] = None,
     category: Annotated[str | None, Query(description="카테고리 필터")] = None,
@@ -32,7 +33,7 @@ def get_menus(
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 def post_menu(
-    store_id: str,
+    store_id: UUID,
     payload: MenuCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> MenuResponse:
@@ -43,8 +44,8 @@ def post_menu(
 
 @router.get("/{menu_id}")
 def get_menu(
-    store_id: str,
-    menu_id: str,
+    store_id: UUID,
+    menu_id: UUID,
     db: Annotated[Session, Depends(get_db)],
 ) -> MenuResponse:
     item = menu_service.get_menu_or_404(db, store_id=store_id, menu_id=menu_id)
@@ -54,8 +55,8 @@ def get_menu(
 
 @router.patch("/{menu_id}")
 def patch_menu(
-    store_id: str,
-    menu_id: str,
+    store_id: UUID,
+    menu_id: UUID,
     payload: MenuUpdate,
     db: Annotated[Session, Depends(get_db)],
 ) -> MenuResponse:
@@ -66,8 +67,8 @@ def patch_menu(
 
 @router.get("/{menu_id}/recipe")
 def get_menu_recipe(
-    store_id: str,
-    menu_id: str,
+    store_id: UUID,
+    menu_id: UUID,
     db: Annotated[Session, Depends(get_db)],
 ) -> RecipeResponse:
     return ingredient_service.get_menu_recipe(db, store_id=store_id, menu_id=menu_id)
@@ -75,8 +76,8 @@ def get_menu_recipe(
 
 @router.put("/{menu_id}/recipe")
 def put_menu_recipe(
-    store_id: str,
-    menu_id: str,
+    store_id: UUID,
+    menu_id: UUID,
     payload: RecipeUpsertRequest,
     db: Annotated[Session, Depends(get_db)],
 ) -> RecipeResponse:

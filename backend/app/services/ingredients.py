@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
@@ -20,9 +21,9 @@ from app.services.menus import get_menu_or_404, get_store_or_404, record_audit
 def _ensure_no_duplicate_active_ingredient_name(
     db: Session,
     *,
-    store_id: str,
+    store_id: UUID,
     name: str,
-    exclude_ingredient_id: str | None = None,
+    exclude_ingredient_id: UUID | None = None,
 ) -> None:
     normalized = name.strip().casefold()
     stmt = select(Ingredient).where(
@@ -62,7 +63,7 @@ def _to_ingredient_response(item: Ingredient) -> IngredientResponse:
 def list_ingredients(
     db: Session,
     *,
-    store_id: str,
+    store_id: UUID,
     q: str | None = None,
     status: Literal["active", "inactive", "all"] = "all",
 ) -> list[IngredientResponse]:
@@ -85,7 +86,7 @@ def list_ingredients(
     return [_to_ingredient_response(item) for item in items]
 
 
-def get_ingredient_or_404(db: Session, *, store_id: str, ingredient_id: str) -> Ingredient:
+def get_ingredient_or_404(db: Session, *, store_id: UUID, ingredient_id: UUID) -> Ingredient:
     get_store_or_404(db, store_id)
     stmt = (
         select(Ingredient)
@@ -104,14 +105,14 @@ def get_ingredient_or_404(db: Session, *, store_id: str, ingredient_id: str) -> 
 
 
 def get_ingredient_response(
-    db: Session, *, store_id: str, ingredient_id: str
+    db: Session, *, store_id: UUID, ingredient_id: UUID
 ) -> IngredientResponse:
     item = get_ingredient_or_404(db, store_id=store_id, ingredient_id=ingredient_id)
     return _to_ingredient_response(item)
 
 
 def create_ingredient(
-    db: Session, *, store_id: str, payload: IngredientCreate
+    db: Session, *, store_id: UUID, payload: IngredientCreate
 ) -> IngredientResponse:
     get_store_or_404(db, store_id)
     if payload.is_active:
@@ -150,7 +151,7 @@ def create_ingredient(
 
 
 def update_ingredient(
-    db: Session, *, store_id: str, ingredient_id: str, payload: IngredientUpdate
+    db: Session, *, store_id: UUID, ingredient_id: UUID, payload: IngredientUpdate
 ) -> IngredientResponse:
     item = get_ingredient_or_404(db, store_id=store_id, ingredient_id=ingredient_id)
     update_data = payload.model_dump(exclude_unset=True)
@@ -224,7 +225,7 @@ def update_ingredient(
     return get_ingredient_response(db, store_id=store_id, ingredient_id=item.id)
 
 
-def get_menu_recipe(db: Session, *, store_id: str, menu_id: str) -> RecipeResponse:
+def get_menu_recipe(db: Session, *, store_id: UUID, menu_id: UUID) -> RecipeResponse:
     menu = get_menu_or_404(db, store_id=store_id, menu_id=menu_id)
     stmt = (
         select(Recipe)
@@ -272,14 +273,14 @@ def get_menu_recipe(db: Session, *, store_id: str, menu_id: str) -> RecipeRespon
 def upsert_menu_recipe(
     db: Session,
     *,
-    store_id: str,
-    menu_id: str,
+    store_id: UUID,
+    menu_id: UUID,
     payload: RecipeUpsertRequest,
 ) -> RecipeResponse:
     menu = get_menu_or_404(db, store_id=store_id, menu_id=menu_id)
 
     # 중복 식자재 검증
-    seen_ids: set[str] = set()
+    seen_ids: set[UUID] = set()
     for item_in in payload.items:
         if item_in.ingredient_id in seen_ids:
             raise AppError(
@@ -291,7 +292,7 @@ def upsert_menu_recipe(
         seen_ids.add(item_in.ingredient_id)
 
     # 식자재 존재 및 store_id 단일 배치 검증 (N+1 쿼리 제거)
-    ingredient_map: dict[str, Ingredient] = {}
+    ingredient_map: dict[UUID, Ingredient] = {}
     if seen_ids:
         found_ings = list(
             db.scalars(
@@ -379,7 +380,7 @@ def upsert_menu_recipe(
 
 
 def list_ingredient_usages(
-    db: Session, *, store_id: str, ingredient_id: str
+    db: Session, *, store_id: UUID, ingredient_id: UUID
 ) -> list[IngredientUsageItem]:
     ing = get_ingredient_or_404(db, store_id=store_id, ingredient_id=ingredient_id)
     stmt = (
