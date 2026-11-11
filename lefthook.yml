@@ -9,4 +9,4 @@ pre-commit:
       run: uv run pyright
     frontend:
       root: frontend/
-      run: npm run typecheck
+      run: npm run lint && npm run typecheck
