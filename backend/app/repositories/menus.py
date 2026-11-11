@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.db.models import MenuItem, Recipe, RecipeItem
+from app.db.models import Ingredient, MenuItem, Recipe, RecipeItem
 
 
 def list_by_store(db: Session, store_id: UUID) -> list[MenuItem]:
@@ -90,3 +90,40 @@ def find_with_recipe(db: Session, store_id: UUID, menu_id: UUID) -> MenuItem | N
         .where(MenuItem.id == menu_id, MenuItem.store_id == store_id)
         .execution_options(populate_existing=True)
     ).first()
+
+
+def find_recipe(db: Session, store_id: UUID, menu_item_id: UUID) -> Recipe | None:
+    return db.scalars(
+        select(Recipe)
+        .options(selectinload(Recipe.items))
+        .where(Recipe.menu_item_id == menu_item_id, Recipe.store_id == store_id)
+    ).first()
+
+
+def find_recipe_with_ingredients(db: Session, store_id: UUID, menu_item_id: UUID) -> Recipe | None:
+    return db.scalars(
+        select(Recipe)
+        .options(selectinload(Recipe.items).selectinload(RecipeItem.ingredient))
+        .where(Recipe.menu_item_id == menu_item_id, Recipe.store_id == store_id)
+    ).first()
+
+
+def insert_recipe(db: Session, recipe: Recipe) -> None:
+    db.add(recipe)
+    db.flush()
+
+
+def list_recipe_items_using(
+    db: Session, store_id: UUID, ingredient: Ingredient
+) -> list[RecipeItem]:
+    """식자재를 쓰는 레시피 항목. 메뉴 이름순."""
+    return list(
+        db.scalars(
+            select(RecipeItem)
+            .join(Recipe, RecipeItem.recipe_id == Recipe.id)
+            .join(MenuItem, Recipe.menu_item_id == MenuItem.id)
+            .options(selectinload(RecipeItem.recipe).selectinload(Recipe.menu_item))
+            .where(RecipeItem.ingredient_id == ingredient.id, Recipe.store_id == store_id)
+            .order_by(MenuItem.name.asc())
+        ).all()
+    )

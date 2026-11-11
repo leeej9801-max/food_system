@@ -1,11 +1,12 @@
 from typing import Literal
 from uuid import UUID
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
-from app.db.models import Ingredient, MenuItem, Recipe, RecipeItem, utcnow
+from app.db.models import Ingredient, Recipe, RecipeItem, utcnow
+from app.repositories import ingredients as ingredient_repo
+from app.repositories import menus as menu_repo
 from app.schemas import (
     IngredientCreate,
     IngredientResponse,
@@ -26,14 +27,7 @@ def _ensure_no_duplicate_active_ingredient_name(
     exclude_ingredient_id: UUID | None = None,
 ) -> None:
     normalized = name.strip().casefold()
-    stmt = select(Ingredient).where(
-        Ingredient.store_id == store_id,
-        Ingredient.is_active.is_(True),
-        func.lower(Ingredient.name) == normalized,
-    )
-    if exclude_ingredient_id is not None:
-        stmt = stmt.where(Ingredient.id != exclude_ingredient_id)
-    existing = db.scalars(stmt).first()
+    existing = ingredient_repo.find_active_by_name(db, store_id, normalized, exclude_ingredient_id)
     if existing is not None:
         raise AppError(
             status_code=409,
@@ -68,33 +62,13 @@ def list_ingredients(
     status: Literal["active", "inactive", "all"] = "all",
 ) -> list[IngredientResponse]:
     get_store_or_404(db, store_id)
-    stmt = (
-        select(Ingredient)
-        .options(selectinload(Ingredient.recipe_items))
-        .where(Ingredient.store_id == store_id)
-        .execution_options(populate_existing=True)
-    )
-    if status == "active":
-        stmt = stmt.where(Ingredient.is_active.is_(True))
-    elif status == "inactive":
-        stmt = stmt.where(Ingredient.is_active.is_(False))
-    if q:
-        keyword = f"%{q.strip()}%"
-        stmt = stmt.where(Ingredient.name.ilike(keyword))
-    stmt = stmt.order_by(Ingredient.is_active.desc(), Ingredient.name.asc())
-    items = list(db.scalars(stmt).all())
+    items = ingredient_repo.search(db, store_id, q=q, status=status)
     return [_to_ingredient_response(item) for item in items]
 
 
 def get_ingredient_or_404(db: Session, *, store_id: UUID, ingredient_id: UUID) -> Ingredient:
     get_store_or_404(db, store_id)
-    stmt = (
-        select(Ingredient)
-        .options(selectinload(Ingredient.recipe_items))
-        .where(Ingredient.id == ingredient_id, Ingredient.store_id == store_id)
-        .execution_options(populate_existing=True)
-    )
-    item = db.scalars(stmt).first()
+    item = ingredient_repo.find_with_recipe_items(db, store_id, ingredient_id)
     if item is None:
         raise AppError(
             status_code=404,
@@ -128,8 +102,7 @@ def create_ingredient(
         notes=payload.notes,
         is_active=payload.is_active,
     )
-    db.add(item)
-    db.flush()
+    ingredient_repo.insert(db, item)
     record_audit(
         db,
         store_id=store_id,
@@ -227,12 +200,7 @@ def update_ingredient(
 
 def get_menu_recipe(db: Session, *, store_id: UUID, menu_id: UUID) -> RecipeResponse:
     menu = get_menu_or_404(db, store_id=store_id, menu_id=menu_id)
-    stmt = (
-        select(Recipe)
-        .options(selectinload(Recipe.items).selectinload(RecipeItem.ingredient))
-        .where(Recipe.menu_item_id == menu.id, Recipe.store_id == store_id)
-    )
-    recipe = db.scalars(stmt).first()
+    recipe = menu_repo.find_recipe_with_ingredients(db, store_id, menu.id)
     if recipe is None or len(recipe.items) == 0:
         return RecipeResponse(
             menu_item_id=menu.id,
@@ -294,14 +262,7 @@ def upsert_menu_recipe(
     # 식자재 존재 및 store_id 단일 배치 검증 (N+1 쿼리 제거)
     ingredient_map: dict[UUID, Ingredient] = {}
     if seen_ids:
-        found_ings = list(
-            db.scalars(
-                select(Ingredient).where(
-                    Ingredient.store_id == store_id,
-                    Ingredient.id.in_(seen_ids),
-                )
-            ).all()
-        )
+        found_ings = ingredient_repo.list_by_ids(db, store_id, seen_ids)
         ingredient_map = {ing.id: ing for ing in found_ings}
         if len(ingredient_map) != len(seen_ids):
             raise AppError(
@@ -310,12 +271,7 @@ def upsert_menu_recipe(
                 message="식자재를 찾을 수 없습니다.",
             )
 
-    stmt = (
-        select(Recipe)
-        .options(selectinload(Recipe.items))
-        .where(Recipe.menu_item_id == menu.id, Recipe.store_id == store_id)
-    )
-    recipe = db.scalars(stmt).first()
+    recipe = menu_repo.find_recipe(db, store_id, menu.id)
 
     before_items = (
         [
@@ -334,8 +290,7 @@ def upsert_menu_recipe(
             status=payload.status,
             effective_from=utcnow(),
         )
-        db.add(recipe)
-        db.flush()
+        menu_repo.insert_recipe(db, recipe)
     else:
         recipe.version += 1
         recipe.status = payload.status
@@ -383,15 +338,7 @@ def list_ingredient_usages(
     db: Session, *, store_id: UUID, ingredient_id: UUID
 ) -> list[IngredientUsageItem]:
     ing = get_ingredient_or_404(db, store_id=store_id, ingredient_id=ingredient_id)
-    stmt = (
-        select(RecipeItem)
-        .join(Recipe, RecipeItem.recipe_id == Recipe.id)
-        .join(MenuItem, Recipe.menu_item_id == MenuItem.id)
-        .options(selectinload(RecipeItem.recipe).selectinload(Recipe.menu_item))
-        .where(RecipeItem.ingredient_id == ing.id, Recipe.store_id == store_id)
-        .order_by(MenuItem.name.asc())
-    )
-    rows = list(db.scalars(stmt).all())
+    rows = menu_repo.list_recipe_items_using(db, store_id, ing)
     return [
         IngredientUsageItem(
             menu_item_id=row.recipe.menu_item.id,
