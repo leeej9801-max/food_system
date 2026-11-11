@@ -6,30 +6,26 @@
 from datetime import date
 from typing import Literal
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
 from app.db.models import Holiday
+from app.repositories import holidays as holiday_repo
 from app.schemas import HolidayCreate, HolidayResponse
 
 DayType = Literal["WEEKDAY", "WEEKEND", "HOLIDAY"]
 
 
 def list_holidays(db: Session, year: int) -> list[HolidayResponse]:
-    rows = db.scalars(
-        select(Holiday)
-        .where(Holiday.holiday_date >= date(year, 1, 1), Holiday.holiday_date <= date(year, 12, 31))
-        .order_by(Holiday.holiday_date)
-    ).all()
+    rows = holiday_repo.list_between(db, date(year, 1, 1), date(year, 12, 31))
     return [HolidayResponse.model_validate(r) for r in rows]
 
 
 def add_manual_holiday(db: Session, payload: HolidayCreate) -> HolidayResponse:
-    if db.get(Holiday, payload.holiday_date) is not None:
+    if holiday_repo.get(db, payload.holiday_date) is not None:
         raise AppError(status_code=409, code="HOLIDAY_EXISTS", message="이미 등록된 공휴일입니다.")
     row = Holiday(holiday_date=payload.holiday_date, name=payload.name.strip(), source="MANUAL")
-    db.add(row)
+    holiday_repo.add(db, row)
     db.commit()
     return HolidayResponse.model_validate(row)
 
@@ -38,9 +34,9 @@ def upsert_holidays(db: Session, items: list[tuple[date, str]], source: str = "K
     """수집 결과를 넣는다. 같은 날짜가 있으면 이름만 고친다. 넣거나 고친 수를 돌려준다."""
     changed = 0
     for day, name in items:
-        row = db.get(Holiday, day)
+        row = holiday_repo.get(db, day)
         if row is None:
-            db.add(Holiday(holiday_date=day, name=name, source=source))
+            holiday_repo.add(db, Holiday(holiday_date=day, name=name, source=source))
             changed += 1
         elif row.name != name:
             row.name = name
@@ -50,6 +46,6 @@ def upsert_holidays(db: Session, items: list[tuple[date, str]], source: str = "K
 
 
 def day_type(db: Session, day: date) -> DayType:
-    if db.get(Holiday, day) is not None:
+    if holiday_repo.get(db, day) is not None:
         return "HOLIDAY"
     return "WEEKEND" if day.weekday() >= 5 else "WEEKDAY"
