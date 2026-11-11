@@ -49,6 +49,10 @@ class Store(Base):
     opening_hours: Mapped[str | None] = mapped_column(String(64), nullable=True)
     # 도면 고정물(입구·카운터·칸막이·주방) JSON 목록. 테이블과 같은 24×28 좌표계 (U-31)
     floor_fixtures: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # 손익표 카드수수료 = 총매출 × 이 비율(%). PROVISIONAL: 매출 전부 카드 결제로 가정 (WO-20261111-002)
+    card_fee_percent: Mapped[Decimal] = mapped_column(
+        Numeric(4, 2), nullable=False, default=Decimal("2.00"), server_default="2.00"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
     )
@@ -538,6 +542,25 @@ class Holiday(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     # KASI(천문연 특일정보) | MANUAL
     source: Mapped[str] = mapped_column(String(10), nullable=False, default="MANUAL")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
+
+
+class MonthlyExpense(Base):
+    """손익표의 수기 항목 한 줄. 한 달치를 통째로 바꿔 쓴다 (WO-20261111-002)."""
+
+    __tablename__ = "monthly_expenses"
+    __table_args__ = (Index("ix_monthly_expenses_store_month", "store_id", "month"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False
+    )
+    month: Mapped[str] = mapped_column(String(7), nullable=False)  # "YYYY-MM", 매장 시간대 기준
+    item_code: Mapped[str] = mapped_column(String(32), nullable=False)
+    label: Mapped[str | None] = mapped_column(String(50), nullable=True)  # item_code "other"만
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)  # 원
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
     )

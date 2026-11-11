@@ -1,7 +1,9 @@
 from collections.abc import Collection
+from datetime import datetime
+from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.db.models import SalesOrder, SalesOrderItem
@@ -122,3 +124,22 @@ def add_item(db: Session, item: SalesOrderItem) -> None:
 
 def delete_item(db: Session, item: SalesOrderItem) -> None:
     db.delete(item)
+
+
+def sum_completed_sales_between(
+    db: Session, store_id: UUID, start: datetime, end: datetime
+) -> Decimal:
+    """완료 주문의 완료 품목 금액 합. 주문 시각이 없으면 수신 시각으로 본다."""
+    when = func.coalesce(SalesOrder.ordered_at, SalesOrder.received_at)
+    total = db.scalar(
+        select(func.sum(SalesOrderItem.unit_price * SalesOrderItem.quantity))
+        .join(SalesOrder, SalesOrderItem.order_id == SalesOrder.id)
+        .where(
+            SalesOrder.store_id == store_id,
+            SalesOrder.status == "COMPLETED",
+            SalesOrderItem.status == "COMPLETED",
+            when >= start,
+            when < end,
+        )
+    )
+    return total or Decimal(0)

@@ -6,6 +6,7 @@ import { withStore } from "../lib/navigation";
 import { createStore, fetchStores, fetchTables, fetchVisitSummary } from "../api/stores";
 import { fetchIntegrationStatus } from "../api/imports";
 import { AnalyticsPage } from "../pages/AnalyticsPage";
+import { PnlPage } from "../pages/PnlPage";
 import { HomePage } from "../pages/HomePage";
 import { IngredientManagementPage } from "../pages/IngredientManagementPage";
 import { InventoryPage } from "../pages/InventoryPage";
@@ -373,6 +374,7 @@ function ShellLayout({ store }: { store: Store }) {
     { to: "/menus", label: "메뉴 관리" },
     { to: "/ingredients", label: "식자재 · 레시피" },
     { to: "/inventory", label: "입고 · 재고" },
+    { to: "/pnl", label: "손익" },
     { to: "/analytics", label: "분석 대시보드" },
     { to: "/settings", label: "설정 (POS·매장·CSV)" },
   ];
@@ -555,6 +557,7 @@ function ShellLayout({ store }: { store: Store }) {
               <Route path="/menus" element={<MenuManagementPage store={store} />} />
               <Route path="/ingredients" element={<IngredientManagementPage store={store} />} />
               <Route path="/inventory" element={<InventoryPage store={store} />} />
+              <Route path="/pnl" element={<PnlPage store={store} />} />
               <Route path="/analytics" element={<AnalyticsPage store={store} />} />
               <Route path="/settings" element={<SettingsPage store={store} />} />
               <Route path="*" element={<Navigate to={withStore("/home", location.search)} replace />} />

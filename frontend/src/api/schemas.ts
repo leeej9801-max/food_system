@@ -380,3 +380,25 @@ export const costSimulationSchema: z.ZodType<T.CostSimulationResponse> = z.objec
     })
   ),
 });
+
+const pnlLineSchema = z.object({
+  code: str,
+  label: str,
+  amount: num,
+  source: z.enum(["auto", "manual"]),
+  ratio_percent: nstr,
+});
+
+export const pnlSchema: z.ZodType<T.PnlResponse> = z.object({
+  store_id: str,
+  month: str,
+  card_fee_percent: str,
+  revenue: pnlLineSchema,
+  expenses: z.array(pnlLineSchema),
+  total_expenses: num,
+  operating_profit: num,
+  operating_margin_percent: nstr,
+  trend: z.array(
+    z.object({ month: str, revenue: num, total_expenses: num, operating_profit: num })
+  ),
+});

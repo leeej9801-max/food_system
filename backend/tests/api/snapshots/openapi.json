@@ -2176,6 +2176,209 @@
         "title": "MenuUpdate",
         "type": "object"
       },
+      "PnlExpenseInput": {
+        "properties": {
+          "amount": {
+            "maximum": 10000000000.0,
+            "minimum": 0.0,
+            "title": "Amount",
+            "type": "integer"
+          },
+          "code": {
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "required": [
+          "code",
+          "amount"
+        ],
+        "title": "PnlExpenseInput",
+        "type": "object"
+      },
+      "PnlExpensesUpdate": {
+        "description": "그 달 수기 항목 전체. 보내지 않은 항목은 지워지고, 자동 항목은 다시 자동값이 된다.",
+        "properties": {
+          "card_fee_percent": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card Fee Percent"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PnlExpenseInput"
+            },
+            "maxItems": 100,
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "title": "PnlExpensesUpdate",
+        "type": "object"
+      },
+      "PnlLine": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "ratio_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratio Percent"
+          },
+          "source": {
+            "enum": [
+              "auto",
+              "manual"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "amount",
+          "source",
+          "ratio_percent"
+        ],
+        "title": "PnlLine",
+        "type": "object"
+      },
+      "PnlResponse": {
+        "properties": {
+          "card_fee_percent": {
+            "title": "Card Fee Percent",
+            "type": "string"
+          },
+          "expenses": {
+            "items": {
+              "$ref": "#/components/schemas/PnlLine"
+            },
+            "title": "Expenses",
+            "type": "array"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "operating_margin_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operating Margin Percent"
+          },
+          "operating_profit": {
+            "title": "Operating Profit",
+            "type": "integer"
+          },
+          "revenue": {
+            "$ref": "#/components/schemas/PnlLine"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          },
+          "total_expenses": {
+            "title": "Total Expenses",
+            "type": "integer"
+          },
+          "trend": {
+            "items": {
+              "$ref": "#/components/schemas/PnlTrendPoint"
+            },
+            "title": "Trend",
+            "type": "array"
+          }
+        },
+        "required": [
+          "store_id",
+          "month",
+          "card_fee_percent",
+          "revenue",
+          "expenses",
+          "total_expenses",
+          "operating_profit",
+          "operating_margin_percent",
+          "trend"
+        ],
+        "title": "PnlResponse",
+        "type": "object"
+      },
+      "PnlTrendPoint": {
+        "properties": {
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "operating_profit": {
+            "title": "Operating Profit",
+            "type": "integer"
+          },
+          "revenue": {
+            "title": "Revenue",
+            "type": "integer"
+          },
+          "total_expenses": {
+            "title": "Total Expenses",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "month",
+          "revenue",
+          "total_expenses",
+          "operating_profit"
+        ],
+        "title": "PnlTrendPoint",
+        "type": "object"
+      },
       "PosModeUpdateRequest": {
         "properties": {
           "mode": {
@@ -5969,6 +6172,124 @@
         "summary": "Put Menu Recipe",
         "tags": [
           "menus"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/pnl": {
+      "get": {
+        "operationId": "get_pnl_api_v1_stores__store_id__pnl_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "YYYY-MM, 매장 시간대 기준",
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "description": "YYYY-MM, 매장 시간대 기준",
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PnlResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Pnl",
+        "tags": [
+          "pnl"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/pnl/{month}/expenses": {
+      "put": {
+        "operationId": "put_pnl_expenses_api_v1_stores__store_id__pnl__month__expenses_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PnlExpensesUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PnlResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Pnl Expenses",
+        "tags": [
+          "pnl"
         ]
       }
     },

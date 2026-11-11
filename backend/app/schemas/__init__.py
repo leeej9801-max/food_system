@@ -763,3 +763,50 @@ class GuestSlotDisplayUpdate(BaseModel):
 class GuestSessionContextUpdate(BaseModel):
     purpose: PurposeType | None = None
     relationship: RelationshipType | None = None
+
+
+# ---- 월별 손익표 (WO-20261111-002) ----
+
+PNL_MONTH_PATTERN = r"^\d{4}-(0[1-9]|1[0-2])$"
+
+PnlSourceType = Literal["auto", "manual"]
+
+
+class PnlLine(BaseModel):
+    code: str
+    label: str
+    amount: int  # 원
+    source: PnlSourceType
+    ratio_percent: Decimal | None  # 총매출 대비, 소수 1자리. 매출 0이면 None
+
+
+class PnlTrendPoint(BaseModel):
+    month: str
+    revenue: int
+    total_expenses: int
+    operating_profit: int
+
+
+class PnlResponse(BaseModel):
+    store_id: UUID
+    month: str
+    card_fee_percent: Decimal
+    revenue: PnlLine
+    expenses: list[PnlLine]
+    total_expenses: int
+    operating_profit: int
+    operating_margin_percent: Decimal | None
+    trend: list[PnlTrendPoint]  # 최근 6개월, 오래된 달부터
+
+
+class PnlExpenseInput(BaseModel):
+    code: str = Field(..., min_length=1, max_length=32)
+    label: str | None = Field(default=None, max_length=50)
+    amount: int = Field(..., ge=0, le=10_000_000_000)
+
+
+class PnlExpensesUpdate(BaseModel):
+    """그 달 수기 항목 전체. 보내지 않은 항목은 지워지고, 자동 항목은 다시 자동값이 된다."""
+
+    items: list[PnlExpenseInput] = Field(default_factory=list, max_length=100)
+    card_fee_percent: Decimal | None = Field(default=None, ge=0, le=10, decimal_places=2)

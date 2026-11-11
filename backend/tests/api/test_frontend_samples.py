@@ -113,6 +113,12 @@ def test_collect_frontend_response_samples(client: TestClient) -> None:
 
     call("salesAnalyticsSchema", "GET", f"{s}/analytics/sales")
     call("costSimulationSchema", "POST", f"{s}/analytics/costing", {"global_change_percent": 10})
+    call(
+        "pnlSchema",
+        "PUT",
+        f"{s}/pnl/2026-10/expenses",
+        {"items": [{"code": "rent", "amount": 1000}]},
+    )
 
     problem = client.post("/api/v1/stores", json={})
     assert problem.status_code == 422

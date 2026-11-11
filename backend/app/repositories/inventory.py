@@ -1,6 +1,8 @@
+from datetime import datetime
+from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import InventoryAdjustment, InventoryCount, InventoryReceipt
@@ -37,3 +39,16 @@ def list_adjustments(db: Session, store_id: UUID) -> list[InventoryAdjustment]:
             select(InventoryAdjustment).where(InventoryAdjustment.store_id == store_id)
         ).all()
     )
+
+
+def sum_receipt_cost_between(
+    db: Session, store_id: UUID, start: datetime, end: datetime
+) -> Decimal:
+    total = db.scalar(
+        select(func.sum(InventoryReceipt.total_cost)).where(
+            InventoryReceipt.store_id == store_id,
+            InventoryReceipt.received_at >= start,
+            InventoryReceipt.received_at < end,
+        )
+    )
+    return total or Decimal(0)
