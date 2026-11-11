@@ -10,7 +10,10 @@ from app.db.tenancy import RequestContext, bind_store_scope
 
 connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
 
-engine = create_engine(settings.database_url, connect_args=connect_args, future=True)
+# 끊긴 연결(DB 재시작, 유휴 종료)을 빌려주기 전에 걸러낸다
+engine = create_engine(
+    settings.database_url, connect_args=connect_args, future=True, pool_pre_ping=True
+)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
 
 
