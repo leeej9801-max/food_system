@@ -431,10 +431,10 @@ export function SettingsPage({ store }: SettingsPageProps) {
           {/* 컬럼 매핑 설정 */}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
             <div>
-              <label className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f1" className="block text-[12px] font-semibold text-gray-600">
                 주문번호 컬럼
               </label>
-              <input
+              <input id="settings-f1"
                 type="text"
                 value={orderIdCol}
                 onChange={(e) => setOrderIdCol(e.target.value)}
@@ -442,10 +442,10 @@ export function SettingsPage({ store }: SettingsPageProps) {
               />
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f2" className="block text-[12px] font-semibold text-gray-600">
                 주문시각 컬럼
               </label>
-              <input
+              <input id="settings-f2"
                 type="text"
                 value={orderedAtCol}
                 onChange={(e) => setOrderedAtCol(e.target.value)}
@@ -453,10 +453,10 @@ export function SettingsPage({ store }: SettingsPageProps) {
               />
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f3" className="block text-[12px] font-semibold text-gray-600">
                 상품명 컬럼
               </label>
-              <input
+              <input id="settings-f3"
                 type="text"
                 value={productNameCol}
                 onChange={(e) => setProductNameCol(e.target.value)}
@@ -464,10 +464,10 @@ export function SettingsPage({ store }: SettingsPageProps) {
               />
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f4" className="block text-[12px] font-semibold text-gray-600">
                 수량 컬럼
               </label>
-              <input
+              <input id="settings-f4"
                 type="text"
                 value={quantityCol}
                 onChange={(e) => setQuantityCol(e.target.value)}
@@ -475,10 +475,10 @@ export function SettingsPage({ store }: SettingsPageProps) {
               />
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f5" className="block text-[12px] font-semibold text-gray-600">
                 단가 컬럼
               </label>
-              <input
+              <input id="settings-f5"
                 type="text"
                 value={unitPriceCol}
                 onChange={(e) => setUnitPriceCol(e.target.value)}
@@ -486,10 +486,10 @@ export function SettingsPage({ store }: SettingsPageProps) {
               />
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f6" className="block text-[12px] font-semibold text-gray-600">
                 상태 컬럼
               </label>
-              <input
+              <input id="settings-f6"
                 type="text"
                 value={statusCol}
                 onChange={(e) => setStatusCol(e.target.value)}
@@ -499,10 +499,10 @@ export function SettingsPage({ store }: SettingsPageProps) {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-700">
+            <label htmlFor="settings-f7" className="mb-1 block text-xs font-semibold text-gray-700">
               CSV 원문 ({csvFileName})
             </label>
-            <textarea
+            <textarea id="settings-f7"
               rows={5}
               value={csvText}
               onChange={(e) => {
@@ -672,6 +672,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                     </div>
                     <div className="flex items-center gap-2">
                       <select
+                        aria-label={`${extName} 연결 메뉴`}
                         value={selectedMenuId}
                         onChange={(e) =>
                           setSelectedMenuByExtName((prev) => ({
@@ -754,10 +755,10 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-gray-700">
+            <label htmlFor="settings-f8" className="mb-1.5 block text-xs font-bold text-gray-700">
               매장명
             </label>
-            <input
+            <input id="settings-f8"
               type="text"
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
@@ -767,9 +768,9 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <label className="text-xs font-bold text-gray-700">
+              <p className="text-xs font-bold text-gray-700">
                 영업일 (터치 토글)
-              </label>
+              </p>
               <div className="flex gap-1">
                 <button
                   type="button"
@@ -819,11 +820,11 @@ export function SettingsPage({ store }: SettingsPageProps) {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-gray-700">
+            <label htmlFor="settings-f9" className="mb-1.5 block text-xs font-bold text-gray-700">
               운영시간 ({openingHours})
             </label>
             <div className="grid grid-cols-2 gap-2">
-              <select
+              <select id="settings-f9"
                 value={openingHours.split("-")[0] || "11:30"}
                 onChange={(e) => {
                   const closePart = openingHours.split("-")[1] || "22:00";
@@ -838,6 +839,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                 ))}
               </select>
               <select
+                aria-label="마감 시간"
                 value={openingHours.split("-")[1] || "22:00"}
                 onChange={(e) => {
                   const openPart = openingHours.split("-")[0] || "11:30";
@@ -869,6 +871,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
           </div>
           <div className="flex items-center gap-2">
             <input
+              aria-label="새 테이블명"
               type="text"
               value={newTableName}
               onChange={(e) => setNewTableName(e.target.value)}
@@ -876,6 +879,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
               className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs"
             />
             <input
+              aria-label="새 테이블 좌석 수"
               type="number"
               min={1}
               max={20}

@@ -281,10 +281,10 @@ export function InventoryPage({ store }: InventoryPageProps) {
           <div className="rounded-lg border border-gray-200 bg-white p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
-                <label className="text-xs font-bold text-gray-700">
+                <label htmlFor="inventory-f1" className="text-xs font-bold text-gray-700">
                   대상 식자재 선택:
                 </label>
-                <select
+                <select id="inventory-f1"
                   value={currentIngredient?.ingredient_id ?? ""}
                   onChange={(e) => setSelectedIngredientId(e.target.value)}
                   className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold text-gray-900"
@@ -338,10 +338,10 @@ export function InventoryPage({ store }: InventoryPageProps) {
             {activeTab === "RECEIPT" && currentIngredient && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-5 items-end">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  <label htmlFor="inventory-f2" className="mb-1 block text-xs font-semibold text-gray-700">
                     입고 수량 (구매단위: {currentIngredient.purchase_unit})
                   </label>
-                  <input
+                  <input id="inventory-f2"
                     type="number"
                     step="0.001"
                     min="0.001"
@@ -351,10 +351,10 @@ export function InventoryPage({ store }: InventoryPageProps) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  <label htmlFor="inventory-f3" className="mb-1 block text-xs font-semibold text-gray-700">
                     총 구매금액 (원)
                   </label>
-                  <input
+                  <input id="inventory-f3"
                     type="number"
                     min="0"
                     value={totalCost}
@@ -364,10 +364,10 @@ export function InventoryPage({ store }: InventoryPageProps) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  <label htmlFor="inventory-f4" className="mb-1 block text-xs font-semibold text-gray-700">
                     공급처 (선택)
                   </label>
-                  <input
+                  <input id="inventory-f4"
                     type="text"
                     value={supplierName}
                     onChange={(e) => setSupplierName(e.target.value)}
@@ -376,10 +376,10 @@ export function InventoryPage({ store }: InventoryPageProps) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  <label htmlFor="inventory-f5" className="mb-1 block text-xs font-semibold text-gray-700">
                     메모 (선택)
                   </label>
-                  <input
+                  <input id="inventory-f5"
                     type="text"
                     value={receiptNotes}
                     onChange={(e) => setReceiptNotes(e.target.value)}
@@ -401,10 +401,10 @@ export function InventoryPage({ store }: InventoryPageProps) {
             {activeTab === "COUNT" && currentIngredient && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-4 items-end">
                 <div className="sm:col-span-2">
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  <label htmlFor="inventory-f6" className="mb-1 block text-xs font-semibold text-gray-700">
                     실제 확인한 실재고 수량 (기본단위: {currentIngredient.base_unit})
                   </label>
-                  <input
+                  <input id="inventory-f6"
                     type="number"
                     step="0.001"
                     min="0"
@@ -417,10 +417,10 @@ export function InventoryPage({ store }: InventoryPageProps) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  <label htmlFor="inventory-f7" className="mb-1 block text-xs font-semibold text-gray-700">
                     실사 메모 (선택)
                   </label>
-                  <input
+                  <input id="inventory-f7"
                     type="text"
                     value={countNotes}
                     onChange={(e) => setCountNotes(e.target.value)}
@@ -442,10 +442,10 @@ export function InventoryPage({ store }: InventoryPageProps) {
             {activeTab === "ADJUST" && currentIngredient && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-4 items-end">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  <label htmlFor="inventory-f8" className="mb-1 block text-xs font-semibold text-gray-700">
                     증감 수량 ({currentIngredient.base_unit}, 폐기는 음수)
                   </label>
-                  <input
+                  <input id="inventory-f8"
                     type="number"
                     step="0.001"
                     value={deltaQty}
@@ -454,10 +454,10 @@ export function InventoryPage({ store }: InventoryPageProps) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  <label htmlFor="inventory-f9" className="mb-1 block text-xs font-semibold text-gray-700">
                     사유
                   </label>
-                  <select
+                  <select id="inventory-f9"
                     value={adjReason}
                     onChange={(e) =>
                       setAdjReason(e.target.value as AdjustmentReasonType)
@@ -474,10 +474,10 @@ export function InventoryPage({ store }: InventoryPageProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  <label htmlFor="inventory-f10" className="mb-1 block text-xs font-semibold text-gray-700">
                     비고 (선택)
                   </label>
-                  <input
+                  <input id="inventory-f10"
                     type="text"
                     value={adjNotes}
                     onChange={(e) => setAdjNotes(e.target.value)}

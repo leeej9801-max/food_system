@@ -1,3 +1,4 @@
+import { Dialog } from "../components/Dialog";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppLink as Link } from "../components/AppLink";
@@ -460,6 +461,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               {!activeVisit ? (
                 <>
                   <input
+                    aria-label="방문 메모"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     maxLength={200}
@@ -588,7 +590,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
       {/* 주문 수정 · 환불(취소) 대응 모달 (POS 자동 연동 vs CSV 직접 수정 분기) */}
       {orderModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4">
+        <Dialog label="주문 내역 수정" onClose={() => setOrderModalOpen(false)}>
           <div className="flex max-h-[calc(var(--app-viewport-height)*0.9)] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
               <div>
@@ -643,6 +645,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-emerald-200/80 pt-3">
                     <span className="font-bold text-emerald-900">+ 현장 주문 추가:</span>
                     <select
+                      aria-label="현장 주문 추가 메뉴"
                       value={manualMenuId || menusQuery.data?.[0]?.id || ""}
                       onChange={(e) => setManualMenuId(e.target.value)}
                       className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800"
@@ -849,7 +852,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               )}
             </div>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

@@ -119,23 +119,23 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
       {step === 1 ? (
         <form onSubmit={handleNextStep} className="mt-5 space-y-5">
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-gray-700">
+            <label htmlFor="app-f1" className="mb-1.5 block text-xs font-bold text-gray-700">
               매장명 <span className="text-red-600">*</span>
             </label>
-            <input
+            <input id="app-f1"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="예: 비스트로 서울"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base font-medium focus:border-accent-600 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base font-medium focus:border-accent-600"
             />
           </div>
 
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <label className="text-xs font-bold text-gray-800">
+              <p className="text-xs font-bold text-gray-800">
                 영업 요일 선택 (터치 토글)
-              </label>
+              </p>
               <div className="flex gap-1.5">
                 <button
                   type="button"
@@ -189,9 +189,9 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
           </div>
 
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <label className="block text-xs font-bold text-gray-800">
+            <p className="block text-xs font-bold text-gray-800">
               운영 시간 (터치 선택)
-            </label>
+            </p>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <div className="mb-1.5 text-xs font-semibold text-gray-600">오픈 시간</div>
@@ -249,9 +249,9 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
       ) : (
         <form onSubmit={handleCreateStore} className="mt-5 space-y-5">
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
-            <label className="block text-sm font-bold text-gray-800">
+            <p className="block text-sm font-bold text-gray-800">
               매장 홀 테이블 수 (터치 조절)
-            </label>
+            </p>
             <div className="mt-3 flex items-center gap-4">
               <button
                 type="button"
@@ -288,9 +288,9 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
               ))}
             </div>
 
-            <label className="mt-5 block text-sm font-bold text-gray-800">
+            <p className="mt-5 block text-sm font-bold text-gray-800">
               테이블당 기본 좌석 수 (생성 후 개별 변경 가능)
-            </label>
+            </p>
             <div className="mt-2.5 grid grid-cols-3 gap-2.5">
               {[2, 4, 6].map((s) => (
                 <button

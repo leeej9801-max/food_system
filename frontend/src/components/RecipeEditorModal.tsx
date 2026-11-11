@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiClientError } from "../api/client";
 import { fetchIngredients, fetchMenuRecipe, upsertMenuRecipe } from "../api/ingredients";
 
+import { Dialog } from "./Dialog";
+
 interface RecipeEditorModalProps {
   open: boolean;
   storeId: string;
@@ -138,7 +140,7 @@ export function RecipeEditorModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">
+    <Dialog label={`${menuName} 레시피`} onClose={onClose}>
       <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
           <div>
@@ -181,8 +183,8 @@ export function RecipeEditorModal({
                 이력이 보존됩니다)
               </span>
               <div className="flex items-center gap-2">
-                <label className="font-semibold text-gray-700">레시피 완성도 표시:</label>
-                <select
+                <label htmlFor="recipeeditor-f1" className="font-semibold text-gray-700">레시피 완성도 표시:</label>
+                <select id="recipeeditor-f1"
                   value={status}
                   onChange={(e) => setStatus(e.target.value as "COMPLETE" | "PARTIAL")}
                   className="rounded border border-gray-300 bg-white px-2 py-1 text-xs"
@@ -208,6 +210,7 @@ export function RecipeEditorModal({
                       className="grid grid-cols-1 items-center gap-2 rounded-lg border border-gray-200 p-2.5 sm:grid-cols-[1.5fr_1fr_1.2fr_auto]"
                     >
                       <select
+                        aria-label="식자재"
                         value={row.ingredient_id}
                         onChange={(e) => handleUpdateRow(idx, { ingredient_id: e.target.value })}
                         className="rounded border border-gray-300 px-2.5 py-1.5 text-sm"
@@ -222,6 +225,7 @@ export function RecipeEditorModal({
 
                       <div className="flex items-center gap-1">
                         <input
+                          aria-label="사용량"
                           type="number"
                           min={0.001}
                           step="any"
@@ -236,6 +240,7 @@ export function RecipeEditorModal({
                       </div>
 
                       <input
+                        aria-label="레시피 메모"
                         type="text"
                         value={row.notes}
                         onChange={(e) => handleUpdateRow(idx, { notes: e.target.value })}
@@ -285,6 +290,6 @@ export function RecipeEditorModal({
           </div>
         )}
       </div>
-    </div>
+    </Dialog>
   );
 }

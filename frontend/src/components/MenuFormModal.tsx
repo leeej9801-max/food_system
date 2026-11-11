@@ -3,6 +3,8 @@ import { ApiClientError } from "../api/client";
 import { formatKrwPrice, validateMenuForm } from "../lib/menuValidation";
 import type { MenuItem } from "../types";
 
+import { Dialog } from "./Dialog";
+
 interface MenuFormModalProps {
   open: boolean;
   initialMenu: MenuItem | null;
@@ -105,7 +107,7 @@ export function MenuFormModal({ open, initialMenu, onClose, onSubmit }: MenuForm
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">
+    <Dialog label={initialMenu ? "메뉴 수정" : "새 메뉴 추가"} onClose={handleSafeClose}>
       <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
           <h2 className="text-lg font-bold text-gray-900">
@@ -131,15 +133,15 @@ export function MenuFormModal({ open, initialMenu, onClose, onSubmit }: MenuForm
 
         <form onSubmit={handleFormSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-800">
+            <label htmlFor="menuform-f1" className="mb-1 block text-sm font-medium text-gray-800">
               메뉴명 <span className="text-red-600">* (필수)</span>
             </label>
-            <input
+            <input id="menuform-f1"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="예: 제육볶음"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-accent-600 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-accent-600"
             />
             {fieldErrors.name && (
               <p className="mt-1 text-xs font-medium text-red-600">{fieldErrors.name}</p>
@@ -148,17 +150,17 @@ export function MenuFormModal({ open, initialMenu, onClose, onSubmit }: MenuForm
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-800">
+              <label htmlFor="menuform-f2" className="mb-1 block text-sm font-medium text-gray-800">
                 판매가격 (선택, 원)
               </label>
-              <input
+              <input id="menuform-f2"
                 type="number"
                 min={0}
                 step={100}
                 value={sellingPrice}
                 onChange={(e) => setSellingPrice(e.target.value)}
                 placeholder="비워두면 미입력 상태"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-accent-600 focus:outline-none"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-accent-600"
               />
               <p className="mt-1 text-xs text-gray-500">
                 표시 미리보기: {formatKrwPrice(sellingPrice)}
@@ -171,15 +173,15 @@ export function MenuFormModal({ open, initialMenu, onClose, onSubmit }: MenuForm
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-800">
+              <label htmlFor="menuform-f3" className="mb-1 block text-sm font-medium text-gray-800">
                 카테고리 (선택)
               </label>
-              <input
+              <input id="menuform-f3"
                 type="text"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 placeholder="예: 식사, 안주, 음료"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-accent-600 focus:outline-none"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-accent-600"
               />
               {fieldErrors.category && (
                 <p className="mt-1 text-xs font-medium text-red-600">{fieldErrors.category}</p>
@@ -188,15 +190,15 @@ export function MenuFormModal({ open, initialMenu, onClose, onSubmit }: MenuForm
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-800">
+            <label htmlFor="menuform-f4" className="mb-1 block text-sm font-medium text-gray-800">
               설명 / 메모 (선택)
             </label>
-            <textarea
+            <textarea id="menuform-f4"
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="선택 입력: 비워두어도 저장 및 판매 수집이 가능합니다."
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600"
             />
             {fieldErrors.description && (
               <p className="mt-1 text-xs font-medium text-red-600">{fieldErrors.description}</p>
@@ -247,6 +249,6 @@ export function MenuFormModal({ open, initialMenu, onClose, onSubmit }: MenuForm
           </div>
         </form>
       </div>
-    </div>
+    </Dialog>
   );
 }

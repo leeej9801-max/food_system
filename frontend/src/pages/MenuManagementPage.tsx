@@ -185,22 +185,22 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
       {/* 검색 및 필터 바 */}
       <div className="grid grid-cols-1 gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:grid-cols-3">
         <div>
-          <label className="mb-1 block text-xs font-semibold text-gray-600">메뉴명 검색</label>
-          <input
+          <label htmlFor="menumanagement-f1" className="mb-1 block text-xs font-semibold text-gray-600">메뉴명 검색</label>
+          <input id="menumanagement-f1"
             type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="예: 까르보나라, 알리오올리오, 스테이크..."
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-semibold text-gray-600">카테고리</label>
-          <select
+          <label htmlFor="menumanagement-f2" className="mb-1 block text-xs font-semibold text-gray-600">카테고리</label>
+          <select id="menumanagement-f2"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600"
           >
             <option value="">전체 카테고리</option>
             {categories.map((cat) => (
@@ -212,11 +212,11 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-semibold text-gray-600">판매 상태</label>
-          <select
+          <label htmlFor="menumanagement-f3" className="mb-1 block text-xs font-semibold text-gray-600">판매 상태</label>
+          <select id="menumanagement-f3"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600"
           >
             <option value="all">전체 (판매중 + 비활성)</option>
             <option value="active">판매중(활성)만</option>

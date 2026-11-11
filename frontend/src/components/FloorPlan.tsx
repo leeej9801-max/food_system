@@ -219,6 +219,16 @@ export function FloorPlan({
         return (
           <g
             key={t.id}
+            role="button"
+            tabIndex={0}
+            aria-label={`${t.name} 테이블${visit ? `, ${visit.party_size}명 착석` : ", 빈 자리"}`}
+            aria-pressed={t.id === selectedTableId}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelectTable(t.id);
+              }
+            }}
             onPointerDown={(e) => startDrag(e, p)}
             onPointerMove={(e) => moveDrag(e, p)}
             onPointerUp={() => endDrag(p)}
