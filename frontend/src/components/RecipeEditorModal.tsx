@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiClientError } from "../api/client";
 import { fetchIngredients, fetchMenuRecipe, upsertMenuRecipe } from "../api/ingredients";
@@ -43,18 +43,25 @@ export function RecipeEditorModal({
     enabled: open && Boolean(menuId),
   });
 
-  useEffect(() => {
-    if (!open || !recipeQuery.data) return;
-    setErrorMessage(null);
-    setStatus(recipeQuery.data.status === "PARTIAL" ? "PARTIAL" : "COMPLETE");
-    setRows(
-      recipeQuery.data.items.map((ri) => ({
-        ingredient_id: ri.ingredient_id,
-        quantity: String(Number(ri.quantity)),
-        notes: ri.notes ?? "",
-      }))
-    );
-  }, [open, recipeQuery.data]);
+  // 열려 있는 동안 레시피를 새로 받으면 편집 행을 채운다. 효과 대신 렌더 중에 비교한다.
+  const [prev, setPrev] = useState<{ open: boolean; data: typeof recipeQuery.data }>({
+    open: false,
+    data: undefined,
+  });
+  if (prev.open !== open || prev.data !== recipeQuery.data) {
+    setPrev({ open, data: recipeQuery.data });
+    if (open && recipeQuery.data) {
+      setErrorMessage(null);
+      setStatus(recipeQuery.data.status === "PARTIAL" ? "PARTIAL" : "COMPLETE");
+      setRows(
+        recipeQuery.data.items.map((ri) => ({
+          ingredient_id: ri.ingredient_id,
+          quantity: String(Number(ri.quantity)),
+          notes: ri.notes ?? "",
+        }))
+      );
+    }
+  }
 
   const saveMutation = useMutation({
     mutationFn: async () => {

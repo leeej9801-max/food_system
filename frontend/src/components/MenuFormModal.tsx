@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ApiClientError } from "../api/client";
 import { formatKrwPrice, validateMenuForm } from "../lib/menuValidation";
 import type { MenuItem } from "../types";
@@ -26,26 +26,33 @@ export function MenuFormModal({ open, initialMenu, onClose, onSubmit }: MenuForm
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-    setFieldErrors({});
-    setGeneralError(null);
-    if (initialMenu) {
-      setName(initialMenu.name);
-      setSellingPrice(
-        initialMenu.selling_price !== null ? String(Math.round(Number(initialMenu.selling_price))) : ""
-      );
-      setCategory(initialMenu.category ?? "");
-      setDescription(initialMenu.description ?? "");
-      setIsActive(initialMenu.is_active);
-    } else {
-      setName("");
-      setSellingPrice("");
-      setCategory("");
-      setDescription("");
-      setIsActive(true);
+  // 열릴 때와 대상 메뉴가 바뀔 때 폼을 초기화한다. 효과 대신 렌더 중에 비교한다.
+  const [prev, setPrev] = useState<{ open: boolean; initialMenu: MenuItem | null }>({
+    open: false,
+    initialMenu: null,
+  });
+  if (prev.open !== open || prev.initialMenu !== initialMenu) {
+    setPrev({ open, initialMenu });
+    if (open) {
+      setFieldErrors({});
+      setGeneralError(null);
+      if (initialMenu) {
+        setName(initialMenu.name);
+        setSellingPrice(
+          initialMenu.selling_price !== null ? String(Math.round(Number(initialMenu.selling_price))) : ""
+        );
+        setCategory(initialMenu.category ?? "");
+        setDescription(initialMenu.description ?? "");
+        setIsActive(initialMenu.is_active);
+      } else {
+        setName("");
+        setSellingPrice("");
+        setCategory("");
+        setDescription("");
+        setIsActive(true);
+      }
     }
-  }, [open, initialMenu]);
+  }
 
   if (!open) return null;
 

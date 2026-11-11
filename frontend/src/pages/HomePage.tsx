@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppLink as Link } from "../components/AppLink";
 import { ApiClientError } from "../api/client";
@@ -136,8 +136,11 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
     tables.find((t) => t.id === selectedTableId) ?? tables[0] ?? null;
   const activeVisit = selectedTable?.active_visit ?? null;
 
-  useEffect(() => {
-    if (!selectedTable) return;
+  // 선택 테이블이나 그 방문이 바뀌면 입력값을 맞춘다. 효과 대신 렌더 중에 비교한다.
+  const tableKey = `${selectedTable?.id ?? ""}:${selectedTable?.active_visit?.id ?? ""}`;
+  const [prevTableKey, setPrevTableKey] = useState<string | null>(null);
+  if (selectedTable && prevTableKey !== tableKey) {
+    setPrevTableKey(tableKey);
     if (selectedTable.active_visit) {
       setPartySize(selectedTable.active_visit.party_size);
       setNotes(selectedTable.active_visit.notes ?? "");
@@ -145,7 +148,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
       setPartySize(Math.min(selectedTable.seats, 4));
       setNotes("");
     }
-  }, [selectedTable?.id, selectedTable?.active_visit?.id]);
+  }
 
   function refreshAll() {
     queryClient.invalidateQueries({ queryKey: ["tables", store.id] });
