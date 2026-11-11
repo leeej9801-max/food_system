@@ -1,4 +1,4 @@
-"""홀 배치·사람별 객층·방문 맥락·자동 닫기·공휴일 (WO-20261105-001). SQLite (P-07)."""
+"""홀 배치·사람별 객층·방문 맥락·자동 닫기·공휴일 (WO-20261105-001)."""
 
 from collections.abc import Generator
 from datetime import UTC, date, datetime
@@ -6,13 +6,10 @@ from datetime import UTC, date, datetime
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from app.db.base import Base
 from app.db.models import Store, StoreTable, VisitSession
-from app.db.session import get_db
 from app.main import create_app
 from app.services.floor import MEAL_LOVE_TABLES, apply_floor_preset
 from app.services.holidays import day_type
@@ -22,31 +19,8 @@ GUEST = "/api/guest/v1/qr"
 
 
 @pytest.fixture
-def db_session() -> Generator[Session, None, None]:
-    engine = create_engine(
-        "sqlite+pysqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-        future=True,
-    )
-    Base.metadata.create_all(bind=engine)
-    session = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture
-def app(db_session: Session) -> FastAPI:
-    app = create_app()
-
-    def _override_get_db() -> Generator[Session, None, None]:
-        yield db_session
-
-    app.dependency_overrides[get_db] = _override_get_db
-    return app
+def app() -> FastAPI:
+    return create_app()
 
 
 @pytest.fixture

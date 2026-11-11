@@ -1,48 +1,22 @@
-"""손님 영역 B 1단계: 테이블 QR → 세션 열기/합류, 슬롯 (WO-20261104-003). SQLite (P-07)."""
+"""손님 영역 B 1단계: 테이블 QR → 세션 열기/합류, 슬롯 (WO-20261104-003)."""
 
 from collections.abc import Generator
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from app.db.base import Base
 from app.db.models import GuestDevice
-from app.db.session import get_db
 from app.main import create_app
 
 GUEST = "/api/guest/v1/qr"
 
 
 @pytest.fixture
-def db_session() -> Generator[Session, None, None]:
-    engine = create_engine(
-        "sqlite+pysqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-        future=True,
-    )
-    Base.metadata.create_all(bind=engine)
-    session = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture
-def app(db_session: Session) -> FastAPI:
-    app = create_app()
-
-    def _override_get_db() -> Generator[Session, None, None]:
-        yield db_session
-
-    app.dependency_overrides[get_db] = _override_get_db
-    return app
+def app() -> FastAPI:
+    return create_app()
 
 
 @pytest.fixture

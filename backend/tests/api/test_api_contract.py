@@ -10,9 +10,7 @@ import os
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 
-from app.db.session import get_db
 from app.main import create_app
 
 SNAPSHOT = Path(__file__).parent / "snapshots" / "openapi.json"
@@ -82,9 +80,8 @@ def test_unknown_route_and_method_use_problem_format(client: TestClient) -> None
     assert set(wrong_method.json()) == PROBLEM_KEYS
 
 
-def test_unhandled_error_is_problem_without_internals(db_session: Session) -> None:
+def test_unhandled_error_is_problem_without_internals() -> None:
     app = create_app()
-    app.dependency_overrides[get_db] = lambda: db_session
 
     @app.get("/boom")
     def boom() -> None:

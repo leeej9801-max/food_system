@@ -84,7 +84,7 @@ def test_collect_frontend_response_samples(client: TestClient) -> None:
         {"external_product_name": "없는메뉴", "menu_item_id": menu_id},
     )
     call("productMappingSchema", "GET", f"{s}/integrations/mappings", unwrap=True)
-    # POST /sales-orders는 CSV 반영 뒤 SQLite에서 naive/aware 시각 비교로 실패한다. 목록의 주문을 표본으로 쓴다
+    # 목록의 주문을 표본으로 쓴다
     orders = call("salesOrdersListSchema", "GET", f"{s}/sales-orders")["orders"]
     samples["salesOrderSchema"] = orders
     call("integrationStatusSchema", "GET", f"{s}/integrations/status")

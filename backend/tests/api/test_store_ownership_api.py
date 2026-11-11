@@ -1,7 +1,7 @@
 """안전망 (WO-20261110-002 2단계): 다른 매장 경로로 남의 리소스에 접근하면 막힌다.
 
-SQLite에서 돌기 때문에 RLS 없이 서비스 계층의 store_id 조건만 검증한다.
-RLS 쪽은 tests/isolation이 맡는다. 구현을 바꾸지 않고 현재 동작을 고정한다.
+PostgreSQL + 런타임 역할이라 서비스 계층의 store_id 조건과 RLS가 함께 걸린 결과를 본다.
+RLS만 따로 보는 것은 tests/isolation이 맡는다.
 """
 
 from dataclasses import dataclass
