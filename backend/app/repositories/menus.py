@@ -127,3 +127,9 @@ def list_recipe_items_using(
             .order_by(MenuItem.name.asc())
         ).all()
     )
+
+
+def find(db: Session, store_id: UUID, menu_id: UUID) -> MenuItem | None:
+    return db.scalars(
+        select(MenuItem).where(MenuItem.id == menu_id, MenuItem.store_id == store_id)
+    ).first()

@@ -7,8 +7,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Literal
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
 from app.db.models import (
@@ -20,6 +19,11 @@ from app.db.models import (
     SalesOrderItem,
     utcnow,
 )
+from app.repositories import import_batches as import_batch_repo
+from app.repositories import menus as menu_repo
+from app.repositories import pos_connections as pos_connection_repo
+from app.repositories import pos_mappings as pos_mapping_repo
+from app.repositories import sales_orders as sales_order_repo
 from app.schemas import (
     CsvCommitResponse,
     CsvPreviewRequest,
@@ -53,16 +57,14 @@ def get_sample_sales_csv() -> str:
 
 
 def _get_or_create_pos_connection(db: Session, *, store_id: UUID) -> PosConnection:
-    stmt = select(PosConnection).where(PosConnection.store_id == store_id)
-    conn = db.scalars(stmt).first()
+    conn = pos_connection_repo.find_by_store(db, store_id)
     if conn is None:
         conn = PosConnection(
             store_id=store_id,
             mode="CSV_UPLOAD",
             status="READY_CSV",
         )
-        db.add(conn)
-        db.flush()
+        pos_connection_repo.insert(db, conn)
     return conn
 
 
@@ -104,13 +106,11 @@ def _normalize_status(raw: str) -> Literal["COMPLETED", "CANCELLED"]:
 def _build_menu_lookup(db: Session, *, store_id: UUID) -> dict[str, UUID]:
     """공백 제거 및 대소문자 무시(casefold) 기준으로 메뉴 마스터 및 외부 상품명 매핑 룩업 테이블 생성."""
     lookup: dict[str, UUID] = {}
-    menus = list(db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all())
+    menus = menu_repo.list_by_store(db, store_id)
     for m in menus:
         if m.is_active:
             lookup[m.name.strip().casefold()] = m.id
-    mappings = list(
-        db.scalars(select(PosProductMapping).where(PosProductMapping.store_id == store_id)).all()
-    )
+    mappings = pos_mapping_repo.list_by_store(db, store_id)
     for mp in mappings:
         lookup[mp.external_product_name.strip().casefold()] = mp.menu_item_id
     return lookup
@@ -121,14 +121,7 @@ def get_integration_status(db: Session, *, store_id: UUID) -> IntegrationStatusR
     conn = _get_or_create_pos_connection(db, store_id=store_id)
     db.commit()
 
-    orders = list(
-        db.scalars(
-            select(SalesOrder)
-            .options(selectinload(SalesOrder.items))
-            .where(SalesOrder.store_id == store_id)
-            .execution_options(populate_existing=True)
-        ).all()
-    )
+    orders = sales_order_repo.list_with_items(db, store_id)
 
     completed_orders = [o for o in orders if o.status == "COMPLETED"]
     net_sales = Decimal("0.00")
@@ -203,13 +196,7 @@ def preview_sales_csv(
     normalized_csv = payload.csv_text.lstrip("\ufeff").strip()
     file_hash = hashlib.sha256(normalized_csv.encode("utf-8")).hexdigest()
 
-    existing_committed = db.scalars(
-        select(ImportBatch).where(
-            ImportBatch.store_id == store_id,
-            ImportBatch.file_hash == file_hash,
-            ImportBatch.status == "COMMITTED",
-        )
-    ).first()
+    existing_committed = import_batch_repo.find_committed_by_hash(db, store_id, file_hash)
     duplicate_warning = existing_committed is not None
 
     reader = csv.DictReader(io.StringIO(normalized_csv))
@@ -346,7 +333,7 @@ def preview_sales_csv(
             ensure_ascii=False,
         ),
     )
-    db.add(batch)
+    import_batch_repo.add(db, batch)
     db.commit()
     db.refresh(batch)
 
@@ -368,9 +355,7 @@ def preview_sales_csv(
 
 def commit_sales_csv(db: Session, *, store_id: UUID, batch_id: UUID) -> CsvCommitResponse:
     get_store_or_404(db, store_id)
-    batch = db.scalars(
-        select(ImportBatch).where(ImportBatch.id == batch_id, ImportBatch.store_id == store_id)
-    ).first()
+    batch = import_batch_repo.find(db, store_id, batch_id)
     if batch is None:
         raise AppError(
             status_code=404,
@@ -398,16 +383,7 @@ def commit_sales_csv(db: Session, *, store_id: UUID, batch_id: UUID) -> CsvCommi
     ext_ids = list(grouped_orders.keys())
     existing_orders_by_ext: dict[str, SalesOrder] = {}
     if ext_ids:
-        found_orders = list(
-            db.scalars(
-                select(SalesOrder)
-                .options(selectinload(SalesOrder.items))
-                .where(
-                    SalesOrder.store_id == store_id,
-                    SalesOrder.external_order_id.in_(ext_ids),
-                )
-            ).all()
-        )
+        found_orders = sales_order_repo.list_by_external_ids(db, store_id, ext_ids)
         existing_orders_by_ext = {o.external_order_id: o for o in found_orders}
 
     orders_upserted = 0
@@ -438,8 +414,7 @@ def commit_sales_csv(db: Session, *, store_id: UUID, batch_id: UUID) -> CsvCommi
                 status=order_status,
                 received_at=now_ts,
             )
-            db.add(order)
-            db.flush()
+            sales_order_repo.insert(db, order)
         else:
             order = existing_order
             order.import_batch_id = batch.id
@@ -448,7 +423,7 @@ def commit_sales_csv(db: Session, *, store_id: UUID, batch_id: UUID) -> CsvCommi
             order.status = order_status
             order.received_at = now_ts
             for old_item in list(order.items):
-                db.delete(old_item)
+                sales_order_repo.delete_item(db, old_item)
             db.flush()
 
         orders_upserted += 1
@@ -476,7 +451,7 @@ def commit_sales_csv(db: Session, *, store_id: UUID, batch_id: UUID) -> CsvCommi
                 status=item_status,
                 ordered_at=r_ord_dt,
             )
-            db.add(item)
+            sales_order_repo.add_item(db, item)
             items_recorded += 1
 
     batch.status = "COMMITTED"
@@ -522,9 +497,7 @@ def upsert_product_mapping(
     get_store_or_404(db, store_id)
     ext_name = payload.external_product_name.strip()
     ext_norm = ext_name.casefold()
-    menu = db.scalars(
-        select(MenuItem).where(MenuItem.id == payload.menu_item_id, MenuItem.store_id == store_id)
-    ).first()
+    menu = menu_repo.find(db, store_id, payload.menu_item_id)
     if menu is None:
         raise AppError(
             status_code=404,
@@ -532,9 +505,7 @@ def upsert_product_mapping(
             message="연결할 메뉴를 찾을 수 없습니다.",
         )
 
-    existing_mappings = list(
-        db.scalars(select(PosProductMapping).where(PosProductMapping.store_id == store_id)).all()
-    )
+    existing_mappings = pos_mapping_repo.list_by_store(db, store_id)
     mapping = next(
         (m for m in existing_mappings if m.external_product_name.strip().casefold() == ext_norm),
         None,
@@ -546,15 +517,12 @@ def upsert_product_mapping(
             external_product_name=ext_name,
             menu_item_id=menu.id,
         )
-        db.add(mapping)
-        db.flush()
+        pos_mapping_repo.insert(db, mapping)
     else:
         mapping.external_product_name = ext_name
         mapping.menu_item_id = menu.id
 
-    items = list(
-        db.scalars(select(SalesOrderItem).where(SalesOrderItem.store_id == store_id)).all()
-    )
+    items = sales_order_repo.list_items(db, store_id)
     updated_count = 0
     for item in items:
         if item.raw_product_name.strip().casefold() == ext_norm:
@@ -590,17 +558,8 @@ def upsert_product_mapping(
 
 def list_product_mappings(db: Session, *, store_id: UUID) -> list[ProductMappingResponse]:
     get_store_or_404(db, store_id)
-    mappings = list(
-        db.scalars(
-            select(PosProductMapping)
-            .where(PosProductMapping.store_id == store_id)
-            .order_by(PosProductMapping.external_product_name.asc())
-        ).all()
-    )
-    menus_by_id = {
-        m.id: m.name
-        for m in db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all()
-    }
+    mappings = pos_mapping_repo.list_by_store_ordered(db, store_id)
+    menus_by_id = {m.id: m.name for m in menu_repo.list_by_store(db, store_id)}
     return [
         ProductMappingResponse(
             id=m.id,
@@ -667,17 +626,8 @@ def list_sales_orders(db: Session, *, store_id: UUID) -> SalesOrdersListResponse
         else "POS 연동 모드(A/B): 주문 변경 및 환불은 POS 단말기 이벤트에서 자동 동기화되므로 수동 수정이 잠겨 있습니다."
     )
 
-    orders = list(
-        db.scalars(
-            select(SalesOrder)
-            .options(selectinload(SalesOrder.items))
-            .where(SalesOrder.store_id == store_id)
-            .order_by(SalesOrder.received_at.desc(), SalesOrder.external_order_id.desc())
-        ).all()
-    )
-    menus_by_id = {
-        m.id: m for m in db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all()
-    }
+    orders = sales_order_repo.list_recent_with_items(db, store_id)
+    menus_by_id = {m.id: m for m in menu_repo.list_by_store(db, store_id)}
 
     return SalesOrdersListResponse(
         store_id=store_id,
@@ -704,11 +654,7 @@ def update_sales_order(
             message="POS 연동 모드(A/B)에서는 주문 수정 및 환불이 POS 단말에서 자동 동기화됩니다. 직접 수정하려면 CSV 수집 모드로 전환하세요.",
         )
 
-    order = db.scalars(
-        select(SalesOrder)
-        .options(selectinload(SalesOrder.items))
-        .where(SalesOrder.id == order_id, SalesOrder.store_id == store_id)
-    ).first()
+    order = sales_order_repo.find_with_items(db, store_id, order_id)
     if order is None:
         raise AppError(
             status_code=404,
@@ -751,9 +697,7 @@ def update_sales_order(
     db.commit()
     db.refresh(order)
 
-    menus_by_id = {
-        m.id: m for m in db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all()
-    }
+    menus_by_id = {m.id: m for m in menu_repo.list_by_store(db, store_id)}
     return _serialize_sales_order(order, menus_by_id)
 
 
@@ -772,9 +716,7 @@ def create_manual_sales_order(
             message="POS 연동 모드(A/B)에서는 신규 주문이 POS 단말에서 자동 수집됩니다. 수동 등록하려면 CSV 수집 모드로 전환하세요.",
         )
 
-    menus_by_id = {
-        m.id: m for m in db.scalars(select(MenuItem).where(MenuItem.store_id == store_id)).all()
-    }
+    menus_by_id = {m.id: m for m in menu_repo.list_by_store(db, store_id)}
 
     now_ts = utcnow()
     ord_dt = payload.ordered_at or now_ts
@@ -788,12 +730,7 @@ def create_manual_sales_order(
     )
 
     # 외부 주문번호 중복 방지
-    existing = db.scalars(
-        select(SalesOrder).where(
-            SalesOrder.store_id == store_id,
-            SalesOrder.external_order_id == ext_id,
-        )
-    ).first()
+    existing = sales_order_repo.find_by_external_id(db, store_id, ext_id)
     if existing is not None:
         ext_id = f"{ext_id}-{now_ts.microsecond // 1000}"
 
@@ -807,8 +744,7 @@ def create_manual_sales_order(
         status="COMPLETED",
         received_at=now_ts,
     )
-    db.add(order)
-    db.flush()
+    sales_order_repo.insert(db, order)
 
     for item_in in payload.items:
         menu = menus_by_id.get(item_in.menu_item_id)
@@ -823,7 +759,8 @@ def create_manual_sales_order(
             if menu.selling_price is not None
             else Decimal("0.00")
         )
-        db.add(
+        sales_order_repo.add_item(
+            db,
             SalesOrderItem(
                 order_id=order.id,
                 store_id=store_id,
@@ -834,7 +771,7 @@ def create_manual_sales_order(
                 unit_price=u_price,
                 status="COMPLETED",
                 ordered_at=ord_dt,
-            )
+            ),
         )
 
     conn.last_synced_at = now_ts
@@ -855,8 +792,6 @@ def create_manual_sales_order(
     )
     db.commit()
 
-    refreshed = db.scalars(
-        select(SalesOrder).options(selectinload(SalesOrder.items)).where(SalesOrder.id == order.id)
-    ).first()
+    refreshed = sales_order_repo.get_with_items(db, order.id)
     assert refreshed is not None
     return _serialize_sales_order(refreshed, menus_by_id)
