@@ -4547,6 +4547,54 @@
         ]
       }
     },
+    "/api/v1/stores/{store_id}/floor/reset": {
+      "post": {
+        "description": "홀 배치를 매장 도면(meal_love 프리셋)으로 되돌린다 (WO-20261111-001).",
+        "operationId": "reset_floor_api_v1_stores__store_id__floor_reset_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StoreTableResponse"
+                  },
+                  "title": "Response Reset Floor Api V1 Stores  Store Id  Floor Reset Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reset Floor",
+        "tags": [
+          "tables & visits"
+        ]
+      }
+    },
     "/api/v1/stores/{store_id}/imports/sales-csv/preview": {
       "post": {
         "operationId": "preview_sales_csv_endpoint_api_v1_stores__store_id__imports_sales_csv_preview_post",

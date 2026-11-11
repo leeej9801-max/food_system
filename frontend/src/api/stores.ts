@@ -89,6 +89,11 @@ export function updateTable(
   });
 }
 
+/** 홀 배치를 매장 도면으로 되돌린다 (WO-20261111-001). */
+export function resetFloor(storeId: string): Promise<StoreTable[]> {
+  return apiRequest(z.array(storeTableSchema), `/stores/${storeId}/floor/reset`, { method: "POST" });
+}
+
 export function fetchVisitSummary(storeId: string): Promise<VisitSummary> {
   return apiRequest(visitSummarySchema, `/stores/${storeId}/visits`);
 }

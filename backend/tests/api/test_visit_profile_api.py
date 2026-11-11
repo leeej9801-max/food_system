@@ -1,5 +1,6 @@
 """홀 배치·사람별 객층·방문 맥락·자동 닫기·공휴일 (WO-20261105-001)."""
 
+import uuid
 from collections.abc import Generator
 from datetime import UTC, date, datetime
 
@@ -269,3 +270,19 @@ def test_new_fields_hold_no_personal_data(db_session: Session) -> None:
     assert not cols & {"name", "phone", "email", "birth", "nickname"}
     assert {c.name for c in Holiday.__table__.c} == {"holiday_date", "name", "source", "created_at"}
     assert db_session.scalars(select(StoreTable)).all() == []
+
+
+def test_floor_reset_api_restores_preset(staff: TestClient, table: dict) -> None:
+    base = f"/api/v1/stores/{table['store_id']}"
+    assert (
+        staff.patch(
+            f"{base}/tables/{table['table_id']}", json={"grid_x": 20, "grid_y": 20}
+        ).status_code
+        == 200
+    )
+    first = staff.post(f"{base}/floor/reset")
+    assert first.status_code == 200
+    by_name = {t["name"]: (t["grid_x"], t["grid_y"], t["orientation"]) for t in first.json()}
+    assert by_name == {n: (x, y, o) for n, x, y, o in MEAL_LOVE_TABLES}
+    assert staff.post(f"{base}/floor/reset").json() == first.json()
+    assert staff.post(f"/api/v1/stores/{uuid.uuid4()}/floor/reset").status_code == 404

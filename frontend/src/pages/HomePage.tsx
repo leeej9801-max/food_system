@@ -14,6 +14,7 @@ import {
   createVisitSession,
   fetchTables,
   fetchVisitSummary,
+  resetFloor,
   updateTable,
   updateVisitSession,
   updateVisitSlot,
@@ -286,6 +287,17 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
     },
   });
 
+  const resetFloorMutation = useMutation({
+    mutationFn: () => resetFloor(store.id),
+    onSuccess: () => {
+      setBanner({ type: "success", text: "배치를 매장 도면대로 되돌렸습니다." });
+      refreshAll();
+    },
+    onError: (err: unknown) => {
+      setBanner({ type: "error", text: errorText(err, "배치 초기화에 실패했습니다.") });
+    },
+  });
+
   const slots: VisitSlot[] = activeVisit?.slots ?? [];
   const contextByGuest = activeVisit?.context_source === "GUEST";
   const busy = updateVisitMutation.isPending || slotMutation.isPending;
@@ -349,6 +361,20 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   {selectedTable.name} 방향 바꾸기
                 </button>
               )}
+              {editLayoutMode && (
+                <button
+                  type="button"
+                  disabled={resetFloorMutation.isPending}
+                  onClick={() => {
+                    if (window.confirm("테이블 배치를 매장 도면대로 되돌릴까요? 옮긴 위치는 사라집니다.")) {
+                      resetFloorMutation.mutate();
+                    }
+                  }}
+                  className="h-8 rounded-md border border-gray-300 px-2.5 disabled:opacity-50"
+                >
+                  배치 초기화
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setEditLayoutMode((v) => !v)}
@@ -360,7 +386,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
           </div>
           {editLayoutMode && (
             <p className="mb-1 shrink-0 text-[11px] text-gray-500">
-              테이블을 고른 뒤 도면의 빈 곳을 누르면 그 위치로 옮깁니다.
+              테이블을 끌어서 옮깁니다. 빨간색이 되는 자리는 다른 테이블·벽과 겹쳐 놓을 수 없습니다.
             </p>
           )}
           <div className="min-h-0 flex-1">

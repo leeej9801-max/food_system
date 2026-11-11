@@ -16,6 +16,7 @@ from app.schemas import (
     VisitSessionUpdate,
     VisitSummaryResponse,
 )
+from app.services import floor as floor_service
 from app.services import guest as guest_service
 from app.services import tables as table_service
 
@@ -48,6 +49,16 @@ def patch_table(
     db: Annotated[Session, Depends(get_db)],
 ) -> StoreTableResponse:
     return table_service.update_table(db, store_id=store_id, table_id=table_id, payload=payload)
+
+
+@router.post("/floor/reset")
+def reset_floor(
+    store_id: UUID,
+    db: Annotated[Session, Depends(get_db)],
+) -> list[StoreTableResponse]:
+    """홀 배치를 매장 도면(meal_love 프리셋)으로 되돌린다 (WO-20261111-001)."""
+    floor_service.apply_floor_preset(db, store_id, "meal_love")
+    return table_service.list_tables(db, store_id=store_id)
 
 
 @router.get("/visits")
