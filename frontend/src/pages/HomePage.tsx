@@ -392,11 +392,6 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               </button>
             </div>
           </div>
-          {editLayoutMode && (
-            <p className="mb-1 shrink-0 text-[11px] text-gray-500">
-              테이블을 끌어서 옮깁니다. 빨간색이 되는 자리는 다른 테이블·벽과 겹쳐 놓을 수 없습니다.
-            </p>
-          )}
           <div className="min-h-0 flex-1">
             {tables.length === 0 ? (
               <div className="flex h-full items-center justify-center text-sm text-gray-600">
@@ -457,9 +452,6 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   >
                     착석 시작
                   </button>
-                  <p className="text-[11px] text-gray-500">
-                    착석 후 남·여 연령별 + / −로 인원을 넣습니다. 손님이 QR로 넣으면 그 값이 우선입니다.
-                  </p>
                 </>
               ) : (
                 <>
@@ -533,9 +525,6 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                             −
                           </button>
                         </div>
-                      )}
-                      {slots.some((s) => s.profile_source === "GUEST") && (
-                        <p className="mt-1 text-[11px] text-gray-500">손님이 QR로 넣은 사람은 직원이 바꾸거나 뺄 수 없습니다.</p>
                       )}
                     </div>
                   </div>
@@ -618,10 +607,6 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                 <h3 className="text-lg font-bold text-gray-900">
                   주문 내역 수정 · 환불(취소) 관리
                 </h3>
-                <p className="text-xs text-gray-500">
-                  환불(취소) 또는 수량 변경 시 예상 재고와 판매·원가 집계에 즉시
-                  반영됩니다.
-                </p>
               </div>
               <button
                 type="button"
