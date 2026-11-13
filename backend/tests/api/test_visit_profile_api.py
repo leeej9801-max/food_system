@@ -125,6 +125,49 @@ def test_staff_slot_profile_not_found(staff: TestClient, table: dict) -> None:
     assert r.status_code == 422
 
 
+def test_staff_seats_empty_then_adds_and_removes_people(
+    staff: TestClient, phone: TestClient, table: dict
+) -> None:
+    """U-48: 착석 시작은 빈 자리, 사람은 남·여·연령 +/-로 넣고 뺀다."""
+    visits = f"/api/v1/stores/{table['store_id']}/visits"
+    v = staff.post(visits, json={"table_id": table["table_id"]}).json()
+    assert (v["party_size"], v["slots"]) == (0, [])
+
+    added = staff.post(f"{visits}/{v['id']}/slots", json={"gender": "MALE", "age_band": "30S"})
+    assert added.status_code == 201
+    v = staff.post(f"{visits}/{v['id']}/slots", json={"gender": "FEMALE", "age_band": "20S"}).json()
+    assert v["party_size"] == 2
+    assert [(s["gender"], s["age_band"], s["profile_source"]) for s in v["slots"]] == [
+        ("MALE", "30S", "STAFF"),
+        ("FEMALE", "20S", "STAFF"),
+    ]
+    assert v["age_band"] == "MIXED"
+
+    v = staff.delete(f"{visits}/{v['id']}/slots/1").json()
+    assert (v["party_size"], [s["slot_no"] for s in v["slots"]]) == (1, [2])
+    assert staff.delete(f"{visits}/{v['id']}/slots/1").json()["code"] == "SLOT_NOT_FOUND"
+
+    # 손님이 가져간 자리는 직원이 뺄 수 없다
+    phone.post(f"{GUEST}/{table['token']}/session", json={})
+    phone.post(f"{GUEST}/{table['token']}/session/slots/2/claim")
+    blocked = staff.delete(f"{visits}/{v['id']}/slots/2")
+    assert blocked.json()["code"] == "SLOT_NOT_REMOVABLE"
+
+
+def test_left_without_order(staff: TestClient, table: dict) -> None:
+    """U-48: CSV 모드에서 주문 없이 나간 손님은 NO_ORDER, 그냥 비우면 CLEARED."""
+    visits = f"/api/v1/stores/{table['store_id']}/visits"
+    v = staff.post(visits, json={"table_id": table["table_id"]}).json()
+    left = staff.patch(f"{visits}/{v['id']}", json={"status": "LEFT", "closed_reason": "NO_ORDER"})
+    assert left.json()["closed_reason"] == "NO_ORDER"
+    v = staff.post(visits, json={"table_id": table["table_id"]}).json()
+    assert staff.patch(f"{visits}/{v['id']}", json={"status": "LEFT"}).json()["closed_reason"] == (
+        "CLEARED"
+    )
+    bad = staff.patch(f"{visits}/{v['id']}", json={"closed_reason": "REFUND"})
+    assert bad.status_code == 422
+
+
 # --- 방문 목적·관계 ---
 
 

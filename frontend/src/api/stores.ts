@@ -102,7 +102,7 @@ export function createVisitSession(
   storeId: string,
   payload: {
     table_id: string;
-    party_size: number;
+    party_size?: number; // 생략하면 빈 자리로 착석 시작 (U-48)
     age_band: AgeBandType;
     notes?: string | null;
   }
@@ -123,6 +123,7 @@ export function updateVisitSession(
     notes: string | null;
     purpose: PurposeType;
     relationship: RelationshipType;
+    closed_reason: "NO_ORDER";
   }>
 ): Promise<VisitSession> {
   return apiRequest(visitSessionSchema, `/stores/${storeId}/visits/${visitId}`, {
@@ -140,6 +141,24 @@ export function updateVisitSlot(
   return apiRequest(visitSessionSchema, `/stores/${storeId}/visits/${visitId}/slots/${slotNo}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
+  });
+}
+
+// 직원이 + / −로 사람 한 명을 넣고 뺀다 (U-48)
+export function addVisitSlot(
+  storeId: string,
+  visitId: string,
+  payload: { gender: GenderType; age_band: AgeBandType }
+): Promise<VisitSession> {
+  return apiRequest(visitSessionSchema, `/stores/${storeId}/visits/${visitId}/slots`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function removeVisitSlot(storeId: string, visitId: string, slotNo: number): Promise<VisitSession> {
+  return apiRequest(visitSessionSchema, `/stores/${storeId}/visits/${visitId}/slots/${slotNo}`, {
+    method: "DELETE",
   });
 }
 

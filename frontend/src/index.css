@@ -59,3 +59,10 @@ table {
 .fp-table:focus-visible .fp-focus {
   opacity: 1;
 }
+
+/* 홀 알림 토스트: 자리를 차지하지 않고 몇 초 뒤 사라진다 (U-48) */
+@keyframes fp-toast-out {
+  0%, 85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.fp-toast { animation: fp-toast-out 4s forwards; }

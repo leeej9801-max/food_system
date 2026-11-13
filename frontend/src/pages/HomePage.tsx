@@ -12,9 +12,11 @@ import {
 } from "../api/imports";
 import { fetchMenus } from "../api/menus";
 import {
+  addVisitSlot,
   createVisitSession,
   fetchTables,
   fetchVisitSummary,
+  removeVisitSlot,
   resetFloor,
   updateTable,
   updateVisitSession,
@@ -24,7 +26,6 @@ import { FLOOR_COLORS, FloorPlan } from "../components/FloorPlan";
 import type {
   AgeBandType,
   GenderType,
-  PurposeType,
   RelationshipType,
   Store,
   StoreTable,
@@ -36,7 +37,7 @@ interface HomePageProps {
   metaverseMode: boolean;
 }
 
-// 사람별·세션별 선택값 (U-31). 목적·관계 선택지는 PROVISIONAL (사장님 확인 전)
+// 사람별·세션별 선택값 (U-31). 방문 목적은 동반 관계와 겹쳐 직원 화면에서 뺐다 (U-48)
 const AGE_OPTIONS: Array<{ band: AgeBandType; label: string }> = [
   { band: "10S", label: "10대" },
   { band: "20S", label: "20대" },
@@ -51,15 +52,6 @@ const GENDER_OPTIONS: Array<{ value: GenderType; label: string }> = [
   { value: "MALE", label: "남" },
 ];
 
-const PURPOSE_OPTIONS: Array<{ value: PurposeType; label: string }> = [
-  { value: "MEAL", label: "식사" },
-  { value: "DATE", label: "데이트" },
-  { value: "GATHERING", label: "모임" },
-  { value: "FAMILY", label: "가족" },
-  { value: "COMPANY", label: "회식" },
-  { value: "OTHER", label: "기타" },
-];
-
 const RELATIONSHIP_OPTIONS: Array<{ value: RelationshipType; label: string }> = [
   { value: "ALONE", label: "혼자" },
   { value: "COUPLE", label: "연인" },
@@ -69,7 +61,9 @@ const RELATIONSHIP_OPTIONS: Array<{ value: RelationshipType; label: string }> = 
   { value: "OTHER", label: "기타" },
 ];
 
-const PARTY_SIZES = [1, 2, 3, 4, 5, 6, 7, 8];
+const isBlank = (s: VisitSlot) => s.gender === "UNRECORDED" || s.age_band === "UNRECORDED";
+// 직원이 빼거나 채울 수 있는 자리: 손님이 가져가지도, 입력하지도 않은 자리
+const staffOwned = (s: VisitSlot) => !s.is_claimed && s.profile_source !== "GUEST";
 
 function chipClass(active: boolean, disabled = false): string {
   if (disabled) {
@@ -94,7 +88,6 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
   const queryClient = useQueryClient();
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [editLayoutMode, setEditLayoutMode] = useState(false);
-  const [partySize, setPartySize] = useState<number>(2);
   const [notes, setNotes] = useState<string>("");
   const [banner, setBanner] = useState<{
     type: "success" | "error";
@@ -143,13 +136,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
   const [prevTableKey, setPrevTableKey] = useState<string | null>(null);
   if (selectedTable && prevTableKey !== tableKey) {
     setPrevTableKey(tableKey);
-    if (selectedTable.active_visit) {
-      setPartySize(selectedTable.active_visit.party_size);
-      setNotes(selectedTable.active_visit.notes ?? "");
-    } else {
-      setPartySize(Math.min(selectedTable.seats, 4));
-      setNotes("");
-    }
+    setNotes(selectedTable.active_visit?.notes ?? "");
   }
 
   function refreshAll() {
@@ -166,18 +153,11 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
       if (!selectedTable) throw new Error("테이블을 선택해 주세요.");
       return createVisitSession(store.id, {
         table_id: selectedTable.id,
-        party_size: partySize,
         age_band: "UNRECORDED", // 사람별 입력에서 다시 계산
         notes: notes.trim() || null,
       });
     },
-    onSuccess: (created) => {
-      refreshAll();
-      setBanner({
-        type: "success",
-        text: `${created.table_name}: ${created.party_size}명 착석. 성별·연령은 손님이 안 넣으면 입력해 주세요.`,
-      });
-    },
+    onSuccess: () => refreshAll(),
     onError: (err: unknown) => {
       setBanner({ type: "error", text: errorText(err, "착석 기록에 실패했습니다.") });
     },
@@ -185,29 +165,14 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
   const updateVisitMutation = useMutation({
     mutationFn: (payload: {
-      party_size?: number;
       status?: "SEATED" | "PAID" | "LEFT";
-      purpose?: PurposeType;
       relationship?: RelationshipType;
+      closed_reason?: "NO_ORDER";
     }) => {
       if (!activeVisit) throw new Error("진행 중인 방문 세션이 없습니다.");
       return updateVisitSession(store.id, activeVisit.id, payload);
     },
-    onSuccess: (updated, payload) => {
-      refreshAll();
-      if (payload.status) {
-        setBanner({
-          type: "success",
-          text: `${updated.table_name}: ${
-            updated.status === "LEFT"
-              ? "퇴점 · 테이블 비우기 완료"
-              : updated.status === "PAID"
-                ? "결제 완료 (착석 유지)"
-                : "착석 중으로 되돌림"
-          }`,
-        });
-      }
-    },
+    onSuccess: () => refreshAll(),
     onError: (err: unknown) => {
       setBanner({ type: "error", text: errorText(err, "상태 변경에 실패했습니다.") });
     },
@@ -224,6 +189,28 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
     onSuccess: () => refreshAll(),
     onError: (err: unknown) => {
       setBanner({ type: "error", text: errorText(err, "객층 입력에 실패했습니다.") });
+    },
+  });
+
+  const addSlotMutation = useMutation({
+    mutationFn: (p: { gender: GenderType; age_band: AgeBandType }) => {
+      if (!activeVisit) throw new Error("진행 중인 방문 세션이 없습니다.");
+      return addVisitSlot(store.id, activeVisit.id, p);
+    },
+    onSuccess: () => refreshAll(),
+    onError: (err: unknown) => {
+      setBanner({ type: "error", text: errorText(err, "인원 추가에 실패했습니다.") });
+    },
+  });
+
+  const removeSlotMutation = useMutation({
+    mutationFn: (slotNo: number) => {
+      if (!activeVisit) throw new Error("진행 중인 방문 세션이 없습니다.");
+      return removeVisitSlot(store.id, activeVisit.id, slotNo);
+    },
+    onSuccess: () => refreshAll(),
+    onError: (err: unknown) => {
+      setBanner({ type: "error", text: errorText(err, "인원 빼기에 실패했습니다.") });
     },
   });
 
@@ -301,7 +288,25 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
   const slots: VisitSlot[] = activeVisit?.slots ?? [];
   const contextByGuest = activeVisit?.context_source === "GUEST";
-  const busy = updateVisitMutation.isPending || slotMutation.isPending;
+  const busy =
+    updateVisitMutation.isPending ||
+    slotMutation.isPending ||
+    addSlotMutation.isPending ||
+    removeSlotMutation.isPending;
+  const csvMode = integrationQuery.data?.mode === "CSV_UPLOAD";
+  const blankSlots = slots.filter(isBlank);
+
+  // +: 빈 자리(손님 QR로 열린 미입력 자리)가 있으면 채우고, 없으면 한 명 추가 (U-48)
+  function addPerson(gender: GenderType, age_band: AgeBandType) {
+    const blank = blankSlots.find(staffOwned);
+    if (blank) slotMutation.mutate({ slotNo: blank.slot_no, gender, age_band });
+    else addSlotMutation.mutate({ gender, age_band });
+  }
+
+  function removeLast(match: (s: VisitSlot) => boolean) {
+    const slot = slots.filter((s) => match(s) && staffOwned(s)).at(-1);
+    if (slot) removeSlotMutation.mutate(slot.slot_no);
+  }
 
   return (
     <div
@@ -310,8 +315,10 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
     >
       {banner && (
         <div
+          key={banner.text}
           role="status"
-          className={`flex items-center justify-between rounded-lg border px-4 py-2 text-xs font-bold ${
+          onAnimationEnd={() => setBanner(null)}
+          className={`fp-toast fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg border px-4 py-2 text-xs font-bold shadow-lg ${
             banner.type === "success"
               ? "border-emerald-300 bg-emerald-50 text-emerald-900"
               : "border-red-300 bg-red-50 text-red-900"
@@ -432,32 +439,6 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                 </span>
               </div>
 
-              <div className="shrink-0">
-                <div className="mb-1 text-[11px] font-bold text-gray-500">
-                  인원{activeVisit?.party_size_source === "GUEST_QR" ? " (손님 입력)" : ""}
-                </div>
-                <div className="grid grid-cols-8 gap-1">
-                  {PARTY_SIZES.map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        setPartySize(n);
-                        if (activeVisit && activeVisit.party_size !== n) {
-                          updateVisitMutation.mutate({ party_size: n });
-                        }
-                      }}
-                      className={`h-9 rounded-md border text-sm font-bold ${chipClass(
-                        (activeVisit?.party_size ?? partySize) === n
-                      )}`}
-                    >
-                      {n === 8 ? "8+" : n}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {!activeVisit ? (
                 <>
                   <input
@@ -474,82 +455,109 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                     onClick={() => startVisitMutation.mutate()}
                     className="h-12 shrink-0 rounded-lg bg-gray-900 text-base font-bold text-white disabled:opacity-50"
                   >
-                    {partySize}명 착석 시작
+                    착석 시작
                   </button>
                   <p className="text-[11px] text-gray-500">
-                    착석 후 사람별 성별·연령과 방문 목적을 고릅니다. 손님이 QR로 넣으면 그 값이 우선입니다.
+                    착석 후 남·여 연령별 + / −로 인원을 넣습니다. 손님이 QR로 넣으면 그 값이 우선입니다.
                   </p>
                 </>
               ) : (
                 <>
                   <div className="flex min-h-0 flex-1 flex-col">
-                    <div className="mb-1 shrink-0 text-[11px] font-bold text-gray-500">
-                      사람별 성별·연령
+                    <div className="mb-1 flex shrink-0 justify-between text-[11px] font-bold text-gray-500">
+                      <span>인원 (남·여 연령별)</span>
+                      <span className="text-gray-900">총 {slots.length}명</span>
                     </div>
-                    <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
-                      {slots.map((slot) => {
-                        const byGuest = slot.profile_source === "GUEST";
-                        return (
-                          <div key={slot.slot_no} className="flex items-center gap-1" data-testid="slot-row">
-                            <span className="w-7 shrink-0 text-xs font-bold text-gray-600">
-                              {byGuest ? "손님" : `${slot.slot_no}번`}
-                            </span>
+                    <div className="min-h-0 flex-1 overflow-y-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-[11px] text-gray-500">
+                            <th className="w-12" />
                             {GENDER_OPTIONS.map((g) => (
-                              <button
-                                key={g.value}
-                                type="button"
-                                disabled={byGuest || busy}
-                                onClick={() => slotMutation.mutate({ slotNo: slot.slot_no, gender: g.value })}
-                                className={`h-8 w-8 shrink-0 rounded-md border text-xs font-bold ${chipClass(slot.gender === g.value, byGuest)}`}
-                              >
+                              <th key={g.value} className="pb-1 font-bold">
                                 {g.label}
-                              </button>
+                              </th>
                             ))}
-                            <div className="grid flex-1 grid-cols-6 gap-0.5">
-                              {AGE_OPTIONS.map((a) => (
-                                <button
-                                  key={a.band}
-                                  type="button"
-                                  disabled={byGuest || busy}
-                                  onClick={() => slotMutation.mutate({ slotNo: slot.slot_no, age_band: a.band })}
-                                  className={`h-8 rounded-md border text-[11px] font-bold ${chipClass(slot.age_band === a.band, byGuest)}`}
-                                >
-                                  {a.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {AGE_OPTIONS.map((a) => (
+                            <tr key={a.band}>
+                              <th className="text-left font-bold text-gray-600">{a.label}</th>
+                              {GENDER_OPTIONS.map((g) => {
+                                const match = (s: VisitSlot) => s.gender === g.value && s.age_band === a.band;
+                                const n = slots.filter(match).length;
+                                const label = `${a.label} ${g.label}`;
+                                return (
+                                  <td key={g.value} className="py-0.5">
+                                    <div className="flex items-center justify-center gap-1" data-testid="person-counter">
+                                      <button
+                                        type="button"
+                                        aria-label={`${label} 빼기`}
+                                        disabled={busy || !slots.some((s) => match(s) && staffOwned(s))}
+                                        onClick={() => removeLast(match)}
+                                        className="h-8 w-8 rounded-md border border-gray-300 font-bold disabled:opacity-30"
+                                      >
+                                        −
+                                      </button>
+                                      <span className={`w-6 text-center text-sm font-bold ${n ? "text-gray-900" : "text-gray-300"}`}>
+                                        {n}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        aria-label={`${label} 더하기`}
+                                        disabled={busy}
+                                        onClick={() => addPerson(g.value, a.band)}
+                                        className="h-8 w-8 rounded-md border border-gray-300 font-bold disabled:opacity-30"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {blankSlots.length > 0 && (
+                        <div className="mt-1 flex items-center justify-between rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600">
+                          <span>미입력 {blankSlots.length}명 (+를 누르면 이 자리부터 채움)</span>
+                          <button
+                            type="button"
+                            aria-label="미입력 빼기"
+                            disabled={busy || !blankSlots.some(staffOwned)}
+                            onClick={() => removeLast(isBlank)}
+                            className="h-7 w-7 rounded-md border border-gray-300 font-bold disabled:opacity-30"
+                          >
+                            −
+                          </button>
+                        </div>
+                      )}
+                      {slots.some((s) => s.profile_source === "GUEST") && (
+                        <p className="mt-1 text-[11px] text-gray-500">손님이 QR로 넣은 사람은 직원이 바꾸거나 뺄 수 없습니다.</p>
+                      )}
                     </div>
                   </div>
 
-                  {(
-                    [
-                      ["방문 목적", PURPOSE_OPTIONS, activeVisit.purpose, "purpose"],
-                      ["동반 관계", RELATIONSHIP_OPTIONS, activeVisit.relationship, "relationship"],
-                    ] as const
-                  ).map(([label, options, current, key]) => (
-                    <div key={key} className="shrink-0">
-                      <div className="mb-1 text-[11px] font-bold text-gray-500">
-                        {label}
-                        {contextByGuest ? " (손님 입력)" : ""}
-                      </div>
-                      <div className="grid grid-cols-6 gap-1">
-                        {options.map((o) => (
-                          <button
-                            key={o.value}
-                            type="button"
-                            disabled={contextByGuest || busy}
-                            onClick={() => updateVisitMutation.mutate({ [key]: o.value })}
-                            className={`h-8 rounded-md border text-xs font-bold ${chipClass(current === o.value, contextByGuest)}`}
-                          >
-                            {o.label}
-                          </button>
-                        ))}
-                      </div>
+                  <div className="shrink-0">
+                    <div className="mb-1 text-[11px] font-bold text-gray-500">
+                      동반 관계{contextByGuest ? " (손님 입력)" : ""}
                     </div>
-                  ))}
+                    <div className="grid grid-cols-6 gap-1">
+                      {RELATIONSHIP_OPTIONS.map((o) => (
+                        <button
+                          key={o.value}
+                          type="button"
+                          disabled={contextByGuest || busy}
+                          onClick={() => updateVisitMutation.mutate({ relationship: o.value })}
+                          className={`h-8 rounded-md border text-xs font-bold ${chipClass(activeVisit.relationship === o.value, contextByGuest)}`}
+                        >
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                   <div className="grid shrink-0 grid-cols-2 gap-2">
                     <button
@@ -573,16 +581,29 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                       퇴점 (비우기)
                     </button>
                   </div>
+                  {csvMode && (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => updateVisitMutation.mutate({ status: "LEFT", closed_reason: "NO_ORDER" })}
+                      className="h-9 shrink-0 rounded-md border border-gray-300 text-xs font-bold text-gray-700"
+                    >
+                      주문 없이 나감
+                    </button>
+                  )}
                 </>
               )}
 
-              <button
-                type="button"
-                onClick={() => setOrderModalOpen(true)}
-                className="mt-auto h-9 shrink-0 rounded-md border border-gray-300 bg-gray-50 text-xs font-bold text-gray-700"
-              >
-                주문 수정 · 환불 ({integrationQuery.data?.mode === "CSV_UPLOAD" ? "CSV/수동" : "POS 연동"})
-              </button>
+              {/* CSV 모드는 실시간 주문이 없어 환불 관리가 필요 없다 (U-48) */}
+              {!csvMode && (
+                <button
+                  type="button"
+                  onClick={() => setOrderModalOpen(true)}
+                  className="mt-auto h-9 shrink-0 rounded-md border border-gray-300 bg-gray-50 text-xs font-bold text-gray-700"
+                >
+                  주문 수정 · 환불 (POS 연동)
+                </button>
+              )}
             </>
           )}
         </aside>

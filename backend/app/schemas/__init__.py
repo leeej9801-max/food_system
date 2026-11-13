@@ -358,7 +358,8 @@ class StoreTableResponse(BaseModel):
 
 class VisitSessionCreate(BaseModel):
     table_id: UUID
-    party_size: int = Field(..., ge=1, le=50)
+    # 0이면 빈 자리로 착석만 시작하고, 사람은 슬롯 추가(+)로 넣는다 (U-48)
+    party_size: int = Field(default=0, ge=0, le=50)
     age_band: AgeBandType = Field(default="UNRECORDED")
     notes: str | None = Field(default=None, max_length=200)
 
@@ -370,6 +371,15 @@ class VisitSessionUpdate(BaseModel):
     notes: str | None = Field(default=None, max_length=200)
     purpose: PurposeType | None = Field(default=None)
     relationship: RelationshipType | None = Field(default=None)
+    # status=LEFT와 함께: 주문 없이 나간 손님 (CSV 모드, U-48). 없으면 CLEARED
+    closed_reason: Literal["NO_ORDER"] | None = Field(default=None)
+
+
+class VisitSlotCreate(BaseModel):
+    """직원이 사람 한 명을 성별·연령대와 함께 추가한다 (U-48)."""
+
+    gender: GenderType = Field(default="UNRECORDED")
+    age_band: AgeBandType = Field(default="UNRECORDED")
 
 
 class VisitSlotResponse(BaseModel):

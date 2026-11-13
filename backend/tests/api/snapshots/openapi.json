@@ -3566,8 +3566,9 @@
             "title": "Notes"
           },
           "party_size": {
+            "default": 0,
             "maximum": 50.0,
-            "minimum": 1.0,
+            "minimum": 0.0,
             "title": "Party Size",
             "type": "integer"
           },
@@ -3578,8 +3579,7 @@
           }
         },
         "required": [
-          "table_id",
-          "party_size"
+          "table_id"
         ],
         "title": "VisitSessionCreate",
         "type": "object"
@@ -3770,6 +3770,18 @@
             ],
             "title": "Age Band"
           },
+          "closed_reason": {
+            "anyOf": [
+              {
+                "const": "NO_ORDER",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed Reason"
+          },
           "notes": {
             "anyOf": [
               {
@@ -3851,6 +3863,39 @@
           }
         },
         "title": "VisitSessionUpdate",
+        "type": "object"
+      },
+      "VisitSlotCreate": {
+        "description": "직원이 사람 한 명을 성별·연령대와 함께 추가한다 (U-48).",
+        "properties": {
+          "age_band": {
+            "default": "UNRECORDED",
+            "enum": [
+              "UNRECORDED",
+              "10S",
+              "20S",
+              "30S",
+              "40S",
+              "50S",
+              "50S_PLUS",
+              "60S_PLUS",
+              "MIXED"
+            ],
+            "title": "Age Band",
+            "type": "string"
+          },
+          "gender": {
+            "default": "UNRECORDED",
+            "enum": [
+              "FEMALE",
+              "MALE",
+              "UNRECORDED"
+            ],
+            "title": "Gender",
+            "type": "string"
+          }
+        },
+        "title": "VisitSlotCreate",
         "type": "object"
       },
       "VisitSlotResponse": {
@@ -6936,7 +6981,130 @@
         ]
       }
     },
+    "/api/v1/stores/{store_id}/visits/{visit_id}/slots": {
+      "post": {
+        "operationId": "post_visit_slot_api_v1_stores__store_id__visits__visit_id__slots_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "visit_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Visit Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisitSlotCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Visit Slot",
+        "tags": [
+          "tables & visits"
+        ]
+      }
+    },
     "/api/v1/stores/{store_id}/visits/{visit_id}/slots/{slot_no}": {
+      "delete": {
+        "operationId": "delete_visit_slot_api_v1_stores__store_id__visits__visit_id__slots__slot_no__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "visit_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Visit Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slot_no",
+            "required": true,
+            "schema": {
+              "title": "Slot No",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Visit Slot",
+        "tags": [
+          "tables & visits"
+        ]
+      },
       "patch": {
         "operationId": "patch_visit_slot_api_v1_stores__store_id__visits__visit_id__slots__slot_no__patch",
         "parameters": [

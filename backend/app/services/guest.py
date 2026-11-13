@@ -57,7 +57,7 @@ def add_slots(db: Session, visit: VisitSession, count: int, device_id: UUID | No
         visit.slots.append(slot)
 
 
-def _removable(slot: SessionSlot) -> bool:
+def removable(slot: SessionSlot) -> bool:
     return slot.state in REMOVABLE_STATES and slot.claimed_by_device_id is None
 
 
@@ -70,7 +70,7 @@ def sync_slots_to_party_size(db: Session, visit: VisitSession) -> None:
     for slot in sorted(visit.slots, key=lambda s: s.slot_no, reverse=True):
         if diff == 0:
             break
-        if _removable(slot):
+        if removable(slot):
             visit.slots.remove(slot)
             db.delete(slot)
             diff += 1
@@ -350,7 +350,7 @@ def add_slot(db: Session, scope: GuestScope) -> GuestTableResponse:
 def remove_slot(db: Session, scope: GuestScope, slot_no: int) -> GuestTableResponse:
     visit = _require_open_session(db, scope)
     slot = _get_slot(visit, slot_no)
-    if not _removable(slot) or len(visit.slots) <= 1:
+    if not removable(slot) or len(visit.slots) <= 1:
         raise AppError(
             status_code=409,
             code="SLOT_NOT_REMOVABLE",

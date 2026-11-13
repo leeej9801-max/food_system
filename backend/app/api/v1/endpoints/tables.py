@@ -14,6 +14,7 @@ from app.schemas import (
     VisitSessionCreate,
     VisitSessionResponse,
     VisitSessionUpdate,
+    VisitSlotCreate,
     VisitSummaryResponse,
 )
 from app.services import floor as floor_service
@@ -87,6 +88,28 @@ def patch_visit(
 ) -> VisitSessionResponse:
     return table_service.update_visit_session(
         db, store_id=store_id, visit_id=visit_id, payload=payload
+    )
+
+
+@router.post("/visits/{visit_id}/slots", status_code=status.HTTP_201_CREATED)
+def post_visit_slot(
+    store_id: UUID,
+    visit_id: UUID,
+    payload: VisitSlotCreate,
+    db: Annotated[Session, Depends(get_db)],
+) -> VisitSessionResponse:
+    return table_service.add_staff_slot(db, store_id=store_id, visit_id=visit_id, payload=payload)
+
+
+@router.delete("/visits/{visit_id}/slots/{slot_no}")
+def delete_visit_slot(
+    store_id: UUID,
+    visit_id: UUID,
+    slot_no: int,
+    db: Annotated[Session, Depends(get_db)],
+) -> VisitSessionResponse:
+    return table_service.remove_staff_slot(
+        db, store_id=store_id, visit_id=visit_id, slot_no=slot_no
     )
 
 

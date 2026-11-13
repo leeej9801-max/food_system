@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
-from app.db.models import StoreTable, VisitSession, utcnow
+from app.db.models import SessionSlot, StoreTable, VisitSession, utcnow
 from app.repositories import tables as table_repo
 from app.repositories import visits as visit_repo
 from app.schemas import (
@@ -16,10 +16,11 @@ from app.schemas import (
     VisitSessionCreate,
     VisitSessionResponse,
     VisitSessionUpdate,
+    VisitSlotCreate,
     VisitSlotResponse,
     VisitSummaryResponse,
 )
-from app.services.guest import add_slots, sync_slots_to_party_size
+from app.services.guest import MAX_SLOTS, add_slots, removable, sync_slots_to_party_size
 from app.services.menus import get_store_or_404, record_audit
 from app.services.visit_profile import (
     apply_slot_profile,
@@ -258,7 +259,9 @@ def update_visit_session(
             visit.status = "LEFT"
             if visit.left_at is None:
                 visit.left_at = utcnow()
-            if visit.closed_reason is None:
+            if data.get("closed_reason"):
+                visit.closed_reason = data["closed_reason"]  # U-48: 주문 없이 나감
+            elif visit.closed_reason is None:
                 visit.closed_reason = "CLEARED"  # U-19: 직원이 치움
         elif next_status == "SEATED":
             visit.status = "SEATED"
@@ -304,10 +307,7 @@ def list_visit_summary(db: Session, *, store_id: UUID) -> VisitSummaryResponse:
     )
 
 
-def update_slot_profile(
-    db: Session, *, store_id: UUID, visit_id: UUID, slot_no: int, payload: SlotProfileUpdate
-) -> VisitSessionResponse:
-    """직원이 사람별 성별·연령대를 입력한다. 손님이 입력한 자리는 409 (U-31)."""
+def _visit_or_404(db: Session, store_id: UUID, visit_id: UUID) -> VisitSession:
     get_store_or_404(db, store_id)
     visit = visit_repo.find_with_table_and_slots(db, store_id, visit_id)
     if visit is None:
@@ -316,9 +316,78 @@ def update_slot_profile(
             code="VISIT_NOT_FOUND",
             message="방문 세션을 찾을 수 없습니다.",
         )
+    return visit
+
+
+def _slot_or_404(visit: VisitSession, slot_no: int) -> SessionSlot:
     slot = next((s for s in visit.slots if s.slot_no == slot_no), None)
     if slot is None:
         raise AppError(status_code=404, code="SLOT_NOT_FOUND", message="자리를 찾을 수 없습니다.")
+    return slot
+
+
+def add_staff_slot(
+    db: Session, *, store_id: UUID, visit_id: UUID, payload: VisitSlotCreate
+) -> VisitSessionResponse:
+    """직원이 + 버튼으로 사람 한 명을 성별·연령대와 함께 넣는다 (U-48)."""
+    visit = _visit_or_404(db, store_id, visit_id)
+    if len(visit.slots) >= MAX_SLOTS:
+        raise AppError(
+            status_code=409, code="SLOT_LIMIT", message=f"한 테이블은 {MAX_SLOTS}자리까지입니다."
+        )
+    add_slots(db, visit, 1)
+    slot = visit.slots[-1]
+    apply_slot_profile(
+        visit, slot, source="STAFF", gender=payload.gender, age_band=payload.age_band
+    )
+    visit.party_size = len(visit.slots)
+    record_audit(
+        db,
+        store_id=store_id,
+        entity_type="visit_session",
+        entity_id=visit.id,
+        action="slot_added",
+        summary={"slot_no": slot.slot_no, "gender": slot.gender, "age_band": slot.age_band},
+    )
+    db.commit()
+    db.refresh(visit)
+    return _to_visit_response(visit, visit.table.name)
+
+
+def remove_staff_slot(
+    db: Session, *, store_id: UUID, visit_id: UUID, slot_no: int
+) -> VisitSessionResponse:
+    """직원이 - 버튼으로 사람 한 명을 뺀다. 손님이 가져간·입력한 자리는 409 (U-48)."""
+    visit = _visit_or_404(db, store_id, visit_id)
+    slot = _slot_or_404(visit, slot_no)
+    if not removable(slot) or slot.profile_source == "GUEST":
+        raise AppError(
+            status_code=409,
+            code="SLOT_NOT_REMOVABLE",
+            message="손님이 쓰고 있는 자리라 뺄 수 없습니다.",
+        )
+    visit.slots.remove(slot)
+    db.delete(slot)
+    visit.party_size = len(visit.slots)
+    record_audit(
+        db,
+        store_id=store_id,
+        entity_type="visit_session",
+        entity_id=visit.id,
+        action="slot_removed",
+        summary={"slot_no": slot_no},
+    )
+    db.commit()
+    db.refresh(visit)
+    return _to_visit_response(visit, visit.table.name)
+
+
+def update_slot_profile(
+    db: Session, *, store_id: UUID, visit_id: UUID, slot_no: int, payload: SlotProfileUpdate
+) -> VisitSessionResponse:
+    """직원이 사람별 성별·연령대를 입력한다. 손님이 입력한 자리는 409 (U-31)."""
+    visit = _visit_or_404(db, store_id, visit_id)
+    slot = _slot_or_404(visit, slot_no)
     apply_slot_profile(
         visit, slot, source="STAFF", gender=payload.gender, age_band=payload.age_band
     )
