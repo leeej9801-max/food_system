@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { AppLink as Link } from "../components/AppLink";
@@ -10,9 +10,13 @@ import { PnlPage } from "../pages/PnlPage";
 import { HomePage } from "../pages/HomePage";
 import { IngredientManagementPage } from "../pages/IngredientManagementPage";
 import { InventoryPage } from "../pages/InventoryPage";
-import { MenuManagementPage } from "../pages/MenuManagementPage";
 import { SettingsPage } from "../pages/SettingsPage";
 import type { Store } from "../types";
+
+// astryx 시험 화면이라 따로 불러온다: 다른 화면 번들에 astryx가 섞이지 않게
+const MenuManagementPage = lazy(() =>
+  import("../pages/MenuManagementPage").then((m) => ({ default: m.MenuManagementPage })),
+);
 
 export const ALL_DAYS = ["월", "화", "수", "목", "금", "토", "일"] as const;
 export const OPEN_TIME_OPTIONS = [
@@ -554,7 +558,14 @@ function ShellLayout({ store }: { store: Store }) {
                 path="/home"
                 element={<HomePage store={store} metaverseMode={metaverseMode} />}
               />
-              <Route path="/menus" element={<MenuManagementPage store={store} />} />
+              <Route
+                path="/menus"
+                element={
+                  <Suspense fallback={null}>
+                    <MenuManagementPage store={store} />
+                  </Suspense>
+                }
+              />
               <Route path="/ingredients" element={<IngredientManagementPage store={store} />} />
               <Route path="/inventory" element={<InventoryPage store={store} />} />
               <Route path="/pnl" element={<PnlPage store={store} />} />

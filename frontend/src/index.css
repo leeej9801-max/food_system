@@ -1,3 +1,6 @@
+/* astryx(design/astryx-menu)와 Tailwind 공존: astryx 층을 Tailwind components·utilities 아래에 둔다. */
+@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
+
 @import "tailwindcss";
 
 /* WO-20261026-001 디자인 토큰. PROVISIONAL (P-13): 브랜드 확정 시 accent 램프와 서체만 교체한다. */
