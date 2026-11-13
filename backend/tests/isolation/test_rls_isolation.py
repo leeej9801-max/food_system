@@ -17,7 +17,9 @@ from sqlalchemy.orm import Session
 from app.db.tenancy import RequestContext, apply_store_scope
 
 OWNER_URL = os.environ.get("RLS_TEST_DATABASE_URL")
-pytestmark = pytest.mark.skipif(not OWNER_URL, reason="RLS_TEST_DATABASE_URL 미설정 (PostgreSQL 필요)")
+pytestmark = pytest.mark.skipif(
+    not OWNER_URL, reason="RLS_TEST_DATABASE_URL 미설정 (PostgreSQL 필요)"
+)
 
 RUNTIME_ROLE = "rls_spike_runtime"
 STORE_A = uuid.uuid4()
@@ -27,6 +29,7 @@ CHARACTER = uuid.uuid4()
 
 @pytest.fixture(scope="module")
 def runtime_engine():
+    assert OWNER_URL
     owner = create_engine(OWNER_URL)
     password = secrets.token_hex(16)
     sql = (Path(__file__).with_name("rls_policies.sql")).read_text(encoding="utf-8")
@@ -36,10 +39,7 @@ def runtime_engine():
         ).first()
         verb = "ALTER" if exists else "CREATE"
         conn.execute(
-            text(
-                f"{verb} ROLE {RUNTIME_ROLE} LOGIN NOSUPERUSER NOBYPASSRLS "
-                f"PASSWORD '{password}'"
-            )
+            text(f"{verb} ROLE {RUNTIME_ROLE} LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '{password}'")
         )
         conn.exec_driver_sql(sql.replace("{runtime_role}", RUNTIME_ROLE))
         _seed(conn)
@@ -80,7 +80,7 @@ def _seed(conn) -> None:
 
 def _scoped(engine, store) -> Session:
     db = Session(engine)
-    apply_store_scope(db, RequestContext(store_id=str(store)))
+    apply_store_scope(db, RequestContext(store_id=store))
     return db
 
 
@@ -126,7 +126,8 @@ def test_update_and_delete_other_store_affect_zero_rows(runtime_engine):
         dele = db.execute(
             text("DELETE FROM rls_spike.visit_sessions WHERE store_id = :s"), {"s": STORE_B}
         )
-        assert (upd.rowcount, dele.rowcount) == (0, 0)
+        counts = (upd.rowcount, dele.rowcount)  # pyright: ignore[reportAttributeAccessIssue]
+        assert counts == (0, 0)
         db.rollback()
 
 

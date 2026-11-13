@@ -8,7 +8,6 @@ Create Date: 2026-10-25
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision: str = "0002_ingredients_and_recipes"
@@ -20,10 +19,10 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.create_table(
         "ingredients",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
@@ -47,16 +46,16 @@ def upgrade() -> None:
 
     op.create_table(
         "recipes",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "menu_item_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("menu_items.id", ondelete="RESTRICT"),
             nullable=False,
             unique=True,
@@ -71,16 +70,16 @@ def upgrade() -> None:
 
     op.create_table(
         "recipe_items",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "recipe_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("recipes.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
             "ingredient_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("ingredients.id", ondelete="RESTRICT"),
             nullable=False,
         ),

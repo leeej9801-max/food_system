@@ -6,6 +6,7 @@ import { withStore } from "../lib/navigation";
 import { createStore, fetchStores, fetchTables, fetchVisitSummary } from "../api/stores";
 import { fetchIntegrationStatus } from "../api/imports";
 import { AnalyticsPage } from "../pages/AnalyticsPage";
+import { PnlPage } from "../pages/PnlPage";
 import { HomePage } from "../pages/HomePage";
 import { IngredientManagementPage } from "../pages/IngredientManagementPage";
 import { InventoryPage } from "../pages/InventoryPage";
@@ -118,23 +119,23 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
       {step === 1 ? (
         <form onSubmit={handleNextStep} className="mt-5 space-y-5">
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-gray-700">
+            <label htmlFor="app-f1" className="mb-1.5 block text-xs font-bold text-gray-700">
               매장명 <span className="text-red-600">*</span>
             </label>
-            <input
+            <input id="app-f1"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="예: 비스트로 서울"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base font-medium focus:border-accent-600 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base font-medium focus:border-accent-600"
             />
           </div>
 
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <label className="text-xs font-bold text-gray-800">
+              <p className="text-xs font-bold text-gray-800">
                 영업 요일 선택 (터치 토글)
-              </label>
+              </p>
               <div className="flex gap-1.5">
                 <button
                   type="button"
@@ -188,9 +189,9 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
           </div>
 
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <label className="block text-xs font-bold text-gray-800">
+            <p className="block text-xs font-bold text-gray-800">
               운영 시간 (터치 선택)
-            </label>
+            </p>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <div className="mb-1.5 text-xs font-semibold text-gray-600">오픈 시간</div>
@@ -248,9 +249,9 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
       ) : (
         <form onSubmit={handleCreateStore} className="mt-5 space-y-5">
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
-            <label className="block text-sm font-bold text-gray-800">
+            <p className="block text-sm font-bold text-gray-800">
               매장 홀 테이블 수 (터치 조절)
-            </label>
+            </p>
             <div className="mt-3 flex items-center gap-4">
               <button
                 type="button"
@@ -287,9 +288,9 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
               ))}
             </div>
 
-            <label className="mt-5 block text-sm font-bold text-gray-800">
+            <p className="mt-5 block text-sm font-bold text-gray-800">
               테이블당 기본 좌석 수 (생성 후 개별 변경 가능)
-            </label>
+            </p>
             <div className="mt-2.5 grid grid-cols-3 gap-2.5">
               {[2, 4, 6].map((s) => (
                 <button
@@ -373,6 +374,7 @@ function ShellLayout({ store }: { store: Store }) {
     { to: "/menus", label: "메뉴 관리" },
     { to: "/ingredients", label: "식자재 · 레시피" },
     { to: "/inventory", label: "입고 · 재고" },
+    { to: "/pnl", label: "손익" },
     { to: "/analytics", label: "분석 대시보드" },
     { to: "/settings", label: "설정 (POS·매장·CSV)" },
   ];
@@ -555,6 +557,7 @@ function ShellLayout({ store }: { store: Store }) {
               <Route path="/menus" element={<MenuManagementPage store={store} />} />
               <Route path="/ingredients" element={<IngredientManagementPage store={store} />} />
               <Route path="/inventory" element={<InventoryPage store={store} />} />
+              <Route path="/pnl" element={<PnlPage store={store} />} />
               <Route path="/analytics" element={<AnalyticsPage store={store} />} />
               <Route path="/settings" element={<SettingsPage store={store} />} />
               <Route path="*" element={<Navigate to={withStore("/home", location.search)} replace />} />

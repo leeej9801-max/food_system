@@ -8,7 +8,6 @@ Create Date: 2026-10-25
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision: str = "0001_initial_menus"
@@ -20,7 +19,7 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.create_table(
         "stores",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column("name", sa.String(length=100), nullable=False),
         sa.Column("timezone", sa.String(length=64), nullable=False, server_default="Asia/Seoul"),
         sa.Column("business_days", sa.String(length=64), nullable=True),
@@ -31,10 +30,10 @@ def upgrade() -> None:
 
     op.create_table(
         "menu_items",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
@@ -51,11 +50,11 @@ def upgrade() -> None:
 
     op.create_table(
         "audit_events",
-        sa.Column("id", sa.String(length=36), primary_key=True),
-        sa.Column("store_id", sa.String(length=36), nullable=False),
+        sa.Column("id", sa.Uuid(), primary_key=True),
+        sa.Column("store_id", sa.Uuid(), nullable=False),
         sa.Column("actor", sa.String(length=64), nullable=False),
         sa.Column("entity_type", sa.String(length=64), nullable=False),
-        sa.Column("entity_id", sa.String(length=36), nullable=False),
+        sa.Column("entity_id", sa.Uuid(), nullable=False),
         sa.Column("action", sa.String(length=32), nullable=False),
         sa.Column("change_summary", sa.Text(), nullable=False),
         sa.Column("occurred_at", sa.DateTime(timezone=True), nullable=False),

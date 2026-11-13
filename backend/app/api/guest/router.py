@@ -1,5 +1,7 @@
 """손님 API (/api/guest/v1). 경로에는 QR 토큰만 있고 매장 ID는 받지 않는다 (ADR-013)."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Cookie, Depends, Response
 from sqlalchemy.orm import Session
 
@@ -23,8 +25,8 @@ guest_router = APIRouter(prefix="/qr/{token}", tags=["guest"])
 def guest_scope(
     token: str,
     response: Response,
-    db: Session = Depends(get_db),
-    food_guest_device: str | None = Cookie(default=None),
+    db: Annotated[Session, Depends(get_db)],
+    food_guest_device: Annotated[str | None, Cookie()] = None,
 ) -> GuestScope:
     scope, new_raw = guest_service.enter_guest_scope(db, token, food_guest_device)
     if new_raw is not None:
@@ -40,57 +42,61 @@ def guest_scope(
     return scope
 
 
-@guest_router.get("", response_model=GuestTableResponse)
+@guest_router.get("")
 def get_table(
-    scope: GuestScope = Depends(guest_scope), db: Session = Depends(get_db)
+    scope: Annotated[GuestScope, Depends(guest_scope)], db: Annotated[Session, Depends(get_db)]
 ) -> GuestTableResponse:
     return guest_service.view_table(db, scope)
 
 
-@guest_router.post("/session", response_model=GuestTableResponse)
+@guest_router.post("/session")
 def open_session(
     payload: GuestSessionOpen,
-    scope: GuestScope = Depends(guest_scope),
-    db: Session = Depends(get_db),
+    scope: Annotated[GuestScope, Depends(guest_scope)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> GuestTableResponse:
     return guest_service.open_or_join(db, scope, payload)
 
 
-@guest_router.post("/session/slots", response_model=GuestTableResponse)
+@guest_router.post("/session/slots")
 def add_slot(
-    scope: GuestScope = Depends(guest_scope), db: Session = Depends(get_db)
+    scope: Annotated[GuestScope, Depends(guest_scope)], db: Annotated[Session, Depends(get_db)]
 ) -> GuestTableResponse:
     return guest_service.add_slot(db, scope)
 
 
-@guest_router.delete("/session/slots/{slot_no}", response_model=GuestTableResponse)
+@guest_router.delete("/session/slots/{slot_no}")
 def remove_slot(
-    slot_no: int, scope: GuestScope = Depends(guest_scope), db: Session = Depends(get_db)
+    slot_no: int,
+    scope: Annotated[GuestScope, Depends(guest_scope)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> GuestTableResponse:
     return guest_service.remove_slot(db, scope, slot_no)
 
 
-@guest_router.post("/session/slots/{slot_no}/claim", response_model=GuestTableResponse)
+@guest_router.post("/session/slots/{slot_no}/claim")
 def claim_slot(
-    slot_no: int, scope: GuestScope = Depends(guest_scope), db: Session = Depends(get_db)
+    slot_no: int,
+    scope: Annotated[GuestScope, Depends(guest_scope)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> GuestTableResponse:
     return guest_service.claim_slot(db, scope, slot_no)
 
 
-@guest_router.patch("/session/slots/{slot_no}", response_model=GuestTableResponse)
+@guest_router.patch("/session/slots/{slot_no}")
 def update_slot(
     slot_no: int,
     payload: GuestSlotDisplayUpdate,
-    scope: GuestScope = Depends(guest_scope),
-    db: Session = Depends(get_db),
+    scope: Annotated[GuestScope, Depends(guest_scope)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> GuestTableResponse:
     return guest_service.update_my_slot(db, scope, slot_no, payload)
 
 
-@guest_router.patch("/session", response_model=GuestTableResponse)
+@guest_router.patch("/session")
 def update_session(
     payload: GuestSessionContextUpdate,
-    scope: GuestScope = Depends(guest_scope),
-    db: Session = Depends(get_db),
+    scope: Annotated[GuestScope, Depends(guest_scope)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> GuestTableResponse:
     return guest_service.update_session_context(db, scope, payload)

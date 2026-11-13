@@ -1,0 +1,12 @@
+# 커밋 전 검사. 설치: lefthook install (https://lefthook.dev). CI가 같은 검사를 다시 한다.
+pre-commit:
+  commands:
+    ruff:
+      root: backend/
+      run: uv run ruff check . && uv run ruff format --check .
+    pyright:
+      root: backend/
+      run: uv run pyright
+    frontend:
+      root: frontend/
+      run: npm run lint && npm run typecheck

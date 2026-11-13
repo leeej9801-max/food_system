@@ -398,10 +398,39 @@ export interface ApiFieldError {
   message: string;
 }
 
+// RFC 9457 problem+json. code와 errors는 확장 필드다 (API-004)
 export interface ApiErrorBody {
-  error: {
-    code: string;
-    message: string;
-    details: ApiFieldError[];
-  };
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  instance: string;
+  code: string;
+  errors: ApiFieldError[];
+}
+
+// 월별 손익표 (WO-20261111-002). 금액은 원 단위 정수, 비율은 소수 1자리 문자열.
+export interface PnlLine {
+  code: string;
+  label: string;
+  amount: number;
+  source: "auto" | "manual";
+  ratio_percent: string | null;
+}
+
+export interface PnlResponse {
+  store_id: string;
+  month: string;
+  card_fee_percent: string;
+  revenue: PnlLine;
+  expenses: PnlLine[];
+  total_expenses: number;
+  operating_profit: number;
+  operating_margin_percent: string | null;
+  trend: { month: string; revenue: number; total_expenses: number; operating_profit: number }[];
+}
+
+export interface PnlExpensesUpdate {
+  items: { code: string; label?: string | null; amount: number }[];
+  card_fee_percent?: string | null;
 }

@@ -1,4 +1,6 @@
+import { z } from "zod";
 import { apiRequest } from "./client";
+import { menuItemSchema } from "./schemas";
 import type { MenuItem } from "../types";
 
 export interface MenuListFilter {
@@ -19,7 +21,7 @@ export function fetchMenus(storeId: string, filter: MenuListFilter): Promise<Men
     params.set("status", filter.status);
   }
   const query = params.toString();
-  return apiRequest<MenuItem[]>(`/stores/${storeId}/menus${query ? `?${query}` : ""}`);
+  return apiRequest(z.array(menuItemSchema), `/stores/${storeId}/menus${query ? `?${query}` : ""}`);
 }
 
 export function createMenu(
@@ -32,7 +34,7 @@ export function createMenu(
     is_active: boolean;
   }
 ): Promise<MenuItem> {
-  return apiRequest<MenuItem>(`/stores/${storeId}/menus`, {
+  return apiRequest(menuItemSchema, `/stores/${storeId}/menus`, {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -49,7 +51,7 @@ export function updateMenu(
     is_active: boolean;
   }>
 ): Promise<MenuItem> {
-  return apiRequest<MenuItem>(`/stores/${storeId}/menus/${menuId}`, {
+  return apiRequest(menuItemSchema, `/stores/${storeId}/menus/${menuId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });

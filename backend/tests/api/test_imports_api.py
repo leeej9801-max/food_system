@@ -1,47 +1,6 @@
-from collections.abc import Generator
 from decimal import Decimal
 
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
-from app.db.base import Base
-from app.db.session import get_db
-from app.main import create_app
-
-
-@pytest.fixture
-def db_session() -> Generator[Session, None, None]:
-    engine = create_engine(
-        "sqlite+pysqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-        future=True,
-    )
-    Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(
-        bind=engine, autoflush=False, autocommit=False, expire_on_commit=False
-    )
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture
-def client(db_session: Session) -> Generator[TestClient, None, None]:
-    app = create_app()
-
-    def _override_get_db() -> Generator[Session, None, None]:
-        yield db_session
-
-    app.dependency_overrides[get_db] = _override_get_db
-    with TestClient(app) as c:
-        yield c
 
 
 def test_ac1_pos_mode_unverified_vs_ready_csv(client: TestClient) -> None:
@@ -140,12 +99,8 @@ ORD-104,2026-10-25 19:20:00,까르보나라,0,16000,COMPLETED
     ).json()
     assert preview_dup["duplicate_file_warning"] is True
 
-    client.post(
-        f"/api/v1/stores/{store_id}/imports/sales-csv/{preview_dup['batch_id']}/commit"
-    )
-    status_after_dup = client.get(
-        f"/api/v1/stores/{store_id}/integrations/status"
-    ).json()
+    client.post(f"/api/v1/stores/{store_id}/imports/sales-csv/{preview_dup['batch_id']}/commit")
+    status_after_dup = client.get(f"/api/v1/stores/{store_id}/integrations/status").json()
     assert status_after_dup["total_orders_count"] == 2
     assert Decimal(status_after_dup["net_sales_amount"]) == Decimal("75000.00")
     assert status_after_dup["net_items_quantity"] == 4
@@ -164,9 +119,7 @@ ORD-104,2026-10-25 19:20:00,까르보나라,0,16000,COMPLETED
     assert map_body["menu_item_id"] == m_steak["id"]
     assert m_carb["id"] != m_steak["id"]
 
-    status_after_map = client.get(
-        f"/api/v1/stores/{store_id}/integrations/status"
-    ).json()
+    status_after_map = client.get(f"/api/v1/stores/{store_id}/integrations/status").json()
     assert status_after_map["unmapped_products"] == []
 
 
@@ -186,9 +139,7 @@ def test_wo007_utf8_bom_csv_and_retroactive_menu_creation_linking(
     assert preview["rows_error"] == 0
     assert preview["unmapped_product_names"] == ["Truffle Gnocchi"]
 
-    client.post(
-        f"/api/v1/stores/{store_id}/imports/sales-csv/{preview['batch_id']}/commit"
-    )
+    client.post(f"/api/v1/stores/{store_id}/imports/sales-csv/{preview['batch_id']}/commit")
     status1 = client.get(f"/api/v1/stores/{store_id}/integrations/status").json()
     assert status1["unmapped_products"] == ["Truffle Gnocchi"]
 
@@ -299,6 +250,22 @@ def test_wo008_sales_order_refund_and_pos_vs_csv_mode_branching(
         json={"order_status": "COMPLETED"},
     )
     assert locked_resp.status_code == 409
-    assert locked_resp.json()["error"]["code"] == "POS_MODE_MANUAL_EDIT_LOCKED"
+    assert locked_resp.json()["code"] == "POS_MODE_MANUAL_EDIT_LOCKED"
 
 
+def test_manual_order_after_existing_latest_data_time(client: TestClient) -> None:
+    """저장된 latest_data_time(timestamptz)과 새 주문 시각을 비교한다 (ARCH-REVIEW 2.2, imports.py)."""
+    store_id = client.post("/api/v1/stores", json={"name": "시각 비교"}).json()["id"]
+    base = f"/api/v1/stores/{store_id}"
+    assert client.post(f"{base}/seed-western-demo").status_code == 200
+    csv_text = client.get(f"{base}/imports/sales-csv/sample").json()["csv_text"]
+    for _ in range(2):  # 두 번째 반영은 이미 저장된 시각과 비교한다 (imports.py:488)
+        pv = client.post(f"{base}/imports/sales-csv/preview", json={"csv_text": csv_text})
+        assert pv.status_code == 200, pv.text
+        commit = client.post(f"{base}/imports/sales-csv/{pv.json()['batch_id']}/commit")
+        assert commit.status_code == 200, commit.text
+    menu_id = client.get(f"{base}/menus").json()[0]["id"]
+    order = client.post(
+        f"{base}/sales-orders", json={"items": [{"menu_item_id": menu_id, "quantity": 1}]}
+    )
+    assert order.status_code == 201, order.text

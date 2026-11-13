@@ -1,16 +1,12 @@
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Literal
+from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
-from app.db.models import (
-    InventoryReceipt,
-    MenuItem,
-    Recipe,
-    RecipeItem,
-    SalesOrder,
-)
+from app.repositories import inventory as inventory_repo
+from app.repositories import menus as menu_repo
+from app.repositories import sales_orders as sales_order_repo
 from app.schemas import (
     CostSimulationRequest,
     CostSimulationResponse,
@@ -24,27 +20,12 @@ from app.schemas import (
 from app.services.menus import get_store_or_404
 
 
-def get_sales_analytics(db: Session, *, store_id: str) -> SalesAnalyticsResponse:
+def get_sales_analytics(db: Session, *, store_id: UUID) -> SalesAnalyticsResponse:
     get_store_or_404(db, store_id)
 
-    menus_by_id = {
-        m.id: m.name
-        for m in db.scalars(
-            select(MenuItem).where(MenuItem.store_id == store_id)
-        ).all()
-    }
+    menus_by_id = {m.id: m.name for m in menu_repo.list_by_store(db, store_id)}
 
-    orders = list(
-        db.scalars(
-            select(SalesOrder)
-            .options(selectinload(SalesOrder.items))
-            .where(
-                SalesOrder.store_id == store_id,
-                SalesOrder.status == "COMPLETED",
-            )
-            .execution_options(populate_existing=True)
-        ).all()
-    )
+    orders = sales_order_repo.list_completed_with_items(db, store_id)
 
     hourly_qty: dict[int, int] = {h: 0 for h in range(24)}
     hourly_sales: dict[int, Decimal] = {h: Decimal("0.00") for h in range(24)}
@@ -53,21 +34,17 @@ def get_sales_analytics(db: Session, *, store_id: str) -> SalesAnalyticsResponse
     total_qty = 0
     total_sales = Decimal("0.00")
 
-    menu_agg: dict[tuple[str | None, str, str], dict[str, int | Decimal]] = {}
+    menu_agg: dict[tuple[UUID | None, str, str], dict[str, int | Decimal]] = {}
 
     for order in orders:
-        has_exact_hour = (
-            order.time_basis == "order_time" and order.ordered_at is not None
-        )
+        has_exact_hour = order.time_basis == "order_time" and order.ordered_at is not None
         hour_val = order.ordered_at.hour if order.ordered_at is not None else 0
 
         for item in order.items:
             if item.status != "COMPLETED":
                 continue
             qty = item.quantity
-            line_sales = (Decimal(str(item.unit_price)) * qty).quantize(
-                Decimal("0.01")
-            )
+            line_sales = (Decimal(str(item.unit_price)) * qty).quantize(Decimal("0.01"))
             total_qty += qty
             total_sales += line_sales
 
@@ -100,9 +77,7 @@ def get_sales_analytics(db: Session, *, store_id: str) -> SalesAnalyticsResponse
 
     rankings: list[MenuSalesRankItem] = []
     for (menu_id, name, map_status), vals in menu_agg.items():
-        m_status: Literal["MAPPED", "UNMAPPED"] = (
-            "MAPPED" if map_status == "MAPPED" else "UNMAPPED"
-        )
+        m_status: Literal["MAPPED", "UNMAPPED"] = "MAPPED" if map_status == "MAPPED" else "UNMAPPED"
         rankings.append(
             MenuSalesRankItem(
                 menu_item_id=menu_id,
@@ -127,32 +102,13 @@ def get_sales_analytics(db: Session, *, store_id: str) -> SalesAnalyticsResponse
 
 
 def simulate_menu_costs(
-    db: Session, *, store_id: str, payload: CostSimulationRequest
+    db: Session, *, store_id: UUID, payload: CostSimulationRequest
 ) -> CostSimulationResponse:
     get_store_or_404(db, store_id)
 
-    menus = list(
-        db.scalars(
-            select(MenuItem)
-            .options(
-                selectinload(MenuItem.recipe)
-                .selectinload(Recipe.items)
-                .selectinload(RecipeItem.ingredient)
-            )
-            .where(MenuItem.store_id == store_id, MenuItem.is_active.is_(True))
-            .order_by(MenuItem.name.asc())
-            .execution_options(populate_existing=True)
-        ).all()
-    )
-
-    receipts = list(
-        db.scalars(
-            select(InventoryReceipt)
-            .where(InventoryReceipt.store_id == store_id)
-            .order_by(InventoryReceipt.received_at.desc(), InventoryReceipt.id.desc())
-        ).all()
-    )
-    latest_cost_by_ing: dict[str, Decimal] = {}
+    menus = menu_repo.list_active_with_recipes(db, store_id)
+    receipts = inventory_repo.list_receipts_latest_first(db, store_id)
+    latest_cost_by_ing: dict[UUID, Decimal] = {}
     for r in receipts:
         if r.ingredient_id not in latest_cost_by_ing:
             latest_cost_by_ing[r.ingredient_id] = Decimal(str(r.unit_cost_per_base))
@@ -214,13 +170,7 @@ def simulate_menu_costs(
                 )
                 continue
 
-            pct = Decimal(
-                str(
-                    payload.ingredient_change_percents.get(
-                        ri.ingredient_id, global_pct
-                    )
-                )
-            )
+            pct = Decimal(str(payload.ingredient_change_percents.get(ri.ingredient_id, global_pct)))
             mult = max(Decimal(0), Decimal(1) + (pct / Decimal(100)))
             sim_u_cost = (base_u_cost * mult).quantize(Decimal("0.0001"))
             b_line = (base_u_cost * qty).quantize(Decimal("0.01"))
@@ -241,9 +191,7 @@ def simulate_menu_costs(
                 )
             )
 
-        cost_status: MenuCostStatusType = (
-            "INCOMPLETE_COST" if missing_ings else "COMPLETE"
-        )
+        cost_status: MenuCostStatusType = "INCOMPLETE_COST" if missing_ings else "COMPLETE"
         base_margin = (
             (selling_price - base_total).quantize(Decimal("0.01"))
             if selling_price is not None

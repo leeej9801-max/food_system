@@ -1,47 +1,6 @@
-from collections.abc import Generator
 from decimal import Decimal
 
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
-from app.db.base import Base
-from app.db.session import get_db
-from app.main import create_app
-
-
-@pytest.fixture
-def db_session() -> Generator[Session, None, None]:
-    engine = create_engine(
-        "sqlite+pysqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-        future=True,
-    )
-    Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(
-        bind=engine, autoflush=False, autocommit=False, expire_on_commit=False
-    )
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture
-def client(db_session: Session) -> Generator[TestClient, None, None]:
-    app = create_app()
-
-    def _override_get_db() -> Generator[Session, None, None]:
-        yield db_session
-
-    app.dependency_overrides[get_db] = _override_get_db
-    with TestClient(app) as c:
-        yield c
 
 
 def test_ac1_ac2_receipts_preserve_price_history_and_convert_units(
@@ -159,9 +118,7 @@ ORD-202,2026-10-25 12:30:00,까르보나라,2,16000,CANCELLED
         f"/api/v1/stores/{store_id}/imports/sales-csv/preview",
         json={"file_name": "sales.csv", "csv_text": csv_text},
     ).json()
-    client.post(
-        f"/api/v1/stores/{store_id}/imports/sales-csv/{preview['batch_id']}/commit"
-    )
+    client.post(f"/api/v1/stores/{store_id}/imports/sales-csv/{preview['batch_id']}/commit")
 
     # AC-3 & AC-5: 입고 500g - 이론소모 200g = 예상재고 300g -> 안전재고(300g) 이하이므로 LOW_STOCK
     summary1 = client.get(f"/api/v1/stores/{store_id}/inventory/summary").json()[0]
@@ -204,10 +161,7 @@ ORD-OLD-01,2020-01-01 12:00:00,까르보나라,3,16000,COMPLETED
         f"/api/v1/stores/{store_id}/imports/sales-csv/preview",
         json={"file_name": "old_sales.csv", "csv_text": old_csv},
     ).json()
-    client.post(
-        f"/api/v1/stores/{store_id}/imports/sales-csv/{old_prev['batch_id']}/commit"
-    )
+    client.post(f"/api/v1/stores/{store_id}/imports/sales-csv/{old_prev['batch_id']}/commit")
     summary4 = client.get(f"/api/v1/stores/{store_id}/inventory/summary").json()[0]
     assert Decimal(summary4["theoretical_consumption_base"]) == Decimal("0.000")
     assert Decimal(summary4["estimated_quantity"]) == Decimal("450.000")
-

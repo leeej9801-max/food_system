@@ -1,47 +1,11 @@
 import json
-from collections.abc import Generator
 from decimal import Decimal
 
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from app.db.base import Base
 from app.db.models import AuditEvent
-from app.db.session import get_db
-from app.main import create_app
-
-
-@pytest.fixture
-def db_session() -> Generator[Session, None, None]:
-    engine = create_engine(
-        "sqlite+pysqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-        future=True,
-    )
-    Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture
-def client(db_session: Session) -> Generator[TestClient, None, None]:
-    app = create_app()
-
-    def _override_get_db() -> Generator[Session, None, None]:
-        yield db_session
-
-    app.dependency_overrides[get_db] = _override_get_db
-    with TestClient(app) as c:
-        yield c
 
 
 def _create_store(client: TestClient, name: str = "1인 식당 파일럿") -> dict:
@@ -121,7 +85,9 @@ def test_ac4_menu_deactivate_preserves_record_and_allows_reactivation(client: Te
 
     # 물리 삭제되지 않고 status=inactive 로 조회됨
     active_list = client.get(f"/api/v1/stores/{store_id}/menus", params={"status": "active"}).json()
-    inactive_list = client.get(f"/api/v1/stores/{store_id}/menus", params={"status": "inactive"}).json()
+    inactive_list = client.get(
+        f"/api/v1/stores/{store_id}/menus", params={"status": "inactive"}
+    ).json()
     assert len(active_list) == 0
     assert len(inactive_list) == 1
     assert inactive_list[0]["id"] == menu["id"]
@@ -144,9 +110,9 @@ def test_ac5_validation_error_returns_field_details(client: TestClient) -> None:
         json={"name": "   ", "selling_price": -500},
     )
     assert resp.status_code == 422
-    err = resp.json()["error"]
+    err = resp.json()
     assert err["code"] == "VALIDATION_ERROR"
-    fields = {d["field"] for d in err["details"]}
+    fields = {d["field"] for d in err["errors"]}
     assert "name" in fields
     assert "selling_price" in fields
 
@@ -160,7 +126,7 @@ def test_ac6_duplicate_active_menu_name_returns_409(client: TestClient) -> None:
 
     dup = client.post(f"/api/v1/stores/{store_id}/menus", json={"name": " 제육볶음 "})
     assert dup.status_code == 409
-    assert dup.json()["error"]["code"] == "DUPLICATE_MENU_NAME"
+    assert dup.json()["code"] == "DUPLICATE_MENU_NAME"
 
 
 def test_ac7_store_isolation_returns_404_for_other_store_menu(client: TestClient) -> None:
@@ -170,7 +136,7 @@ def test_ac7_store_isolation_returns_404_for_other_store_menu(client: TestClient
 
     get_other = client.get(f"/api/v1/stores/{store_b['id']}/menus/{menu_a['id']}")
     assert get_other.status_code == 404
-    assert get_other.json()["error"]["code"] == "MENU_NOT_FOUND"
+    assert get_other.json()["code"] == "MENU_NOT_FOUND"
 
     patch_other = client.patch(
         f"/api/v1/stores/{store_b['id']}/menus/{menu_a['id']}",

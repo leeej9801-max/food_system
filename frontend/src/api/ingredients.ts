@@ -1,4 +1,6 @@
+import { z } from "zod";
 import { apiRequest } from "./client";
+import { ingredientSchema, ingredientUsageSchema, recipeDetailSchema } from "./schemas";
 import type {
   BaseUnitType,
   Ingredient,
@@ -24,7 +26,7 @@ export function fetchIngredients(
     params.set("status", filter.status);
   }
   const query = params.toString();
-  return apiRequest<Ingredient[]>(`/stores/${storeId}/ingredients${query ? `?${query}` : ""}`);
+  return apiRequest(z.array(ingredientSchema), `/stores/${storeId}/ingredients${query ? `?${query}` : ""}`);
 }
 
 export function createIngredient(
@@ -39,7 +41,7 @@ export function createIngredient(
     is_active: boolean;
   }
 ): Promise<Ingredient> {
-  return apiRequest<Ingredient>(`/stores/${storeId}/ingredients`, {
+  return apiRequest(ingredientSchema, `/stores/${storeId}/ingredients`, {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -58,7 +60,7 @@ export function updateIngredient(
     is_active: boolean;
   }>
 ): Promise<Ingredient> {
-  return apiRequest<Ingredient>(`/stores/${storeId}/ingredients/${ingredientId}`, {
+  return apiRequest(ingredientSchema, `/stores/${storeId}/ingredients/${ingredientId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
@@ -68,13 +70,12 @@ export function fetchIngredientUsages(
   storeId: string,
   ingredientId: string
 ): Promise<IngredientUsage[]> {
-  return apiRequest<IngredientUsage[]>(
-    `/stores/${storeId}/ingredients/${ingredientId}/usages`
+  return apiRequest(z.array(ingredientUsageSchema), `/stores/${storeId}/ingredients/${ingredientId}/usages`
   );
 }
 
 export function fetchMenuRecipe(storeId: string, menuId: string): Promise<RecipeDetail> {
-  return apiRequest<RecipeDetail>(`/stores/${storeId}/menus/${menuId}/recipe`);
+  return apiRequest(recipeDetailSchema, `/stores/${storeId}/menus/${menuId}/recipe`);
 }
 
 export function upsertMenuRecipe(
@@ -89,7 +90,7 @@ export function upsertMenuRecipe(
     }>;
   }
 ): Promise<RecipeDetail> {
-  return apiRequest<RecipeDetail>(`/stores/${storeId}/menus/${menuId}/recipe`, {
+  return apiRequest(recipeDetailSchema, `/stores/${storeId}/menus/${menuId}/recipe`, {
     method: "PUT",
     body: JSON.stringify(payload),
   });

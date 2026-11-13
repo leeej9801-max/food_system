@@ -1,20 +1,21 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Literal
+from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
 from app.db.models import (
-    Ingredient,
     InventoryAdjustment,
     InventoryCount,
     InventoryReceipt,
-    Recipe,
-    SalesOrder,
     utcnow,
 )
+from app.repositories import ingredients as ingredient_repo
+from app.repositories import inventory as inventory_repo
+from app.repositories import menus as menu_repo
+from app.repositories import sales_orders as sales_order_repo
 from app.schemas import (
     AdjustmentReasonType,
     IngredientInventoryItem,
@@ -39,11 +40,9 @@ def _norm_dt(dt: datetime | None) -> datetime | None:
 
 
 def create_receipt(
-    db: Session, *, store_id: str, payload: InventoryReceiptCreate
+    db: Session, *, store_id: UUID, payload: InventoryReceiptCreate
 ) -> InventoryReceiptResponse:
-    ingredient = get_ingredient_or_404(
-        db, store_id=store_id, ingredient_id=payload.ingredient_id
-    )
+    ingredient = get_ingredient_or_404(db, store_id=store_id, ingredient_id=payload.ingredient_id)
     conv = Decimal(str(ingredient.conversion_factor))
     p_qty = Decimal(str(payload.purchase_quantity)).quantize(Decimal("0.001"))
     b_qty = (p_qty * conv).quantize(Decimal("0.001"))
@@ -73,8 +72,7 @@ def create_receipt(
         notes=payload.notes.strip() if payload.notes else None,
         received_at=utcnow(),
     )
-    db.add(receipt)
-    db.flush()
+    inventory_repo.insert(db, receipt)
     record_audit(
         db,
         store_id=store_id,
@@ -113,20 +111,11 @@ def create_receipt(
 
 
 def list_receipts(
-    db: Session, *, store_id: str, ingredient_id: str | None = None
+    db: Session, *, store_id: UUID, ingredient_id: UUID | None = None
 ) -> list[InventoryReceiptResponse]:
     get_store_or_404(db, store_id)
-    ingredients_by_id = {
-        i.id: i.name
-        for i in db.scalars(
-            select(Ingredient).where(Ingredient.store_id == store_id)
-        ).all()
-    }
-    stmt = select(InventoryReceipt).where(InventoryReceipt.store_id == store_id)
-    if ingredient_id:
-        stmt = stmt.where(InventoryReceipt.ingredient_id == ingredient_id)
-    stmt = stmt.order_by(InventoryReceipt.received_at.desc(), InventoryReceipt.id.desc())
-    rows = list(db.scalars(stmt).all())
+    ingredients_by_id = {i.id: i.name for i in ingredient_repo.list_by_store(db, store_id)}
+    rows = inventory_repo.list_receipts_latest_first(db, store_id, ingredient_id)
     return [
         InventoryReceiptResponse(
             id=r.id,
@@ -149,11 +138,9 @@ def list_receipts(
 
 
 def create_count(
-    db: Session, *, store_id: str, payload: InventoryCountCreate
+    db: Session, *, store_id: UUID, payload: InventoryCountCreate
 ) -> InventoryCountResponse:
-    ingredient = get_ingredient_or_404(
-        db, store_id=store_id, ingredient_id=payload.ingredient_id
-    )
+    ingredient = get_ingredient_or_404(db, store_id=store_id, ingredient_id=payload.ingredient_id)
     actual_qty = Decimal(str(payload.actual_quantity)).quantize(Decimal("0.001"))
     count_row = InventoryCount(
         store_id=store_id,
@@ -163,8 +150,7 @@ def create_count(
         notes=payload.notes.strip() if payload.notes else None,
         counted_at=utcnow(),
     )
-    db.add(count_row)
-    db.flush()
+    inventory_repo.insert(db, count_row)
     record_audit(
         db,
         store_id=store_id,
@@ -193,20 +179,11 @@ def create_count(
 
 
 def list_counts(
-    db: Session, *, store_id: str, ingredient_id: str | None = None
+    db: Session, *, store_id: UUID, ingredient_id: UUID | None = None
 ) -> list[InventoryCountResponse]:
     get_store_or_404(db, store_id)
-    ingredients_by_id = {
-        i.id: i.name
-        for i in db.scalars(
-            select(Ingredient).where(Ingredient.store_id == store_id)
-        ).all()
-    }
-    stmt = select(InventoryCount).where(InventoryCount.store_id == store_id)
-    if ingredient_id:
-        stmt = stmt.where(InventoryCount.ingredient_id == ingredient_id)
-    stmt = stmt.order_by(InventoryCount.counted_at.desc(), InventoryCount.id.desc())
-    rows = list(db.scalars(stmt).all())
+    ingredients_by_id = {i.id: i.name for i in ingredient_repo.list_by_store(db, store_id)}
+    rows = inventory_repo.list_counts_latest_first(db, store_id, ingredient_id)
     return [
         InventoryCountResponse(
             id=c.id,
@@ -223,11 +200,9 @@ def list_counts(
 
 
 def create_adjustment(
-    db: Session, *, store_id: str, payload: InventoryAdjustmentCreate
+    db: Session, *, store_id: UUID, payload: InventoryAdjustmentCreate
 ) -> InventoryAdjustmentResponse:
-    ingredient = get_ingredient_or_404(
-        db, store_id=store_id, ingredient_id=payload.ingredient_id
-    )
+    ingredient = get_ingredient_or_404(db, store_id=store_id, ingredient_id=payload.ingredient_id)
     delta = Decimal(str(payload.quantity_delta)).quantize(Decimal("0.001"))
     if delta == 0:
         raise AppError(
@@ -245,8 +220,7 @@ def create_adjustment(
         notes=payload.notes.strip() if payload.notes else None,
         occurred_at=utcnow(),
     )
-    db.add(adj)
-    db.flush()
+    inventory_repo.insert(db, adj)
     record_audit(
         db,
         store_id=store_id,
@@ -286,60 +260,30 @@ def create_adjustment(
 
 
 def get_inventory_summary(
-    db: Session, *, store_id: str, include_inactive: bool = False
+    db: Session, *, store_id: UUID, include_inactive: bool = False
 ) -> list[IngredientInventoryItem]:
     get_store_or_404(db, store_id)
-    ing_stmt = select(Ingredient).where(Ingredient.store_id == store_id)
-    if not include_inactive:
-        ing_stmt = ing_stmt.where(Ingredient.is_active.is_(True))
-    ing_stmt = ing_stmt.order_by(Ingredient.name.asc())
-    ingredients = list(db.scalars(ing_stmt).all())
-
-    receipts = list(
-        db.scalars(
-            select(InventoryReceipt)
-            .where(InventoryReceipt.store_id == store_id)
-            .order_by(InventoryReceipt.received_at.desc(), InventoryReceipt.id.desc())
-        ).all()
-    )
-    counts = list(
-        db.scalars(
-            select(InventoryCount)
-            .where(InventoryCount.store_id == store_id)
-            .order_by(InventoryCount.counted_at.desc(), InventoryCount.id.desc())
-        ).all()
-    )
-    adjustments = list(
-        db.scalars(
-            select(InventoryAdjustment).where(
-                InventoryAdjustment.store_id == store_id
-            )
-        ).all()
-    )
+    ingredients = ingredient_repo.list_by_store(db, store_id, active_only=not include_inactive)
+    receipts = inventory_repo.list_receipts_latest_first(db, store_id)
+    counts = inventory_repo.list_counts_latest_first(db, store_id)
+    adjustments = inventory_repo.list_adjustments(db, store_id)
 
     # O(N) 사전 인덱싱으로 다수 식자재·입고·판매 건수에서도 선형 시간 보장
-    receipts_by_ing: dict[str, list[InventoryReceipt]] = {}
+    receipts_by_ing: dict[UUID, list[InventoryReceipt]] = {}
     for r in receipts:
         receipts_by_ing.setdefault(r.ingredient_id, []).append(r)
 
-    counts_by_ing: dict[str, list[InventoryCount]] = {}
+    counts_by_ing: dict[UUID, list[InventoryCount]] = {}
     for c in counts:
         counts_by_ing.setdefault(c.ingredient_id, []).append(c)
 
-    adjustments_by_ing: dict[str, list[InventoryAdjustment]] = {}
+    adjustments_by_ing: dict[UUID, list[InventoryAdjustment]] = {}
     for a in adjustments:
         adjustments_by_ing.setdefault(a.ingredient_id, []).append(a)
 
     # Load recipes by menu_item_id -> ingredient_id -> quantity
-    recipes = list(
-        db.scalars(
-            select(Recipe)
-            .options(selectinload(Recipe.items))
-            .where(Recipe.store_id == store_id)
-            .execution_options(populate_existing=True)
-        ).all()
-    )
-    ing_menu_qty: dict[str, list[tuple[str, Decimal]]] = {}
+    recipes = menu_repo.list_recipes_with_items(db, store_id)
+    ing_menu_qty: dict[UUID, list[tuple[UUID, Decimal]]] = {}
     for rec in recipes:
         for ri in rec.items:
             ing_menu_qty.setdefault(ri.ingredient_id, []).append(
@@ -347,18 +291,8 @@ def get_inventory_summary(
             )
 
     # Load completed sales orders & items
-    orders = list(
-        db.scalars(
-            select(SalesOrder)
-            .options(selectinload(SalesOrder.items))
-            .where(
-                SalesOrder.store_id == store_id,
-                SalesOrder.status == "COMPLETED",
-            )
-            .execution_options(populate_existing=True)
-        ).all()
-    )
-    sales_by_menu: dict[str, list[tuple[int, datetime, datetime | None]]] = {}
+    orders = sales_order_repo.list_completed_with_items(db, store_id)
+    sales_by_menu: dict[UUID, list[tuple[int, datetime, datetime | None]]] = {}
     for order in orders:
         rec_dt = _norm_dt(order.received_at) or utcnow()
         ord_dt = _norm_dt(order.ordered_at)
@@ -379,9 +313,7 @@ def get_inventory_summary(
         latest_count = ing_counts[0] if ing_counts else None
         baseline_dt = _norm_dt(latest_count.counted_at) if latest_count else None
         baseline_qty = (
-            Decimal(str(latest_count.actual_quantity))
-            if latest_count
-            else Decimal("0.000")
+            Decimal(str(latest_count.actual_quantity)) if latest_count else Decimal("0.000")
         )
 
         receipts_sum = Decimal("0.000")
@@ -407,9 +339,9 @@ def get_inventory_summary(
                         continue
                 consumption_sum += recipe_qty * sale_qty
 
-        estimated = (
-            baseline_qty + receipts_sum - consumption_sum + adj_sum
-        ).quantize(Decimal("0.001"))
+        estimated = (baseline_qty + receipts_sum - consumption_sum + adj_sum).quantize(
+            Decimal("0.001")
+        )
 
         safety = (
             Decimal(str(ing.safety_stock)).quantize(Decimal("0.001"))
@@ -423,12 +355,8 @@ def get_inventory_summary(
         elif safety is not None and estimated <= safety:
             stock_status = "LOW_STOCK"
 
-        cost_label: Literal[
-            "최근 입고 단가 기준 (PROVISIONAL P-12)", "입고 단가 미등록"
-        ] = (
-            "최근 입고 단가 기준 (PROVISIONAL P-12)"
-            if latest_receipt
-            else "입고 단가 미등록"
+        cost_label: Literal["최근 입고 단가 기준 (PROVISIONAL P-12)", "입고 단가 미등록"] = (
+            "최근 입고 단가 기준 (PROVISIONAL P-12)" if latest_receipt else "입고 단가 미등록"
         )
 
         result.append(
@@ -441,20 +369,14 @@ def get_inventory_summary(
                 conversion_factor=Decimal(str(ing.conversion_factor)),
                 safety_stock=safety,
                 latest_unit_cost_per_purchase=(
-                    Decimal(str(latest_receipt.unit_cost_per_purchase))
-                    if latest_receipt
-                    else None
+                    Decimal(str(latest_receipt.unit_cost_per_purchase)) if latest_receipt else None
                 ),
                 latest_unit_cost_per_base=(
-                    Decimal(str(latest_receipt.unit_cost_per_base))
-                    if latest_receipt
-                    else None
+                    Decimal(str(latest_receipt.unit_cost_per_base)) if latest_receipt else None
                 ),
                 cost_basis_label=cost_label,
                 last_actual_quantity=(
-                    Decimal(str(latest_count.actual_quantity))
-                    if latest_count
-                    else None
+                    Decimal(str(latest_count.actual_quantity)) if latest_count else None
                 ),
                 last_counted_at=latest_count.counted_at if latest_count else None,
                 receipts_since_count_base=receipts_sum.quantize(Decimal("0.001")),

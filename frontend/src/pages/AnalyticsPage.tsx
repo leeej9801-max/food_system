@@ -332,6 +332,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
                                       </span>
                                       <div className="flex items-center gap-1">
                                         <input
+                                          aria-label={`${b.ingredient_name} 조정 비율(%)`}
                                           type="number"
                                           step="1"
                                           min="-90"

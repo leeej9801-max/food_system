@@ -7,6 +7,7 @@ from app.api.v1.endpoints import (
     ingredients,
     inventory,
     menus,
+    pnl,
     stores,
     tables,
 )
@@ -20,3 +21,4 @@ api_router.include_router(imports.router)
 api_router.include_router(inventory.router)
 api_router.include_router(analytics.router)
 api_router.include_router(holidays.router)
+api_router.include_router(pnl.router)

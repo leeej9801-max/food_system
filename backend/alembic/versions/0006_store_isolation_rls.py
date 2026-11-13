@@ -11,7 +11,6 @@ RLS is enforced only for a role that is neither table owner nor superuser nor BY
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision: str = "0006_store_isolation_rls"
@@ -40,21 +39,21 @@ TENANT_TABLES = (
 
 # fail-closed: no scope set -> NULL -> no rows. Must match app/db/tenancy.py STORE_SCOPE_SETTING.
 SCOPE_FUNCTION = """
-CREATE OR REPLACE FUNCTION app_current_store_id() RETURNS text
+CREATE OR REPLACE FUNCTION app_current_store_id() RETURNS uuid
     LANGUAGE sql STABLE
-    AS $$ SELECT nullif(current_setting('app.current_store_id', true), '') $$
+    AS $$ SELECT nullif(current_setting('app.current_store_id', true), '')::uuid $$
 """
 
 
 def upgrade() -> None:
     with op.batch_alter_table("recipe_items") as batch:
-        batch.add_column(sa.Column("store_id", sa.String(length=36), nullable=True))
+        batch.add_column(sa.Column("store_id", sa.Uuid(), nullable=True))
     op.execute(
         "UPDATE recipe_items SET store_id = "
         "(SELECT recipes.store_id FROM recipes WHERE recipes.id = recipe_items.recipe_id)"
     )
     with op.batch_alter_table("recipe_items") as batch:
-        batch.alter_column("store_id", existing_type=sa.String(length=36), nullable=False)
+        batch.alter_column("store_id", existing_type=sa.Uuid(), nullable=False)
         batch.create_foreign_key(
             "fk_recipe_items_store_id", "stores", ["store_id"], ["id"], ondelete="RESTRICT"
         )

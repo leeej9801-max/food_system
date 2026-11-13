@@ -1,47 +1,6 @@
-from collections.abc import Generator
 from decimal import Decimal
 
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
-from app.db.base import Base
-from app.db.session import get_db
-from app.main import create_app
-
-
-@pytest.fixture
-def db_session() -> Generator[Session, None, None]:
-    engine = create_engine(
-        "sqlite+pysqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-        future=True,
-    )
-    Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(
-        bind=engine, autoflush=False, autocommit=False, expire_on_commit=False
-    )
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture
-def client(db_session: Session) -> Generator[TestClient, None, None]:
-    app = create_app()
-
-    def _override_get_db() -> Generator[Session, None, None]:
-        yield db_session
-
-    app.dependency_overrides[get_db] = _override_get_db
-    with TestClient(app) as c:
-        yield c
 
 
 def test_ac1_ac2_ac3_menu_costing_and_non_destructive_simulation(
@@ -188,9 +147,7 @@ ORD-303,2026-10-25 18:00:00,까르보나라,1,16000,CANCELLED
         f"/api/v1/stores/{store_id}/imports/sales-csv/preview",
         json={"file_name": "sales.csv", "csv_text": csv_text},
     ).json()
-    client.post(
-        f"/api/v1/stores/{store_id}/imports/sales-csv/{preview['batch_id']}/commit"
-    )
+    client.post(f"/api/v1/stores/{store_id}/imports/sales-csv/{preview['batch_id']}/commit")
 
     sales_resp = client.get(f"/api/v1/stores/{store_id}/analytics/sales")
     assert sales_resp.status_code == 200
@@ -230,4 +187,3 @@ def test_western_bistro_demo_seed_idempotent_and_no_fake_sales(
     sales = client.get(f"/api/v1/stores/{store_id}/analytics/sales").json()
     assert sales["total_completed_orders"] == 0
     assert Decimal(sales["total_net_sales"]) == Decimal("0.00")
-

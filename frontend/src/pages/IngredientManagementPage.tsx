@@ -1,3 +1,4 @@
+import { Dialog } from "../components/Dialog";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiClientError } from "../api/client";
@@ -198,8 +199,8 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
       {/* 검색 및 필터 */}
       <div className="grid grid-cols-1 gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-xs font-semibold text-gray-600">식자재명 검색</label>
-          <input
+          <label htmlFor="ingredientmanagement-f1" className="mb-1 block text-xs font-semibold text-gray-600">식자재명 검색</label>
+          <input id="ingredientmanagement-f1"
             type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -208,8 +209,8 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-semibold text-gray-600">등록 상태</label>
-          <select
+          <label htmlFor="ingredientmanagement-f2" className="mb-1 block text-xs font-semibold text-gray-600">등록 상태</label>
+          <select id="ingredientmanagement-f2"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
@@ -412,7 +413,7 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
 
       {/* 식자재 추가/수정 모달 */}
       {formOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">
+        <Dialog label={editingIng ? "식자재 수정" : "새 식자재 추가"} onClose={() => setFormOpen(false)}>
           <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
               <h2 className="text-lg font-bold text-gray-900">
@@ -435,10 +436,10 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
 
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-800">
+                <label htmlFor="ingredientmanagement-f3" className="mb-1 block text-sm font-medium text-gray-800">
                   식자재명 <span className="text-red-600">*</span>
                 </label>
-                <input
+                <input id="ingredientmanagement-f3"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -478,10 +479,10 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                  <label htmlFor="ingredientmanagement-f4" className="mb-1 block text-xs font-medium text-gray-700">
                     구매 단위
                   </label>
-                  <select
+                  <select id="ingredientmanagement-f4"
                     value={purchaseUnit}
                     onChange={(e) => setPurchaseUnit(e.target.value as PurchaseUnitType)}
                     className="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm"
@@ -496,10 +497,10 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                  <label htmlFor="ingredientmanagement-f5" className="mb-1 block text-xs font-medium text-gray-700">
                     레시피 기본 단위
                   </label>
-                  <select
+                  <select id="ingredientmanagement-f5"
                     value={baseUnit}
                     onChange={(e) => setBaseUnit(e.target.value as BaseUnitType)}
                     className="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm"
@@ -511,10 +512,10 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                  <label htmlFor="ingredientmanagement-f6" className="mb-1 block text-xs font-medium text-gray-700">
                     변환 계수
                   </label>
-                  <input
+                  <input id="ingredientmanagement-f6"
                     type="number"
                     min={0.0001}
                     step="any"
@@ -530,10 +531,10 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-700">
+                <label htmlFor="ingredientmanagement-f7" className="mb-1 block text-xs font-medium text-gray-700">
                   기준 안전재고 (선택, {baseUnit} 기준 — 미달 시 재고 알림)
                 </label>
-                <input
+                <input id="ingredientmanagement-f7"
                   type="number"
                   min={0}
                   step="any"
@@ -545,10 +546,10 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-700">
+                <label htmlFor="ingredientmanagement-f8" className="mb-1 block text-xs font-medium text-gray-700">
                   보관/공급처 메모 (선택)
                 </label>
-                <input
+                <input id="ingredientmanagement-f8"
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -576,7 +577,7 @@ export function IngredientManagementPage({ store }: IngredientManagementPageProp
               </div>
             </div>
           </div>
-        </div>
+        </Dialog>
       )}
 
       <RecipeEditorModal

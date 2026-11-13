@@ -13,7 +13,6 @@ function returns the store/table for exactly one token and nothing else.
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision: str = "0007_guest_sessions_slots"
@@ -28,10 +27,10 @@ OPEN_FILTER = "status IN ('SEATED', 'PAID')"
 # owner gets its own read policy on table_qr_tokens below; the runtime role never does.
 RESOLVE_FUNCTION = """
 CREATE OR REPLACE FUNCTION app_resolve_table_qr(p_token text)
-    RETURNS TABLE (store_id text, table_id text)
+    RETURNS TABLE (store_id uuid, table_id uuid)
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path = public, pg_temp
-    AS $$ SELECT t.store_id::text, t.table_id::text FROM table_qr_tokens t WHERE t.token = p_token $$
+    AS $$ SELECT t.store_id, t.table_id FROM table_qr_tokens t WHERE t.token = p_token $$
 """
 
 
@@ -69,16 +68,16 @@ def upgrade() -> None:
 
     op.create_table(
         "table_qr_tokens",
-        sa.Column("id", sa.String(36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "table_id",
-            sa.String(36),
+            sa.Uuid(),
             sa.ForeignKey("store_tables.id", ondelete="RESTRICT"),
             nullable=False,
             unique=True,
@@ -91,7 +90,7 @@ def upgrade() -> None:
 
     op.create_table(
         "guest_devices",
-        sa.Column("id", sa.String(36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column("token_hash", sa.String(64), nullable=False, unique=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("last_seen_at", sa.DateTime(timezone=True), nullable=False),
@@ -99,16 +98,16 @@ def upgrade() -> None:
 
     op.create_table(
         "session_slots",
-        sa.Column("id", sa.String(36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "session_id",
-            sa.String(36),
+            sa.Uuid(),
             sa.ForeignKey("visit_sessions.id", ondelete="RESTRICT"),
             nullable=False,
         ),
@@ -116,13 +115,13 @@ def upgrade() -> None:
         sa.Column("state", sa.String(20), nullable=False),
         sa.Column(
             "created_by_device_id",
-            sa.String(36),
+            sa.Uuid(),
             sa.ForeignKey("guest_devices.id", ondelete="RESTRICT"),
             nullable=True,
         ),
         sa.Column(
             "claimed_by_device_id",
-            sa.String(36),
+            sa.Uuid(),
             sa.ForeignKey("guest_devices.id", ondelete="RESTRICT"),
             nullable=True,
         ),

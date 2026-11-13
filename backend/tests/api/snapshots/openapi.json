@@ -1,0 +1,7044 @@
+{
+  "components": {
+    "schemas": {
+      "CostSimulationRequest": {
+        "properties": {
+          "global_change_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "default": "0",
+            "title": "Global Change Percent"
+          },
+          "ingredient_change_percents": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "propertyNames": {
+              "format": "uuid"
+            },
+            "title": "Ingredient Change Percents",
+            "type": "object"
+          }
+        },
+        "title": "CostSimulationRequest",
+        "type": "object"
+      },
+      "CostSimulationResponse": {
+        "properties": {
+          "cost_basis_label": {
+            "default": "최근 입고 단가 기준 (PROVISIONAL P-12 · 비파괴 시뮬레이션)",
+            "title": "Cost Basis Label",
+            "type": "string"
+          },
+          "global_change_percent": {
+            "title": "Global Change Percent",
+            "type": "string"
+          },
+          "menus": {
+            "items": {
+              "$ref": "#/components/schemas/MenuCostSimulationItem"
+            },
+            "title": "Menus",
+            "type": "array"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "store_id",
+          "global_change_percent",
+          "menus"
+        ],
+        "title": "CostSimulationResponse",
+        "type": "object"
+      },
+      "CsvColumnMapping": {
+        "properties": {
+          "order_id_col": {
+            "default": "order_id",
+            "title": "Order Id Col",
+            "type": "string"
+          },
+          "ordered_at_col": {
+            "default": "ordered_at",
+            "title": "Ordered At Col",
+            "type": "string"
+          },
+          "product_name_col": {
+            "default": "menu_name",
+            "title": "Product Name Col",
+            "type": "string"
+          },
+          "quantity_col": {
+            "default": "quantity",
+            "title": "Quantity Col",
+            "type": "string"
+          },
+          "status_col": {
+            "default": "status",
+            "title": "Status Col",
+            "type": "string"
+          },
+          "unit_price_col": {
+            "default": "unit_price",
+            "title": "Unit Price Col",
+            "type": "string"
+          }
+        },
+        "title": "CsvColumnMapping",
+        "type": "object"
+      },
+      "CsvCommitResponse": {
+        "properties": {
+          "batch_id": {
+            "format": "uuid",
+            "title": "Batch Id",
+            "type": "string"
+          },
+          "items_recorded": {
+            "title": "Items Recorded",
+            "type": "integer"
+          },
+          "latest_sale_time": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Sale Time"
+          },
+          "orders_upserted": {
+            "title": "Orders Upserted",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "unmapped_count": {
+            "title": "Unmapped Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "batch_id",
+          "status",
+          "orders_upserted",
+          "items_recorded",
+          "unmapped_count",
+          "latest_sale_time"
+        ],
+        "title": "CsvCommitResponse",
+        "type": "object"
+      },
+      "CsvPreviewRequest": {
+        "properties": {
+          "csv_text": {
+            "minLength": 1,
+            "title": "Csv Text",
+            "type": "string"
+          },
+          "file_name": {
+            "default": "sales_export.csv",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "File Name",
+            "type": "string"
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/CsvColumnMapping"
+          }
+        },
+        "required": [
+          "csv_text"
+        ],
+        "title": "CsvPreviewRequest",
+        "type": "object"
+      },
+      "CsvPreviewResponse": {
+        "properties": {
+          "batch_id": {
+            "format": "uuid",
+            "title": "Batch Id",
+            "type": "string"
+          },
+          "duplicate_file_warning": {
+            "title": "Duplicate File Warning",
+            "type": "boolean"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/CsvPreviewRowError"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "file_name": {
+            "title": "File Name",
+            "type": "string"
+          },
+          "latest_sale_time": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Sale Time"
+          },
+          "rows_error": {
+            "title": "Rows Error",
+            "type": "integer"
+          },
+          "rows_total": {
+            "title": "Rows Total",
+            "type": "integer"
+          },
+          "rows_unmapped": {
+            "title": "Rows Unmapped",
+            "type": "integer"
+          },
+          "rows_valid": {
+            "title": "Rows Valid",
+            "type": "integer"
+          },
+          "sample_valid_rows": {
+            "items": {
+              "$ref": "#/components/schemas/CsvPreviewValidRow"
+            },
+            "title": "Sample Valid Rows",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "unmapped_product_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unmapped Product Names",
+            "type": "array"
+          }
+        },
+        "required": [
+          "batch_id",
+          "file_name",
+          "status",
+          "duplicate_file_warning",
+          "rows_total",
+          "rows_valid",
+          "rows_error",
+          "rows_unmapped",
+          "unmapped_product_names",
+          "latest_sale_time",
+          "errors",
+          "sample_valid_rows"
+        ],
+        "title": "CsvPreviewResponse",
+        "type": "object"
+      },
+      "CsvPreviewRowError": {
+        "properties": {
+          "raw_row": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Raw Row",
+            "type": "object"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "row_number": {
+            "title": "Row Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "row_number",
+          "reason",
+          "raw_row"
+        ],
+        "title": "CsvPreviewRowError",
+        "type": "object"
+      },
+      "CsvPreviewValidRow": {
+        "properties": {
+          "external_order_id": {
+            "title": "External Order Id",
+            "type": "string"
+          },
+          "mapping_status": {
+            "enum": [
+              "MAPPED",
+              "UNMAPPED"
+            ],
+            "title": "Mapping Status",
+            "type": "string"
+          },
+          "menu_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Menu Item Id"
+          },
+          "ordered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ordered At"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "raw_product_name": {
+            "title": "Raw Product Name",
+            "type": "string"
+          },
+          "row_number": {
+            "title": "Row Number",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "COMPLETED",
+              "CANCELLED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "time_basis": {
+            "enum": [
+              "order_time",
+              "date_only",
+              "unknown"
+            ],
+            "title": "Time Basis",
+            "type": "string"
+          },
+          "unit_price": {
+            "title": "Unit Price",
+            "type": "string"
+          }
+        },
+        "required": [
+          "row_number",
+          "external_order_id",
+          "ordered_at",
+          "time_basis",
+          "raw_product_name",
+          "menu_item_id",
+          "mapping_status",
+          "quantity",
+          "unit_price",
+          "status"
+        ],
+        "title": "CsvPreviewValidRow",
+        "type": "object"
+      },
+      "FieldError": {
+        "properties": {
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "message"
+        ],
+        "title": "FieldError",
+        "type": "object"
+      },
+      "FloorFixture": {
+        "properties": {
+          "h": {
+            "maximum": 28.0,
+            "minimum": 1.0,
+            "title": "H",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "ENTRANCE",
+              "COUNTER",
+              "PARTITION",
+              "KITCHEN",
+              "WALL"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "w": {
+            "maximum": 24.0,
+            "minimum": 1.0,
+            "title": "W",
+            "type": "integer"
+          },
+          "x": {
+            "exclusiveMaximum": 24.0,
+            "minimum": 0.0,
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "exclusiveMaximum": 28.0,
+            "minimum": 0.0,
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "x",
+          "y",
+          "w",
+          "h"
+        ],
+        "title": "FloorFixture",
+        "type": "object"
+      },
+      "GuestSessionContextUpdate": {
+        "properties": {
+          "purpose": {
+            "anyOf": [
+              {
+                "enum": [
+                  "MEAL",
+                  "DATE",
+                  "GATHERING",
+                  "FAMILY",
+                  "COMPANY",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
+          "relationship": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ALONE",
+                  "COUPLE",
+                  "FRIENDS",
+                  "FAMILY",
+                  "COWORKERS",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship"
+          }
+        },
+        "title": "GuestSessionContextUpdate",
+        "type": "object"
+      },
+      "GuestSessionOpen": {
+        "properties": {
+          "new_party": {
+            "default": false,
+            "title": "New Party",
+            "type": "boolean"
+          },
+          "party_size": {
+            "anyOf": [
+              {
+                "maximum": 20.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Party Size"
+          }
+        },
+        "title": "GuestSessionOpen",
+        "type": "object"
+      },
+      "GuestSessionResponse": {
+        "properties": {
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "party_size": {
+            "title": "Party Size",
+            "type": "integer"
+          },
+          "party_size_source": {
+            "title": "Party Size Source",
+            "type": "string"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
+          "relationship": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship"
+          },
+          "slots": {
+            "items": {
+              "$ref": "#/components/schemas/GuestSlotResponse"
+            },
+            "title": "Slots",
+            "type": "array"
+          }
+        },
+        "required": [
+          "party_size",
+          "party_size_source",
+          "opened_at",
+          "slots"
+        ],
+        "title": "GuestSessionResponse",
+        "type": "object"
+      },
+      "GuestSlotDisplayUpdate": {
+        "properties": {
+          "age_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "UNRECORDED",
+                  "10S",
+                  "20S",
+                  "30S",
+                  "40S",
+                  "50S",
+                  "50S_PLUS",
+                  "60S_PLUS",
+                  "MIXED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Band"
+          },
+          "display_opt_out": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Opt Out"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "enum": [
+                  "FEMALE",
+                  "MALE",
+                  "UNRECORDED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          }
+        },
+        "title": "GuestSlotDisplayUpdate",
+        "type": "object"
+      },
+      "GuestSlotResponse": {
+        "properties": {
+          "age_band": {
+            "default": "UNRECORDED",
+            "title": "Age Band",
+            "type": "string"
+          },
+          "display_opt_out": {
+            "title": "Display Opt Out",
+            "type": "boolean"
+          },
+          "gender": {
+            "default": "UNRECORDED",
+            "title": "Gender",
+            "type": "string"
+          },
+          "is_claimed": {
+            "title": "Is Claimed",
+            "type": "boolean"
+          },
+          "is_mine": {
+            "title": "Is Mine",
+            "type": "boolean"
+          },
+          "slot_no": {
+            "title": "Slot No",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "EMPTY",
+              "SILHOUETTE",
+              "EDITING",
+              "CUSTOM"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slot_no",
+          "state",
+          "is_claimed",
+          "is_mine",
+          "display_opt_out"
+        ],
+        "title": "GuestSlotResponse",
+        "type": "object"
+      },
+      "GuestTableResponse": {
+        "properties": {
+          "joined": {
+            "default": false,
+            "title": "Joined",
+            "type": "boolean"
+          },
+          "over_seats": {
+            "default": false,
+            "title": "Over Seats",
+            "type": "boolean"
+          },
+          "party_size_mismatch": {
+            "default": false,
+            "title": "Party Size Mismatch",
+            "type": "boolean"
+          },
+          "seats": {
+            "title": "Seats",
+            "type": "integer"
+          },
+          "session": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuestSessionResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "table_name": {
+            "title": "Table Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "table_name",
+          "seats",
+          "session"
+        ],
+        "title": "GuestTableResponse",
+        "type": "object"
+      },
+      "HolidayCreate": {
+        "properties": {
+          "holiday_date": {
+            "format": "date",
+            "title": "Holiday Date",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "holiday_date",
+          "name"
+        ],
+        "title": "HolidayCreate",
+        "type": "object"
+      },
+      "HolidayResponse": {
+        "properties": {
+          "holiday_date": {
+            "format": "date",
+            "title": "Holiday Date",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "holiday_date",
+          "name",
+          "source"
+        ],
+        "title": "HolidayResponse",
+        "type": "object"
+      },
+      "IngredientCreate": {
+        "properties": {
+          "base_unit": {
+            "default": "g",
+            "enum": [
+              "g",
+              "ml",
+              "ea"
+            ],
+            "title": "Base Unit",
+            "type": "string"
+          },
+          "conversion_factor": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1000000.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "default": "1000",
+            "title": "Conversion Factor"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "purchase_unit": {
+            "default": "kg",
+            "enum": [
+              "kg",
+              "g",
+              "L",
+              "ml",
+              "ea",
+              "pack"
+            ],
+            "title": "Purchase Unit",
+            "type": "string"
+          },
+          "safety_stock": {
+            "anyOf": [
+              {
+                "maximum": 100000000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Stock"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "IngredientCreate",
+        "type": "object"
+      },
+      "IngredientInventoryItem": {
+        "properties": {
+          "adjustments_since_count_base": {
+            "title": "Adjustments Since Count Base",
+            "type": "string"
+          },
+          "base_unit": {
+            "title": "Base Unit",
+            "type": "string"
+          },
+          "conversion_factor": {
+            "title": "Conversion Factor",
+            "type": "string"
+          },
+          "cost_basis_label": {
+            "default": "최근 입고 단가 기준 (PROVISIONAL P-12)",
+            "title": "Cost Basis Label",
+            "type": "string"
+          },
+          "estimated_quantity": {
+            "title": "Estimated Quantity",
+            "type": "string"
+          },
+          "ingredient_id": {
+            "format": "uuid",
+            "title": "Ingredient Id",
+            "type": "string"
+          },
+          "ingredient_name": {
+            "title": "Ingredient Name",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "last_actual_quantity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Actual Quantity"
+          },
+          "last_counted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Counted At"
+          },
+          "latest_unit_cost_per_base": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Unit Cost Per Base"
+          },
+          "latest_unit_cost_per_purchase": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Unit Cost Per Purchase"
+          },
+          "purchase_unit": {
+            "title": "Purchase Unit",
+            "type": "string"
+          },
+          "receipts_since_count_base": {
+            "title": "Receipts Since Count Base",
+            "type": "string"
+          },
+          "safety_stock": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Stock"
+          },
+          "stock_status": {
+            "enum": [
+              "OK",
+              "LOW_STOCK",
+              "NEGATIVE_WARNING"
+            ],
+            "title": "Stock Status",
+            "type": "string"
+          },
+          "theoretical_consumption_base": {
+            "title": "Theoretical Consumption Base",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ingredient_id",
+          "ingredient_name",
+          "is_active",
+          "base_unit",
+          "purchase_unit",
+          "conversion_factor",
+          "safety_stock",
+          "latest_unit_cost_per_purchase",
+          "latest_unit_cost_per_base",
+          "last_actual_quantity",
+          "last_counted_at",
+          "receipts_since_count_base",
+          "theoretical_consumption_base",
+          "adjustments_since_count_base",
+          "estimated_quantity",
+          "stock_status"
+        ],
+        "title": "IngredientInventoryItem",
+        "type": "object"
+      },
+      "IngredientResponse": {
+        "properties": {
+          "base_unit": {
+            "title": "Base Unit",
+            "type": "string"
+          },
+          "conversion_factor": {
+            "title": "Conversion Factor",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "linked_menu_count": {
+            "default": 0,
+            "title": "Linked Menu Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "purchase_unit": {
+            "title": "Purchase Unit",
+            "type": "string"
+          },
+          "safety_stock": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Stock"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "name",
+          "base_unit",
+          "purchase_unit",
+          "conversion_factor",
+          "safety_stock",
+          "notes",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "IngredientResponse",
+        "type": "object"
+      },
+      "IngredientUpdate": {
+        "properties": {
+          "base_unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "g",
+                  "ml",
+                  "ea"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Unit"
+          },
+          "conversion_factor": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1000000.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversion Factor"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "purchase_unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "kg",
+                  "g",
+                  "L",
+                  "ml",
+                  "ea",
+                  "pack"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purchase Unit"
+          },
+          "safety_stock": {
+            "anyOf": [
+              {
+                "maximum": 100000000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Stock"
+          }
+        },
+        "title": "IngredientUpdate",
+        "type": "object"
+      },
+      "IngredientUsageItem": {
+        "properties": {
+          "menu_is_active": {
+            "title": "Menu Is Active",
+            "type": "boolean"
+          },
+          "menu_item_id": {
+            "format": "uuid",
+            "title": "Menu Item Id",
+            "type": "string"
+          },
+          "menu_name": {
+            "title": "Menu Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "string"
+          },
+          "recipe_status": {
+            "title": "Recipe Status",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "menu_item_id",
+          "menu_name",
+          "menu_is_active",
+          "quantity",
+          "unit",
+          "recipe_status"
+        ],
+        "title": "IngredientUsageItem",
+        "type": "object"
+      },
+      "IntegrationStatusResponse": {
+        "properties": {
+          "connection_status": {
+            "enum": [
+              "UNVERIFIED",
+              "READY_CSV"
+            ],
+            "title": "Connection Status",
+            "type": "string"
+          },
+          "is_realtime": {
+            "default": false,
+            "title": "Is Realtime",
+            "type": "boolean"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Synced At"
+          },
+          "latest_data_time": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Data Time"
+          },
+          "mode": {
+            "enum": [
+              "TOSS_OPEN_API",
+              "TOSS_PLUGIN",
+              "CSV_UPLOAD"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "net_items_quantity": {
+            "title": "Net Items Quantity",
+            "type": "integer"
+          },
+          "net_sales_amount": {
+            "title": "Net Sales Amount",
+            "type": "string"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          },
+          "total_orders_count": {
+            "title": "Total Orders Count",
+            "type": "integer"
+          },
+          "unmapped_products": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unmapped Products",
+            "type": "array"
+          }
+        },
+        "required": [
+          "store_id",
+          "mode",
+          "connection_status",
+          "last_synced_at",
+          "latest_data_time",
+          "total_orders_count",
+          "net_sales_amount",
+          "net_items_quantity",
+          "unmapped_products"
+        ],
+        "title": "IntegrationStatusResponse",
+        "type": "object"
+      },
+      "InventoryAdjustmentCreate": {
+        "properties": {
+          "ingredient_id": {
+            "format": "uuid",
+            "title": "Ingredient Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "quantity_delta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Quantity Delta"
+          },
+          "reason": {
+            "default": "WASTE",
+            "enum": [
+              "WASTE",
+              "SPOILAGE",
+              "CORRECTION",
+              "OTHER"
+            ],
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ingredient_id",
+          "quantity_delta"
+        ],
+        "title": "InventoryAdjustmentCreate",
+        "type": "object"
+      },
+      "InventoryAdjustmentResponse": {
+        "properties": {
+          "base_unit": {
+            "title": "Base Unit",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ingredient_id": {
+            "format": "uuid",
+            "title": "Ingredient Id",
+            "type": "string"
+          },
+          "ingredient_name": {
+            "title": "Ingredient Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "quantity_delta": {
+            "title": "Quantity Delta",
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "WASTE",
+              "SPOILAGE",
+              "CORRECTION",
+              "OTHER"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "ingredient_id",
+          "ingredient_name",
+          "quantity_delta",
+          "base_unit",
+          "reason",
+          "notes",
+          "occurred_at"
+        ],
+        "title": "InventoryAdjustmentResponse",
+        "type": "object"
+      },
+      "InventoryCountCreate": {
+        "properties": {
+          "actual_quantity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Actual Quantity"
+          },
+          "ingredient_id": {
+            "format": "uuid",
+            "title": "Ingredient Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "required": [
+          "ingredient_id",
+          "actual_quantity"
+        ],
+        "title": "InventoryCountCreate",
+        "type": "object"
+      },
+      "InventoryCountResponse": {
+        "properties": {
+          "actual_quantity": {
+            "title": "Actual Quantity",
+            "type": "string"
+          },
+          "base_unit": {
+            "title": "Base Unit",
+            "type": "string"
+          },
+          "counted_at": {
+            "format": "date-time",
+            "title": "Counted At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ingredient_id": {
+            "format": "uuid",
+            "title": "Ingredient Id",
+            "type": "string"
+          },
+          "ingredient_name": {
+            "title": "Ingredient Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "ingredient_id",
+          "ingredient_name",
+          "actual_quantity",
+          "base_unit",
+          "notes",
+          "counted_at"
+        ],
+        "title": "InventoryCountResponse",
+        "type": "object"
+      },
+      "InventoryReceiptCreate": {
+        "properties": {
+          "ingredient_id": {
+            "format": "uuid",
+            "title": "Ingredient Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "purchase_quantity": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Purchase Quantity"
+          },
+          "supplier_name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Name"
+          },
+          "total_cost": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Total Cost"
+          }
+        },
+        "required": [
+          "ingredient_id",
+          "purchase_quantity",
+          "total_cost"
+        ],
+        "title": "InventoryReceiptCreate",
+        "type": "object"
+      },
+      "InventoryReceiptResponse": {
+        "properties": {
+          "base_quantity": {
+            "title": "Base Quantity",
+            "type": "string"
+          },
+          "base_unit": {
+            "title": "Base Unit",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ingredient_id": {
+            "format": "uuid",
+            "title": "Ingredient Id",
+            "type": "string"
+          },
+          "ingredient_name": {
+            "title": "Ingredient Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "purchase_quantity": {
+            "title": "Purchase Quantity",
+            "type": "string"
+          },
+          "purchase_unit": {
+            "title": "Purchase Unit",
+            "type": "string"
+          },
+          "received_at": {
+            "format": "date-time",
+            "title": "Received At",
+            "type": "string"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          },
+          "supplier_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Name"
+          },
+          "total_cost": {
+            "title": "Total Cost",
+            "type": "string"
+          },
+          "unit_cost_per_base": {
+            "title": "Unit Cost Per Base",
+            "type": "string"
+          },
+          "unit_cost_per_purchase": {
+            "title": "Unit Cost Per Purchase",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "ingredient_id",
+          "ingredient_name",
+          "purchase_quantity",
+          "purchase_unit",
+          "base_quantity",
+          "base_unit",
+          "total_cost",
+          "unit_cost_per_purchase",
+          "unit_cost_per_base",
+          "supplier_name",
+          "notes",
+          "received_at"
+        ],
+        "title": "InventoryReceiptResponse",
+        "type": "object"
+      },
+      "MenuCostIngredientBreakdown": {
+        "properties": {
+          "base_line_cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Line Cost"
+          },
+          "base_unit": {
+            "title": "Base Unit",
+            "type": "string"
+          },
+          "base_unit_cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Unit Cost"
+          },
+          "ingredient_id": {
+            "format": "uuid",
+            "title": "Ingredient Id",
+            "type": "string"
+          },
+          "ingredient_name": {
+            "title": "Ingredient Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "string"
+          },
+          "simulated_line_cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Simulated Line Cost"
+          },
+          "simulated_unit_cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Simulated Unit Cost"
+          }
+        },
+        "required": [
+          "ingredient_id",
+          "ingredient_name",
+          "quantity",
+          "base_unit",
+          "base_unit_cost",
+          "simulated_unit_cost",
+          "base_line_cost",
+          "simulated_line_cost"
+        ],
+        "title": "MenuCostIngredientBreakdown",
+        "type": "object"
+      },
+      "MenuCostSimulationItem": {
+        "properties": {
+          "base_cost_ratio_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Cost Ratio Percent"
+          },
+          "base_margin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Margin"
+          },
+          "base_recipe_cost": {
+            "title": "Base Recipe Cost",
+            "type": "string"
+          },
+          "breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/MenuCostIngredientBreakdown"
+            },
+            "title": "Breakdown",
+            "type": "array"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "cost_delta": {
+            "title": "Cost Delta",
+            "type": "string"
+          },
+          "cost_status": {
+            "enum": [
+              "COMPLETE",
+              "NO_RECIPE",
+              "INCOMPLETE_COST"
+            ],
+            "title": "Cost Status",
+            "type": "string"
+          },
+          "high_cost_warning": {
+            "title": "High Cost Warning",
+            "type": "boolean"
+          },
+          "menu_item_id": {
+            "format": "uuid",
+            "title": "Menu Item Id",
+            "type": "string"
+          },
+          "menu_name": {
+            "title": "Menu Name",
+            "type": "string"
+          },
+          "missing_cost_ingredients": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Cost Ingredients",
+            "type": "array"
+          },
+          "selling_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selling Price"
+          },
+          "simulated_cost_ratio_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Simulated Cost Ratio Percent"
+          },
+          "simulated_margin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Simulated Margin"
+          },
+          "simulated_recipe_cost": {
+            "title": "Simulated Recipe Cost",
+            "type": "string"
+          }
+        },
+        "required": [
+          "menu_item_id",
+          "menu_name",
+          "category",
+          "selling_price",
+          "cost_status",
+          "missing_cost_ingredients",
+          "base_recipe_cost",
+          "simulated_recipe_cost",
+          "cost_delta",
+          "base_margin",
+          "simulated_margin",
+          "base_cost_ratio_percent",
+          "simulated_cost_ratio_percent",
+          "high_cost_warning",
+          "breakdown"
+        ],
+        "title": "MenuCostSimulationItem",
+        "type": "object"
+      },
+      "MenuCreate": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "selling_price": {
+            "anyOf": [
+              {
+                "maximum": 99999999.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selling Price"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "MenuCreate",
+        "type": "object"
+      },
+      "MenuResponse": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pos_mapping_status": {
+            "default": "UNLINKED_PROVISIONAL",
+            "enum": [
+              "LINKED",
+              "UNLINKED_PROVISIONAL"
+            ],
+            "title": "Pos Mapping Status",
+            "type": "string"
+          },
+          "recipe_item_count": {
+            "default": 0,
+            "title": "Recipe Item Count",
+            "type": "integer"
+          },
+          "recipe_status": {
+            "default": "UNREGISTERED",
+            "enum": [
+              "UNREGISTERED",
+              "PARTIAL",
+              "COMPLETE"
+            ],
+            "title": "Recipe Status",
+            "type": "string"
+          },
+          "selling_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selling Price"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "name",
+          "selling_price",
+          "category",
+          "description",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "MenuResponse",
+        "type": "object"
+      },
+      "MenuSalesRankItem": {
+        "properties": {
+          "mapping_status": {
+            "enum": [
+              "MAPPED",
+              "UNMAPPED"
+            ],
+            "title": "Mapping Status",
+            "type": "string"
+          },
+          "menu_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Menu Item Id"
+          },
+          "menu_name": {
+            "title": "Menu Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "sales_amount": {
+            "title": "Sales Amount",
+            "type": "string"
+          }
+        },
+        "required": [
+          "menu_item_id",
+          "menu_name",
+          "mapping_status",
+          "quantity",
+          "sales_amount"
+        ],
+        "title": "MenuSalesRankItem",
+        "type": "object"
+      },
+      "MenuUpdate": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "selling_price": {
+            "anyOf": [
+              {
+                "maximum": 99999999.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selling Price"
+          }
+        },
+        "title": "MenuUpdate",
+        "type": "object"
+      },
+      "PnlExpenseInput": {
+        "properties": {
+          "amount": {
+            "maximum": 10000000000.0,
+            "minimum": 0.0,
+            "title": "Amount",
+            "type": "integer"
+          },
+          "code": {
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "required": [
+          "code",
+          "amount"
+        ],
+        "title": "PnlExpenseInput",
+        "type": "object"
+      },
+      "PnlExpensesUpdate": {
+        "description": "그 달 수기 항목 전체. 보내지 않은 항목은 지워지고, 자동 항목은 다시 자동값이 된다.",
+        "properties": {
+          "card_fee_percent": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card Fee Percent"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PnlExpenseInput"
+            },
+            "maxItems": 100,
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "title": "PnlExpensesUpdate",
+        "type": "object"
+      },
+      "PnlLine": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "ratio_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratio Percent"
+          },
+          "source": {
+            "enum": [
+              "auto",
+              "manual"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "amount",
+          "source",
+          "ratio_percent"
+        ],
+        "title": "PnlLine",
+        "type": "object"
+      },
+      "PnlResponse": {
+        "properties": {
+          "card_fee_percent": {
+            "title": "Card Fee Percent",
+            "type": "string"
+          },
+          "expenses": {
+            "items": {
+              "$ref": "#/components/schemas/PnlLine"
+            },
+            "title": "Expenses",
+            "type": "array"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "operating_margin_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operating Margin Percent"
+          },
+          "operating_profit": {
+            "title": "Operating Profit",
+            "type": "integer"
+          },
+          "revenue": {
+            "$ref": "#/components/schemas/PnlLine"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          },
+          "total_expenses": {
+            "title": "Total Expenses",
+            "type": "integer"
+          },
+          "trend": {
+            "items": {
+              "$ref": "#/components/schemas/PnlTrendPoint"
+            },
+            "title": "Trend",
+            "type": "array"
+          }
+        },
+        "required": [
+          "store_id",
+          "month",
+          "card_fee_percent",
+          "revenue",
+          "expenses",
+          "total_expenses",
+          "operating_profit",
+          "operating_margin_percent",
+          "trend"
+        ],
+        "title": "PnlResponse",
+        "type": "object"
+      },
+      "PnlTrendPoint": {
+        "properties": {
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "operating_profit": {
+            "title": "Operating Profit",
+            "type": "integer"
+          },
+          "revenue": {
+            "title": "Revenue",
+            "type": "integer"
+          },
+          "total_expenses": {
+            "title": "Total Expenses",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "month",
+          "revenue",
+          "total_expenses",
+          "operating_profit"
+        ],
+        "title": "PnlTrendPoint",
+        "type": "object"
+      },
+      "PosModeUpdateRequest": {
+        "properties": {
+          "mode": {
+            "enum": [
+              "TOSS_OPEN_API",
+              "TOSS_PLUGIN",
+              "CSV_UPLOAD"
+            ],
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode"
+        ],
+        "title": "PosModeUpdateRequest",
+        "type": "object"
+      },
+      "Problem": {
+        "description": "RFC 9457 오류 본문. `code`와 `errors`는 확장 필드다 (API-004).",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "errors": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "detail",
+          "instance",
+          "code"
+        ],
+        "title": "Problem",
+        "type": "object"
+      },
+      "ProductMappingResponse": {
+        "properties": {
+          "external_product_name": {
+            "title": "External Product Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "menu_item_id": {
+            "format": "uuid",
+            "title": "Menu Item Id",
+            "type": "string"
+          },
+          "menu_name": {
+            "title": "Menu Name",
+            "type": "string"
+          },
+          "retroactive_updated_items": {
+            "default": 0,
+            "title": "Retroactive Updated Items",
+            "type": "integer"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "external_product_name",
+          "menu_item_id",
+          "menu_name"
+        ],
+        "title": "ProductMappingResponse",
+        "type": "object"
+      },
+      "ProductMappingUpsertRequest": {
+        "properties": {
+          "external_product_name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "External Product Name",
+            "type": "string"
+          },
+          "menu_item_id": {
+            "format": "uuid",
+            "title": "Menu Item Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "external_product_name",
+          "menu_item_id"
+        ],
+        "title": "ProductMappingUpsertRequest",
+        "type": "object"
+      },
+      "RecipeItemInput": {
+        "properties": {
+          "ingredient_id": {
+            "format": "uuid",
+            "title": "Ingredient Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1000000.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Quantity"
+          }
+        },
+        "required": [
+          "ingredient_id",
+          "quantity"
+        ],
+        "title": "RecipeItemInput",
+        "type": "object"
+      },
+      "RecipeItemResponse": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ingredient_id": {
+            "format": "uuid",
+            "title": "Ingredient Id",
+            "type": "string"
+          },
+          "ingredient_is_active": {
+            "title": "Ingredient Is Active",
+            "type": "boolean"
+          },
+          "ingredient_name": {
+            "title": "Ingredient Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ingredient_id",
+          "ingredient_name",
+          "ingredient_is_active",
+          "quantity",
+          "unit",
+          "notes"
+        ],
+        "title": "RecipeItemResponse",
+        "type": "object"
+      },
+      "RecipeResponse": {
+        "properties": {
+          "effective_from": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective From"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecipeItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "menu_item_id": {
+            "format": "uuid",
+            "title": "Menu Item Id",
+            "type": "string"
+          },
+          "menu_name": {
+            "title": "Menu Name",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "UNREGISTERED",
+              "PARTIAL",
+              "COMPLETE"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "menu_item_id",
+          "menu_name",
+          "version",
+          "status",
+          "effective_from",
+          "updated_at",
+          "items"
+        ],
+        "title": "RecipeResponse",
+        "type": "object"
+      },
+      "RecipeUpsertRequest": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecipeItemInput"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "status": {
+            "default": "COMPLETE",
+            "enum": [
+              "COMPLETE",
+              "PARTIAL"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "RecipeUpsertRequest",
+        "type": "object"
+      },
+      "SalesAnalyticsResponse": {
+        "properties": {
+          "hourly_buckets": {
+            "items": {
+              "$ref": "#/components/schemas/SalesHourlyBucket"
+            },
+            "title": "Hourly Buckets",
+            "type": "array"
+          },
+          "known_hour_quantity": {
+            "title": "Known Hour Quantity",
+            "type": "integer"
+          },
+          "menu_rankings": {
+            "items": {
+              "$ref": "#/components/schemas/MenuSalesRankItem"
+            },
+            "title": "Menu Rankings",
+            "type": "array"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          },
+          "total_completed_orders": {
+            "title": "Total Completed Orders",
+            "type": "integer"
+          },
+          "total_net_sales": {
+            "title": "Total Net Sales",
+            "type": "string"
+          },
+          "total_quantity": {
+            "title": "Total Quantity",
+            "type": "integer"
+          },
+          "unknown_hour_quantity": {
+            "title": "Unknown Hour Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "store_id",
+          "total_completed_orders",
+          "total_quantity",
+          "total_net_sales",
+          "known_hour_quantity",
+          "unknown_hour_quantity",
+          "hourly_buckets",
+          "menu_rankings"
+        ],
+        "title": "SalesAnalyticsResponse",
+        "type": "object"
+      },
+      "SalesHourlyBucket": {
+        "properties": {
+          "hour": {
+            "maximum": 23.0,
+            "minimum": 0.0,
+            "title": "Hour",
+            "type": "integer"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "sales_amount": {
+            "title": "Sales Amount",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hour",
+          "quantity",
+          "sales_amount"
+        ],
+        "title": "SalesHourlyBucket",
+        "type": "object"
+      },
+      "SalesOrderCreateItemInput": {
+        "properties": {
+          "menu_item_id": {
+            "format": "uuid",
+            "title": "Menu Item Id",
+            "type": "string"
+          },
+          "quantity": {
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "menu_item_id",
+          "quantity"
+        ],
+        "title": "SalesOrderCreateItemInput",
+        "type": "object"
+      },
+      "SalesOrderCreateRequest": {
+        "properties": {
+          "external_order_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Order Id"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderCreateItemInput"
+            },
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          },
+          "ordered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ordered At"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "SalesOrderCreateRequest",
+        "type": "object"
+      },
+      "SalesOrderItemResponse": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "line_amount": {
+            "title": "Line Amount",
+            "type": "string"
+          },
+          "mapping_status": {
+            "enum": [
+              "MAPPED",
+              "UNMAPPED"
+            ],
+            "title": "Mapping Status",
+            "type": "string"
+          },
+          "menu_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Menu Item Id"
+          },
+          "menu_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Menu Name"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "raw_product_name": {
+            "title": "Raw Product Name",
+            "type": "string"
+          },
+          "unit_price": {
+            "title": "Unit Price",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "raw_product_name",
+          "menu_item_id",
+          "menu_name",
+          "mapping_status",
+          "quantity",
+          "unit_price",
+          "line_amount"
+        ],
+        "title": "SalesOrderItemResponse",
+        "type": "object"
+      },
+      "SalesOrderItemUpdateInput": {
+        "properties": {
+          "item_id": {
+            "format": "uuid",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "quantity": {
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "item_id",
+          "quantity"
+        ],
+        "title": "SalesOrderItemUpdateInput",
+        "type": "object"
+      },
+      "SalesOrderResponse": {
+        "properties": {
+          "external_order_id": {
+            "title": "External Order Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "order_status": {
+            "enum": [
+              "COMPLETED",
+              "CANCELLED"
+            ],
+            "title": "Order Status",
+            "type": "string"
+          },
+          "ordered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ordered At"
+          },
+          "source_mode": {
+            "title": "Source Mode",
+            "type": "string"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          },
+          "time_basis": {
+            "title": "Time Basis",
+            "type": "string"
+          },
+          "total_amount": {
+            "title": "Total Amount",
+            "type": "string"
+          },
+          "total_quantity": {
+            "title": "Total Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "external_order_id",
+          "ordered_at",
+          "time_basis",
+          "order_status",
+          "total_quantity",
+          "total_amount",
+          "source_mode",
+          "items"
+        ],
+        "title": "SalesOrderResponse",
+        "type": "object"
+      },
+      "SalesOrderUpdateRequest": {
+        "properties": {
+          "items": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SalesOrderItemUpdateInput"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Items"
+          },
+          "order_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "COMPLETED",
+                  "CANCELLED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Status"
+          }
+        },
+        "title": "SalesOrderUpdateRequest",
+        "type": "object"
+      },
+      "SalesOrdersListResponse": {
+        "properties": {
+          "can_manual_edit": {
+            "title": "Can Manual Edit",
+            "type": "boolean"
+          },
+          "mode_notice": {
+            "title": "Mode Notice",
+            "type": "string"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderResponse"
+            },
+            "title": "Orders",
+            "type": "array"
+          },
+          "pos_mode": {
+            "enum": [
+              "TOSS_OPEN_API",
+              "TOSS_PLUGIN",
+              "CSV_UPLOAD"
+            ],
+            "title": "Pos Mode",
+            "type": "string"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "store_id",
+          "pos_mode",
+          "can_manual_edit",
+          "mode_notice",
+          "orders"
+        ],
+        "title": "SalesOrdersListResponse",
+        "type": "object"
+      },
+      "SlotProfileUpdate": {
+        "properties": {
+          "age_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "UNRECORDED",
+                  "10S",
+                  "20S",
+                  "30S",
+                  "40S",
+                  "50S",
+                  "50S_PLUS",
+                  "60S_PLUS",
+                  "MIXED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Band"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "enum": [
+                  "FEMALE",
+                  "MALE",
+                  "UNRECORDED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          }
+        },
+        "title": "SlotProfileUpdate",
+        "type": "object"
+      },
+      "StoreCreate": {
+        "properties": {
+          "business_days": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "월,화,수,목,금,토",
+            "title": "Business Days"
+          },
+          "default_seats": {
+            "default": 4,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Default Seats",
+            "type": "integer"
+          },
+          "initial_table_count": {
+            "default": 6,
+            "maximum": 50.0,
+            "minimum": 0.0,
+            "title": "Initial Table Count",
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "opening_hours": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "11:00-21:00",
+            "title": "Opening Hours"
+          },
+          "timezone": {
+            "default": "Asia/Seoul",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "StoreCreate",
+        "type": "object"
+      },
+      "StoreResponse": {
+        "properties": {
+          "business_days": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Business Days"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "floor_fixtures": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FloorFixture"
+            },
+            "title": "Floor Fixtures",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "opening_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opening Hours"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "timezone",
+          "business_days",
+          "opening_hours",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "StoreResponse",
+        "type": "object"
+      },
+      "StoreTableCreate": {
+        "properties": {
+          "grid_x": {
+            "default": 0,
+            "exclusiveMaximum": 24.0,
+            "minimum": 0.0,
+            "title": "Grid X",
+            "type": "integer"
+          },
+          "grid_y": {
+            "default": 0,
+            "exclusiveMaximum": 28.0,
+            "minimum": 0.0,
+            "title": "Grid Y",
+            "type": "integer"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "orientation": {
+            "default": "H",
+            "enum": [
+              "H",
+              "V"
+            ],
+            "title": "Orientation",
+            "type": "string"
+          },
+          "seats": {
+            "default": 4,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Seats",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "StoreTableCreate",
+        "type": "object"
+      },
+      "StoreTableResponse": {
+        "properties": {
+          "active_visit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VisitSessionResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "grid_x": {
+            "title": "Grid X",
+            "type": "integer"
+          },
+          "grid_y": {
+            "title": "Grid Y",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "orientation": {
+            "default": "H",
+            "title": "Orientation",
+            "type": "string"
+          },
+          "seats": {
+            "title": "Seats",
+            "type": "integer"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "name",
+          "seats",
+          "grid_x",
+          "grid_y",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "StoreTableResponse",
+        "type": "object"
+      },
+      "StoreTableUpdate": {
+        "properties": {
+          "grid_x": {
+            "anyOf": [
+              {
+                "exclusiveMaximum": 24.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grid X"
+          },
+          "grid_y": {
+            "anyOf": [
+              {
+                "exclusiveMaximum": 28.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grid Y"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "orientation": {
+            "anyOf": [
+              {
+                "enum": [
+                  "H",
+                  "V"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orientation"
+          },
+          "seats": {
+            "anyOf": [
+              {
+                "maximum": 20.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seats"
+          }
+        },
+        "title": "StoreTableUpdate",
+        "type": "object"
+      },
+      "StoreUpdate": {
+        "properties": {
+          "business_days": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Business Days"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "opening_hours": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opening Hours"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "StoreUpdate",
+        "type": "object"
+      },
+      "TableQrTokenResponse": {
+        "properties": {
+          "rotated_at": {
+            "format": "date-time",
+            "title": "Rotated At",
+            "type": "string"
+          },
+          "table_id": {
+            "format": "uuid",
+            "title": "Table Id",
+            "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "table_id",
+          "token",
+          "rotated_at"
+        ],
+        "title": "TableQrTokenResponse",
+        "type": "object"
+      },
+      "VisitSessionCreate": {
+        "properties": {
+          "age_band": {
+            "default": "UNRECORDED",
+            "enum": [
+              "UNRECORDED",
+              "10S",
+              "20S",
+              "30S",
+              "40S",
+              "50S",
+              "50S_PLUS",
+              "60S_PLUS",
+              "MIXED"
+            ],
+            "title": "Age Band",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "party_size": {
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Party Size",
+            "type": "integer"
+          },
+          "table_id": {
+            "format": "uuid",
+            "title": "Table Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "table_id",
+          "party_size"
+        ],
+        "title": "VisitSessionCreate",
+        "type": "object"
+      },
+      "VisitSessionResponse": {
+        "properties": {
+          "age_band": {
+            "title": "Age Band",
+            "type": "string"
+          },
+          "closed_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed Reason"
+          },
+          "context_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Source"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "left_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Left At"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "opened_by": {
+            "default": "STAFF",
+            "title": "Opened By",
+            "type": "string"
+          },
+          "paid_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid At"
+          },
+          "party_size": {
+            "title": "Party Size",
+            "type": "integer"
+          },
+          "party_size_source": {
+            "default": "STAFF",
+            "title": "Party Size Source",
+            "type": "string"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
+          "relationship": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship"
+          },
+          "seated_at": {
+            "format": "date-time",
+            "title": "Seated At",
+            "type": "string"
+          },
+          "slots": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/VisitSlotResponse"
+            },
+            "title": "Slots",
+            "type": "array"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "SEATED",
+              "PAID",
+              "LEFT"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          },
+          "table_id": {
+            "format": "uuid",
+            "title": "Table Id",
+            "type": "string"
+          },
+          "table_name": {
+            "title": "Table Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "table_id",
+          "table_name",
+          "party_size",
+          "age_band",
+          "status",
+          "seated_at",
+          "paid_at",
+          "left_at",
+          "source",
+          "notes"
+        ],
+        "title": "VisitSessionResponse",
+        "type": "object"
+      },
+      "VisitSessionUpdate": {
+        "properties": {
+          "age_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "UNRECORDED",
+                  "10S",
+                  "20S",
+                  "30S",
+                  "40S",
+                  "50S",
+                  "50S_PLUS",
+                  "60S_PLUS",
+                  "MIXED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Band"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "party_size": {
+            "anyOf": [
+              {
+                "maximum": 50.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Party Size"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "enum": [
+                  "MEAL",
+                  "DATE",
+                  "GATHERING",
+                  "FAMILY",
+                  "COMPANY",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
+          "relationship": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ALONE",
+                  "COUPLE",
+                  "FRIENDS",
+                  "FAMILY",
+                  "COWORKERS",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "SEATED",
+                  "PAID",
+                  "LEFT"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "VisitSessionUpdate",
+        "type": "object"
+      },
+      "VisitSlotResponse": {
+        "properties": {
+          "age_band": {
+            "title": "Age Band",
+            "type": "string"
+          },
+          "gender": {
+            "title": "Gender",
+            "type": "string"
+          },
+          "is_claimed": {
+            "title": "Is Claimed",
+            "type": "boolean"
+          },
+          "profile_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Source"
+          },
+          "slot_no": {
+            "title": "Slot No",
+            "type": "integer"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slot_no",
+          "state",
+          "is_claimed",
+          "gender",
+          "age_band",
+          "profile_source"
+        ],
+        "title": "VisitSlotResponse",
+        "type": "object"
+      },
+      "VisitSummaryResponse": {
+        "properties": {
+          "active_guest_count": {
+            "title": "Active Guest Count",
+            "type": "integer"
+          },
+          "active_table_count": {
+            "title": "Active Table Count",
+            "type": "integer"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/VisitSessionResponse"
+            },
+            "title": "Sessions",
+            "type": "array"
+          },
+          "total_guest_count": {
+            "title": "Total Guest Count",
+            "type": "integer"
+          },
+          "total_visit_count": {
+            "title": "Total Visit Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "active_table_count",
+          "active_guest_count",
+          "total_visit_count",
+          "total_guest_count",
+          "sessions"
+        ],
+        "title": "VisitSummaryResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "1~2인 운영 음식점 데이터 파이프라인 백엔드 (POS 실연동 미검증)",
+    "title": "음식점 AX 데이터 수집·운영 최적화 API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/guest/v1/qr/{token}": {
+      "get": {
+        "operationId": "get_table_api_guest_v1_qr__token__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "food_guest_device",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Food Guest Device"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestTableResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Table",
+        "tags": [
+          "guest"
+        ]
+      }
+    },
+    "/api/guest/v1/qr/{token}/session": {
+      "patch": {
+        "operationId": "update_session_api_guest_v1_qr__token__session_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "food_guest_device",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Food Guest Device"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestSessionContextUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestTableResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Session",
+        "tags": [
+          "guest"
+        ]
+      },
+      "post": {
+        "operationId": "open_session_api_guest_v1_qr__token__session_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "food_guest_device",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Food Guest Device"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestSessionOpen"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestTableResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open Session",
+        "tags": [
+          "guest"
+        ]
+      }
+    },
+    "/api/guest/v1/qr/{token}/session/slots": {
+      "post": {
+        "operationId": "add_slot_api_guest_v1_qr__token__session_slots_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "food_guest_device",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Food Guest Device"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestTableResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Slot",
+        "tags": [
+          "guest"
+        ]
+      }
+    },
+    "/api/guest/v1/qr/{token}/session/slots/{slot_no}": {
+      "delete": {
+        "operationId": "remove_slot_api_guest_v1_qr__token__session_slots__slot_no__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slot_no",
+            "required": true,
+            "schema": {
+              "title": "Slot No",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "food_guest_device",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Food Guest Device"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestTableResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Slot",
+        "tags": [
+          "guest"
+        ]
+      },
+      "patch": {
+        "operationId": "update_slot_api_guest_v1_qr__token__session_slots__slot_no__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slot_no",
+            "required": true,
+            "schema": {
+              "title": "Slot No",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "food_guest_device",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Food Guest Device"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestSlotDisplayUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestTableResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Slot",
+        "tags": [
+          "guest"
+        ]
+      }
+    },
+    "/api/guest/v1/qr/{token}/session/slots/{slot_no}/claim": {
+      "post": {
+        "operationId": "claim_slot_api_guest_v1_qr__token__session_slots__slot_no__claim_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slot_no",
+            "required": true,
+            "schema": {
+              "title": "Slot No",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "food_guest_device",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Food Guest Device"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestTableResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Claim Slot",
+        "tags": [
+          "guest"
+        ]
+      }
+    },
+    "/api/v1/holidays": {
+      "get": {
+        "operationId": "get_holidays_api_v1_holidays_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Year",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/HolidayResponse"
+                  },
+                  "title": "Response Get Holidays Api V1 Holidays Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Holidays",
+        "tags": [
+          "holidays"
+        ]
+      },
+      "post": {
+        "operationId": "post_holiday_api_v1_holidays_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HolidayCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HolidayResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Holiday",
+        "tags": [
+          "holidays"
+        ]
+      }
+    },
+    "/api/v1/stores": {
+      "get": {
+        "operationId": "get_stores_api_v1_stores_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StoreResponse"
+                  },
+                  "title": "Response Get Stores Api V1 Stores Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Stores",
+        "tags": [
+          "stores"
+        ]
+      },
+      "post": {
+        "operationId": "post_store_api_v1_stores_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Store",
+        "tags": [
+          "stores"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}": {
+      "get": {
+        "operationId": "get_store_api_v1_stores__store_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Store",
+        "tags": [
+          "stores"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_store_api_v1_stores__store_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Store",
+        "tags": [
+          "stores"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/analytics/costing": {
+      "post": {
+        "operationId": "simulate_menu_costs_endpoint_api_v1_stores__store_id__analytics_costing_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CostSimulationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CostSimulationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Simulate Menu Costs Endpoint",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/analytics/sales": {
+      "get": {
+        "operationId": "get_sales_analytics_endpoint_api_v1_stores__store_id__analytics_sales_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesAnalyticsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Sales Analytics Endpoint",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/floor/reset": {
+      "post": {
+        "description": "홀 배치를 매장 도면(meal_love 프리셋)으로 되돌린다 (WO-20261111-001).",
+        "operationId": "reset_floor_api_v1_stores__store_id__floor_reset_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StoreTableResponse"
+                  },
+                  "title": "Response Reset Floor Api V1 Stores  Store Id  Floor Reset Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reset Floor",
+        "tags": [
+          "tables & visits"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/imports/sales-csv/preview": {
+      "post": {
+        "operationId": "preview_sales_csv_endpoint_api_v1_stores__store_id__imports_sales_csv_preview_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CsvPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CsvPreviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview Sales Csv Endpoint",
+        "tags": [
+          "integrations",
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/imports/sales-csv/sample": {
+      "get": {
+        "operationId": "get_sample_sales_csv_endpoint_api_v1_stores__store_id__imports_sales_csv_sample_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Get Sample Sales Csv Endpoint Api V1 Stores  Store Id  Imports Sales Csv Sample Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Sample Sales Csv Endpoint",
+        "tags": [
+          "integrations",
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/imports/sales-csv/{batch_id}/commit": {
+      "post": {
+        "operationId": "commit_sales_csv_endpoint_api_v1_stores__store_id__imports_sales_csv__batch_id__commit_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Batch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CsvCommitResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Commit Sales Csv Endpoint",
+        "tags": [
+          "integrations",
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/ingredients": {
+      "get": {
+        "operationId": "get_ingredients_api_v1_stores__store_id__ingredients_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "식자재명 검색어",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "식자재명 검색어",
+              "title": "Q"
+            }
+          },
+          {
+            "description": "활성 상태 필터",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "description": "활성 상태 필터",
+              "enum": [
+                "active",
+                "inactive",
+                "all"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IngredientResponse"
+                  },
+                  "title": "Response Get Ingredients Api V1 Stores  Store Id  Ingredients Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Ingredients",
+        "tags": [
+          "ingredients"
+        ]
+      },
+      "post": {
+        "operationId": "post_ingredient_api_v1_stores__store_id__ingredients_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngredientCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngredientResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Ingredient",
+        "tags": [
+          "ingredients"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/ingredients/{ingredient_id}": {
+      "get": {
+        "operationId": "get_ingredient_api_v1_stores__store_id__ingredients__ingredient_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "ingredient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ingredient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngredientResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Ingredient",
+        "tags": [
+          "ingredients"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_ingredient_api_v1_stores__store_id__ingredients__ingredient_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "ingredient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ingredient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngredientUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngredientResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Ingredient",
+        "tags": [
+          "ingredients"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/ingredients/{ingredient_id}/usages": {
+      "get": {
+        "operationId": "get_ingredient_usages_api_v1_stores__store_id__ingredients__ingredient_id__usages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "ingredient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ingredient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IngredientUsageItem"
+                  },
+                  "title": "Response Get Ingredient Usages Api V1 Stores  Store Id  Ingredients  Ingredient Id  Usages Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Ingredient Usages",
+        "tags": [
+          "ingredients"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/integrations/mappings": {
+      "get": {
+        "operationId": "list_product_mappings_endpoint_api_v1_stores__store_id__integrations_mappings_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProductMappingResponse"
+                  },
+                  "title": "Response List Product Mappings Endpoint Api V1 Stores  Store Id  Integrations Mappings Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Product Mappings Endpoint",
+        "tags": [
+          "integrations",
+          "imports"
+        ]
+      },
+      "post": {
+        "operationId": "upsert_product_mapping_endpoint_api_v1_stores__store_id__integrations_mappings_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductMappingUpsertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductMappingResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upsert Product Mapping Endpoint",
+        "tags": [
+          "integrations",
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/integrations/mode": {
+      "patch": {
+        "operationId": "update_pos_mode_endpoint_api_v1_stores__store_id__integrations_mode_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PosModeUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Pos Mode Endpoint",
+        "tags": [
+          "integrations",
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/integrations/status": {
+      "get": {
+        "operationId": "get_integration_status_endpoint_api_v1_stores__store_id__integrations_status_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Integration Status Endpoint",
+        "tags": [
+          "integrations",
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/inventory/adjustments": {
+      "post": {
+        "operationId": "create_adjustment_endpoint_api_v1_stores__store_id__inventory_adjustments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InventoryAdjustmentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryAdjustmentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Adjustment Endpoint",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/inventory/counts": {
+      "get": {
+        "operationId": "list_counts_endpoint_api_v1_stores__store_id__inventory_counts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ingredient_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ingredient Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InventoryCountResponse"
+                  },
+                  "title": "Response List Counts Endpoint Api V1 Stores  Store Id  Inventory Counts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Counts Endpoint",
+        "tags": [
+          "inventory"
+        ]
+      },
+      "post": {
+        "operationId": "create_count_endpoint_api_v1_stores__store_id__inventory_counts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InventoryCountCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryCountResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Count Endpoint",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/inventory/receipts": {
+      "get": {
+        "operationId": "list_receipts_endpoint_api_v1_stores__store_id__inventory_receipts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ingredient_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ingredient Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InventoryReceiptResponse"
+                  },
+                  "title": "Response List Receipts Endpoint Api V1 Stores  Store Id  Inventory Receipts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Receipts Endpoint",
+        "tags": [
+          "inventory"
+        ]
+      },
+      "post": {
+        "operationId": "create_receipt_endpoint_api_v1_stores__store_id__inventory_receipts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InventoryReceiptCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryReceiptResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Receipt Endpoint",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/inventory/summary": {
+      "get": {
+        "operationId": "get_inventory_summary_endpoint_api_v1_stores__store_id__inventory_summary_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_inactive",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Inactive",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IngredientInventoryItem"
+                  },
+                  "title": "Response Get Inventory Summary Endpoint Api V1 Stores  Store Id  Inventory Summary Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Inventory Summary Endpoint",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/menus": {
+      "get": {
+        "operationId": "get_menus_api_v1_stores__store_id__menus_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "메뉴명 검색어",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "메뉴명 검색어",
+              "title": "Q"
+            }
+          },
+          {
+            "description": "카테고리 필터",
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "카테고리 필터",
+              "title": "Category"
+            }
+          },
+          {
+            "description": "활성 상태 필터",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "description": "활성 상태 필터",
+              "enum": [
+                "active",
+                "inactive",
+                "all"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MenuResponse"
+                  },
+                  "title": "Response Get Menus Api V1 Stores  Store Id  Menus Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Menus",
+        "tags": [
+          "menus"
+        ]
+      },
+      "post": {
+        "operationId": "post_menu_api_v1_stores__store_id__menus_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Menu",
+        "tags": [
+          "menus"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/menus/{menu_id}": {
+      "get": {
+        "operationId": "get_menu_api_v1_stores__store_id__menus__menu_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "menu_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Menu Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Menu",
+        "tags": [
+          "menus"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_menu_api_v1_stores__store_id__menus__menu_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "menu_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Menu Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Menu",
+        "tags": [
+          "menus"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/menus/{menu_id}/recipe": {
+      "get": {
+        "operationId": "get_menu_recipe_api_v1_stores__store_id__menus__menu_id__recipe_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "menu_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Menu Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Menu Recipe",
+        "tags": [
+          "menus"
+        ]
+      },
+      "put": {
+        "operationId": "put_menu_recipe_api_v1_stores__store_id__menus__menu_id__recipe_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "menu_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Menu Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecipeUpsertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Menu Recipe",
+        "tags": [
+          "menus"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/pnl": {
+      "get": {
+        "operationId": "get_pnl_api_v1_stores__store_id__pnl_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "YYYY-MM, 매장 시간대 기준",
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "description": "YYYY-MM, 매장 시간대 기준",
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PnlResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Pnl",
+        "tags": [
+          "pnl"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/pnl/{month}/expenses": {
+      "put": {
+        "operationId": "put_pnl_expenses_api_v1_stores__store_id__pnl__month__expenses_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PnlExpensesUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PnlResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Pnl Expenses",
+        "tags": [
+          "pnl"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/sales-orders": {
+      "get": {
+        "operationId": "list_sales_orders_endpoint_api_v1_stores__store_id__sales_orders_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrdersListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Sales Orders Endpoint",
+        "tags": [
+          "integrations",
+          "imports"
+        ]
+      },
+      "post": {
+        "operationId": "create_manual_sales_order_endpoint_api_v1_stores__store_id__sales_orders_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesOrderCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Manual Sales Order Endpoint",
+        "tags": [
+          "integrations",
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/sales-orders/{order_id}": {
+      "patch": {
+        "operationId": "update_sales_order_endpoint_api_v1_stores__store_id__sales_orders__order_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Order Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesOrderUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Sales Order Endpoint",
+        "tags": [
+          "integrations",
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/seed-western-demo": {
+      "post": {
+        "operationId": "post_seed_western_demo_api_v1_stores__store_id__seed_western_demo_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Post Seed Western Demo Api V1 Stores  Store Id  Seed Western Demo Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Seed Western Demo",
+        "tags": [
+          "stores"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/tables": {
+      "get": {
+        "operationId": "get_tables_api_v1_stores__store_id__tables_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_inactive",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Inactive",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StoreTableResponse"
+                  },
+                  "title": "Response Get Tables Api V1 Stores  Store Id  Tables Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Tables",
+        "tags": [
+          "tables & visits"
+        ]
+      },
+      "post": {
+        "operationId": "post_table_api_v1_stores__store_id__tables_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreTableCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreTableResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Table",
+        "tags": [
+          "tables & visits"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/tables/{table_id}": {
+      "patch": {
+        "operationId": "patch_table_api_v1_stores__store_id__tables__table_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "table_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Table Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreTableUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreTableResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Table",
+        "tags": [
+          "tables & visits"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/tables/{table_id}/qr-token": {
+      "get": {
+        "operationId": "get_table_qr_token_api_v1_stores__store_id__tables__table_id__qr_token_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "table_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Table Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableQrTokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Table Qr Token",
+        "tags": [
+          "tables & visits"
+        ]
+      },
+      "post": {
+        "description": "QR 토큰 발급 또는 회전. 회전하면 이전 QR은 바로 못 쓴다.",
+        "operationId": "rotate_table_qr_token_api_v1_stores__store_id__tables__table_id__qr_token_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "table_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Table Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableQrTokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rotate Table Qr Token",
+        "tags": [
+          "tables & visits"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/visits": {
+      "get": {
+        "operationId": "get_visits_api_v1_stores__store_id__visits_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitSummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Visits",
+        "tags": [
+          "tables & visits"
+        ]
+      },
+      "post": {
+        "operationId": "post_visit_api_v1_stores__store_id__visits_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisitSessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Visit",
+        "tags": [
+          "tables & visits"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/visits/{visit_id}": {
+      "patch": {
+        "operationId": "patch_visit_api_v1_stores__store_id__visits__visit_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "visit_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Visit Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisitSessionUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Visit",
+        "tags": [
+          "tables & visits"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/visits/{visit_id}/slots/{slot_no}": {
+      "patch": {
+        "operationId": "patch_visit_slot_api_v1_stores__store_id__visits__visit_id__slots__slot_no__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "visit_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Visit Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slot_no",
+            "required": true,
+            "schema": {
+              "title": "Slot No",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SlotProfileUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Visit Slot",
+        "tags": [
+          "tables & visits"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "system"
+        ]
+      }
+    }
+  }
+}

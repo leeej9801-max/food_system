@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { Dialog } from "../components/Dialog";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppLink as Link } from "../components/AppLink";
 import { ApiClientError } from "../api/client";
@@ -14,6 +15,7 @@ import {
   createVisitSession,
   fetchTables,
   fetchVisitSummary,
+  resetFloor,
   updateTable,
   updateVisitSession,
   updateVisitSlot,
@@ -136,8 +138,11 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
     tables.find((t) => t.id === selectedTableId) ?? tables[0] ?? null;
   const activeVisit = selectedTable?.active_visit ?? null;
 
-  useEffect(() => {
-    if (!selectedTable) return;
+  // 선택 테이블이나 그 방문이 바뀌면 입력값을 맞춘다. 효과 대신 렌더 중에 비교한다.
+  const tableKey = `${selectedTable?.id ?? ""}:${selectedTable?.active_visit?.id ?? ""}`;
+  const [prevTableKey, setPrevTableKey] = useState<string | null>(null);
+  if (selectedTable && prevTableKey !== tableKey) {
+    setPrevTableKey(tableKey);
     if (selectedTable.active_visit) {
       setPartySize(selectedTable.active_visit.party_size);
       setNotes(selectedTable.active_visit.notes ?? "");
@@ -145,7 +150,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
       setPartySize(Math.min(selectedTable.seats, 4));
       setNotes("");
     }
-  }, [selectedTable?.id, selectedTable?.active_visit?.id]);
+  }
 
   function refreshAll() {
     queryClient.invalidateQueries({ queryKey: ["tables", store.id] });
@@ -283,6 +288,17 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
     },
   });
 
+  const resetFloorMutation = useMutation({
+    mutationFn: () => resetFloor(store.id),
+    onSuccess: () => {
+      setBanner({ type: "success", text: "배치를 매장 도면대로 되돌렸습니다." });
+      refreshAll();
+    },
+    onError: (err: unknown) => {
+      setBanner({ type: "error", text: errorText(err, "배치 초기화에 실패했습니다.") });
+    },
+  });
+
   const slots: VisitSlot[] = activeVisit?.slots ?? [];
   const contextByGuest = activeVisit?.context_source === "GUEST";
   const busy = updateVisitMutation.isPending || slotMutation.isPending;
@@ -346,6 +362,20 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   {selectedTable.name} 방향 바꾸기
                 </button>
               )}
+              {editLayoutMode && (
+                <button
+                  type="button"
+                  disabled={resetFloorMutation.isPending}
+                  onClick={() => {
+                    if (window.confirm("테이블 배치를 매장 도면대로 되돌릴까요? 옮긴 위치는 사라집니다.")) {
+                      resetFloorMutation.mutate();
+                    }
+                  }}
+                  className="h-8 rounded-md border border-gray-300 px-2.5 disabled:opacity-50"
+                >
+                  배치 초기화
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setEditLayoutMode((v) => !v)}
@@ -357,7 +387,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
           </div>
           {editLayoutMode && (
             <p className="mb-1 shrink-0 text-[11px] text-gray-500">
-              테이블을 고른 뒤 도면의 빈 곳을 누르면 그 위치로 옮깁니다.
+              테이블을 끌어서 옮깁니다. 빨간색이 되는 자리는 다른 테이블·벽과 겹쳐 놓을 수 없습니다.
             </p>
           )}
           <div className="min-h-0 flex-1">
@@ -431,6 +461,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               {!activeVisit ? (
                 <>
                   <input
+                    aria-label="방문 메모"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     maxLength={200}
@@ -559,7 +590,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
       {/* 주문 수정 · 환불(취소) 대응 모달 (POS 자동 연동 vs CSV 직접 수정 분기) */}
       {orderModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4">
+        <Dialog label="주문 내역 수정" onClose={() => setOrderModalOpen(false)}>
           <div className="flex max-h-[calc(var(--app-viewport-height)*0.9)] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
               <div>
@@ -614,6 +645,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-emerald-200/80 pt-3">
                     <span className="font-bold text-emerald-900">+ 현장 주문 추가:</span>
                     <select
+                      aria-label="현장 주문 추가 메뉴"
                       value={manualMenuId || menusQuery.data?.[0]?.id || ""}
                       onChange={(e) => setManualMenuId(e.target.value)}
                       className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800"
@@ -820,7 +852,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               )}
             </div>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

@@ -1,46 +1,4 @@
-from collections.abc import Generator
-
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
-from app.db.base import Base
-from app.db.session import get_db
-from app.main import create_app
-
-
-@pytest.fixture
-def db_session() -> Generator[Session, None, None]:
-    engine = create_engine(
-        "sqlite+pysqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-        future=True,
-    )
-    Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(
-        bind=engine, autoflush=False, autocommit=False, expire_on_commit=False
-    )
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture
-def client(db_session: Session) -> Generator[TestClient, None, None]:
-    app = create_app()
-
-    def _override_get_db() -> Generator[Session, None, None]:
-        yield db_session
-
-    app.dependency_overrides[get_db] = _override_get_db
-    with TestClient(app) as c:
-        yield c
 
 
 def test_ac1_ac2_store_initial_tables_and_table_update(client: TestClient) -> None:
@@ -104,7 +62,7 @@ def test_ac3_ac4_ac5_visit_lifecycle_separates_payment_and_leaving_and_preserves
         json={"table_id": t1_id, "party_size": 2},
     )
     assert dup_resp.status_code == 409
-    assert dup_resp.json()["error"]["code"] == "TABLE_ALREADY_OCCUPIED"
+    assert dup_resp.json()["code"] == "TABLE_ALREADY_OCCUPIED"
 
     # AC-4: 결제 완료(PAID)로 변경 -> paid_at 기록되지만 left_at은 여전히 None이고 테이블은 점유 상태 유지
     paid_resp = client.patch(

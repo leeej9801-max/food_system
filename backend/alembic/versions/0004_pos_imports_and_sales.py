@@ -8,7 +8,6 @@ Create Date: 2026-10-25
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision: str = "0004_pos_imports_and_sales"
@@ -20,10 +19,10 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.create_table(
         "pos_connections",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
             unique=True,
@@ -38,24 +37,22 @@ def upgrade() -> None:
 
     op.create_table(
         "pos_product_mappings",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column("external_product_name", sa.String(length=120), nullable=False),
         sa.Column(
             "menu_item_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("menu_items.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.UniqueConstraint(
-            "store_id", "external_product_name", name="uq_store_ext_product_name"
-        ),
+        sa.UniqueConstraint("store_id", "external_product_name", name="uq_store_ext_product_name"),
     )
     op.create_index("ix_pos_product_mappings_store_id", "pos_product_mappings", ["store_id"])
     op.create_index(
@@ -64,10 +61,10 @@ def upgrade() -> None:
 
     op.create_table(
         "import_batches",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
@@ -94,16 +91,16 @@ def upgrade() -> None:
 
     op.create_table(
         "sales_orders",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "import_batch_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("import_batches.id", ondelete="SET NULL"),
             nullable=True,
         ),
@@ -119,22 +116,22 @@ def upgrade() -> None:
 
     op.create_table(
         "sales_order_items",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "order_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("sales_orders.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "menu_item_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("menu_items.id", ondelete="SET NULL"),
             nullable=True,
         ),
@@ -164,9 +161,7 @@ def downgrade() -> None:
     op.drop_index("ix_import_batches_file_hash", table_name="import_batches")
     op.drop_index("ix_import_batches_store_id", table_name="import_batches")
     op.drop_table("import_batches")
-    op.drop_index(
-        "ix_pos_product_mappings_menu_item_id", table_name="pos_product_mappings"
-    )
+    op.drop_index("ix_pos_product_mappings_menu_item_id", table_name="pos_product_mappings")
     op.drop_index("ix_pos_product_mappings_store_id", table_name="pos_product_mappings")
     op.drop_table("pos_product_mappings")
     op.drop_index("ix_pos_connections_store_id", table_name="pos_connections")

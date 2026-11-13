@@ -13,7 +13,6 @@ UNRECORDED profiles, visits keep their age_band, tables become horizontal ("H").
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision: str = "0008_floor_profile_holidays"

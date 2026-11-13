@@ -2,6 +2,7 @@ import json
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -59,7 +60,7 @@ class FloorFixture(BaseModel):
 class StoreResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: UUID
     name: str
     timezone: str
     business_days: str | None
@@ -131,8 +132,8 @@ class MenuUpdate(BaseModel):
 class MenuResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
-    store_id: str
+    id: UUID
+    store_id: UUID
     name: str
     selling_price: Decimal | None
     category: str | None
@@ -206,8 +207,8 @@ class IngredientUpdate(BaseModel):
 class IngredientResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
-    store_id: str
+    id: UUID
+    store_id: UUID
     name: str
     base_unit: str
     purchase_unit: str
@@ -221,7 +222,7 @@ class IngredientResponse(BaseModel):
 
 
 class RecipeItemInput(BaseModel):
-    ingredient_id: str = Field(..., min_length=1)
+    ingredient_id: UUID
     quantity: Decimal = Field(..., gt=Decimal(0), le=Decimal(1000000))
     notes: str | None = Field(default=None, max_length=200)
 
@@ -232,8 +233,8 @@ class RecipeUpsertRequest(BaseModel):
 
 
 class RecipeItemResponse(BaseModel):
-    id: str
-    ingredient_id: str
+    id: UUID
+    ingredient_id: UUID
     ingredient_name: str
     ingredient_is_active: bool
     quantity: Decimal
@@ -242,7 +243,7 @@ class RecipeItemResponse(BaseModel):
 
 
 class RecipeResponse(BaseModel):
-    menu_item_id: str
+    menu_item_id: UUID
     menu_name: str
     version: int
     status: Literal["UNREGISTERED", "PARTIAL", "COMPLETE"]
@@ -252,7 +253,7 @@ class RecipeResponse(BaseModel):
 
 
 class IngredientUsageItem(BaseModel):
-    menu_item_id: str
+    menu_item_id: UUID
     menu_name: str
     menu_is_active: bool
     quantity: Decimal
@@ -279,9 +280,9 @@ RelationshipType = Literal["ALONE", "COUPLE", "FRIENDS", "FAMILY", "COWORKERS", 
 
 
 class VisitSessionResponse(BaseModel):
-    id: str
-    store_id: str
-    table_id: str
+    id: UUID
+    store_id: UUID
+    table_id: UUID
     table_name: str
     party_size: int
     age_band: str
@@ -340,8 +341,8 @@ class StoreTableUpdate(BaseModel):
 
 
 class StoreTableResponse(BaseModel):
-    id: str
-    store_id: str
+    id: UUID
+    store_id: UUID
     name: str
     seats: int
     grid_x: int
@@ -354,7 +355,7 @@ class StoreTableResponse(BaseModel):
 
 
 class VisitSessionCreate(BaseModel):
-    table_id: str = Field(..., min_length=1)
+    table_id: UUID
     party_size: int = Field(..., ge=1, le=50)
     age_band: AgeBandType = Field(default="UNRECORDED")
     notes: str | None = Field(default=None, max_length=200)
@@ -415,7 +416,7 @@ class PosModeUpdateRequest(BaseModel):
 
 
 class IntegrationStatusResponse(BaseModel):
-    store_id: str
+    store_id: UUID
     mode: PosModeType
     connection_status: Literal["UNVERIFIED", "READY_CSV"]
     is_realtime: bool = False
@@ -454,7 +455,7 @@ class CsvPreviewValidRow(BaseModel):
     ordered_at: datetime | None
     time_basis: Literal["order_time", "date_only", "unknown"]
     raw_product_name: str
-    menu_item_id: str | None
+    menu_item_id: UUID | None
     mapping_status: Literal["MAPPED", "UNMAPPED"]
     quantity: int
     unit_price: Decimal
@@ -462,7 +463,7 @@ class CsvPreviewValidRow(BaseModel):
 
 
 class CsvPreviewResponse(BaseModel):
-    batch_id: str
+    batch_id: UUID
     file_name: str
     status: str
     duplicate_file_warning: bool
@@ -477,7 +478,7 @@ class CsvPreviewResponse(BaseModel):
 
 
 class CsvCommitResponse(BaseModel):
-    batch_id: str
+    batch_id: UUID
     status: str
     orders_upserted: int
     items_recorded: int
@@ -487,14 +488,14 @@ class CsvCommitResponse(BaseModel):
 
 class ProductMappingUpsertRequest(BaseModel):
     external_product_name: str = Field(..., min_length=1, max_length=120)
-    menu_item_id: str = Field(..., min_length=1)
+    menu_item_id: UUID
 
 
 class ProductMappingResponse(BaseModel):
-    id: str
-    store_id: str
+    id: UUID
+    store_id: UUID
     external_product_name: str
-    menu_item_id: str
+    menu_item_id: UUID
     menu_name: str
     retroactive_updated_items: int = 0
 
@@ -504,7 +505,7 @@ StockAlertStatusType = Literal["OK", "LOW_STOCK", "NEGATIVE_WARNING"]
 
 
 class InventoryReceiptCreate(BaseModel):
-    ingredient_id: str = Field(..., min_length=1)
+    ingredient_id: UUID
     purchase_quantity: Decimal = Field(..., gt=0)
     total_cost: Decimal = Field(..., ge=0)
     supplier_name: str | None = Field(default=None, max_length=100)
@@ -512,9 +513,9 @@ class InventoryReceiptCreate(BaseModel):
 
 
 class InventoryReceiptResponse(BaseModel):
-    id: str
-    store_id: str
-    ingredient_id: str
+    id: UUID
+    store_id: UUID
+    ingredient_id: UUID
     ingredient_name: str
     purchase_quantity: Decimal
     purchase_unit: str
@@ -529,15 +530,15 @@ class InventoryReceiptResponse(BaseModel):
 
 
 class InventoryCountCreate(BaseModel):
-    ingredient_id: str = Field(..., min_length=1)
+    ingredient_id: UUID
     actual_quantity: Decimal = Field(..., ge=0)
     notes: str | None = Field(default=None, max_length=200)
 
 
 class InventoryCountResponse(BaseModel):
-    id: str
-    store_id: str
-    ingredient_id: str
+    id: UUID
+    store_id: UUID
+    ingredient_id: UUID
     ingredient_name: str
     actual_quantity: Decimal
     base_unit: str
@@ -546,16 +547,16 @@ class InventoryCountResponse(BaseModel):
 
 
 class InventoryAdjustmentCreate(BaseModel):
-    ingredient_id: str = Field(..., min_length=1)
+    ingredient_id: UUID
     quantity_delta: Decimal = Field(...)
     reason: AdjustmentReasonType = Field(default="WASTE")
     notes: str | None = Field(default=None, max_length=200)
 
 
 class InventoryAdjustmentResponse(BaseModel):
-    id: str
-    store_id: str
-    ingredient_id: str
+    id: UUID
+    store_id: UUID
+    ingredient_id: UUID
     ingredient_name: str
     quantity_delta: Decimal
     base_unit: str
@@ -565,7 +566,7 @@ class InventoryAdjustmentResponse(BaseModel):
 
 
 class IngredientInventoryItem(BaseModel):
-    ingredient_id: str
+    ingredient_id: UUID
     ingredient_name: str
     is_active: bool
     base_unit: str
@@ -591,7 +592,7 @@ class SalesHourlyBucket(BaseModel):
 
 
 class MenuSalesRankItem(BaseModel):
-    menu_item_id: str | None
+    menu_item_id: UUID | None
     menu_name: str
     mapping_status: Literal["MAPPED", "UNMAPPED"]
     quantity: int
@@ -599,7 +600,7 @@ class MenuSalesRankItem(BaseModel):
 
 
 class SalesAnalyticsResponse(BaseModel):
-    store_id: str
+    store_id: UUID
     total_completed_orders: int
     total_quantity: int
     total_net_sales: Decimal
@@ -614,11 +615,11 @@ MenuCostStatusType = Literal["COMPLETE", "NO_RECIPE", "INCOMPLETE_COST"]
 
 class CostSimulationRequest(BaseModel):
     global_change_percent: Decimal = Field(default=Decimal(0))
-    ingredient_change_percents: dict[str, Decimal] = Field(default_factory=dict)
+    ingredient_change_percents: dict[UUID, Decimal] = Field(default_factory=dict)
 
 
 class MenuCostIngredientBreakdown(BaseModel):
-    ingredient_id: str
+    ingredient_id: UUID
     ingredient_name: str
     quantity: Decimal
     base_unit: str
@@ -629,7 +630,7 @@ class MenuCostIngredientBreakdown(BaseModel):
 
 
 class MenuCostSimulationItem(BaseModel):
-    menu_item_id: str
+    menu_item_id: UUID
     menu_name: str
     category: str | None
     selling_price: Decimal | None
@@ -647,16 +648,16 @@ class MenuCostSimulationItem(BaseModel):
 
 
 class CostSimulationResponse(BaseModel):
-    store_id: str
+    store_id: UUID
     cost_basis_label: str = "최근 입고 단가 기준 (PROVISIONAL P-12 · 비파괴 시뮬레이션)"
     global_change_percent: Decimal
     menus: list[MenuCostSimulationItem]
 
 
 class SalesOrderItemResponse(BaseModel):
-    id: str
+    id: UUID
     raw_product_name: str
-    menu_item_id: str | None
+    menu_item_id: UUID | None
     menu_name: str | None
     mapping_status: Literal["MAPPED", "UNMAPPED"]
     quantity: int
@@ -665,8 +666,8 @@ class SalesOrderItemResponse(BaseModel):
 
 
 class SalesOrderResponse(BaseModel):
-    id: str
-    store_id: str
+    id: UUID
+    store_id: UUID
     external_order_id: str
     ordered_at: datetime | None
     time_basis: str
@@ -678,7 +679,7 @@ class SalesOrderResponse(BaseModel):
 
 
 class SalesOrdersListResponse(BaseModel):
-    store_id: str
+    store_id: UUID
     pos_mode: PosModeType
     can_manual_edit: bool
     mode_notice: str
@@ -686,7 +687,7 @@ class SalesOrdersListResponse(BaseModel):
 
 
 class SalesOrderItemUpdateInput(BaseModel):
-    item_id: str = Field(..., min_length=1)
+    item_id: UUID
     quantity: int = Field(..., ge=1, le=1000)
 
 
@@ -696,7 +697,7 @@ class SalesOrderUpdateRequest(BaseModel):
 
 
 class SalesOrderCreateItemInput(BaseModel):
-    menu_item_id: str = Field(..., min_length=1)
+    menu_item_id: UUID
     quantity: int = Field(..., ge=1, le=1000)
 
 
@@ -706,13 +707,8 @@ class SalesOrderCreateRequest(BaseModel):
     items: list[SalesOrderCreateItemInput] = Field(..., min_length=1)
 
 
-
-
-
-
-
 class TableQrTokenResponse(BaseModel):
-    table_id: str
+    table_id: UUID
     token: str
     rotated_at: datetime
 
@@ -767,3 +763,50 @@ class GuestSlotDisplayUpdate(BaseModel):
 class GuestSessionContextUpdate(BaseModel):
     purpose: PurposeType | None = None
     relationship: RelationshipType | None = None
+
+
+# ---- 월별 손익표 (WO-20261111-002) ----
+
+PNL_MONTH_PATTERN = r"^\d{4}-(0[1-9]|1[0-2])$"
+
+PnlSourceType = Literal["auto", "manual"]
+
+
+class PnlLine(BaseModel):
+    code: str
+    label: str
+    amount: int  # 원
+    source: PnlSourceType
+    ratio_percent: Decimal | None  # 총매출 대비, 소수 1자리. 매출 0이면 None
+
+
+class PnlTrendPoint(BaseModel):
+    month: str
+    revenue: int
+    total_expenses: int
+    operating_profit: int
+
+
+class PnlResponse(BaseModel):
+    store_id: UUID
+    month: str
+    card_fee_percent: Decimal
+    revenue: PnlLine
+    expenses: list[PnlLine]
+    total_expenses: int
+    operating_profit: int
+    operating_margin_percent: Decimal | None
+    trend: list[PnlTrendPoint]  # 최근 6개월, 오래된 달부터
+
+
+class PnlExpenseInput(BaseModel):
+    code: str = Field(..., min_length=1, max_length=32)
+    label: str | None = Field(default=None, max_length=50)
+    amount: int = Field(..., ge=0, le=10_000_000_000)
+
+
+class PnlExpensesUpdate(BaseModel):
+    """그 달 수기 항목 전체. 보내지 않은 항목은 지워지고, 자동 항목은 다시 자동값이 된다."""
+
+    items: list[PnlExpenseInput] = Field(default_factory=list, max_length=100)
+    card_fee_percent: Decimal | None = Field(default=None, ge=0, le=10, decimal_places=2)

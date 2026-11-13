@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { FLOOR_COLS, FLOOR_ROWS } from "../types";
 import type { FloorFixture, StoreTable } from "../types";
 
@@ -61,6 +63,39 @@ function fixtureStyle(kind: FloorFixture["kind"], pixel: boolean): { fill: strin
   }
 }
 
+interface Drag {
+  id: string;
+  grabX: number; // 테이블 왼쪽 위에서 잡은 지점까지 거리(칸)
+  grabY: number;
+  x: number;
+  y: number;
+  moved: boolean;
+}
+
+type Box = { x: number; y: number; w: number; h: number };
+
+const overlaps = (a: Box, b: Box) =>
+  a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+/** 다른 테이블이나 고정물(벽·주방 등)과 겹치지 않으면 놓을 수 있다. */
+export function canPlace(placed: PlacedTable[], fixtures: FloorFixture[], target: PlacedTable): boolean {
+  return (
+    !placed.some((o) => o.table.id !== target.table.id && overlaps(o, target)) &&
+    !fixtures.some((f) => overlaps(f, target))
+  );
+}
+
+/** 포인터 위치를 도면 칸 좌표(소수)로 바꾼다. viewBox는 meet로 가운데 맞춤이다. */
+function toCell(evt: React.PointerEvent<SVGElement>) {
+  const svg = evt.currentTarget.ownerSVGElement;
+  if (!svg) return null;
+  const rect = svg.getBoundingClientRect();
+  const scale = Math.min(rect.width / FLOOR_COLS, rect.height / FLOOR_ROWS);
+  const offX = (rect.width - FLOOR_COLS * scale) / 2;
+  const offY = (rect.height - FLOOR_ROWS * scale) / 2;
+  return { x: (evt.clientX - rect.left - offX) / scale, y: (evt.clientY - rect.top - offY) / scale };
+}
+
 function tableColors(t: StoreTable, selected: boolean, pixel: boolean) {
   const status = t.active_visit?.status;
   const fill =
@@ -78,23 +113,34 @@ export function FloorPlan({
   onMoveTable,
   pixel,
 }: FloorPlanProps) {
-  const placed = placeTables(tables, fixtures);
-  const selected = placed.find((p) => p.table.id === selectedTableId) ?? null;
+  const [drag, setDrag] = useState<Drag | null>(null);
+  const placed = placeTables(tables, fixtures).map((p) =>
+    drag && p.table.id === drag.id ? { ...p, x: drag.x, y: drag.y } : p
+  );
 
-  function handleFloorTap(evt: React.MouseEvent<SVGRectElement>) {
-    if (!editMode || !selected) return;
-    const svg = evt.currentTarget.ownerSVGElement;
-    if (!svg) return;
-    const rect = svg.getBoundingClientRect();
-    // viewBox는 meet로 가운데 맞춤 → 실제 그려진 영역 기준으로 칸 계산
-    const scale = Math.min(rect.width / FLOOR_COLS, rect.height / FLOOR_ROWS);
-    const offX = (rect.width - FLOOR_COLS * scale) / 2;
-    const offY = (rect.height - FLOOR_ROWS * scale) / 2;
-    const cx = Math.floor((evt.clientX - rect.left - offX) / scale);
-    const cy = Math.floor((evt.clientY - rect.top - offY) / scale);
-    const x = Math.max(0, Math.min(FLOOR_COLS - selected.w, cx));
-    const y = Math.max(0, Math.min(FLOOR_ROWS - selected.h, cy));
-    onMoveTable(selected.table.id, x, y);
+  function startDrag(evt: React.PointerEvent<SVGGElement>, p: PlacedTable) {
+    onSelectTable(p.table.id);
+    if (!editMode) return;
+    const cell = toCell(evt);
+    if (!cell) return;
+    evt.currentTarget.setPointerCapture(evt.pointerId);
+    setDrag({ id: p.table.id, grabX: cell.x - p.x, grabY: cell.y - p.y, x: p.x, y: p.y, moved: false });
+  }
+
+  function moveDrag(evt: React.PointerEvent<SVGGElement>, p: PlacedTable) {
+    if (!drag || drag.id !== p.table.id) return;
+    const cell = toCell(evt);
+    if (!cell) return;
+    const x = Math.max(0, Math.min(FLOOR_COLS - p.w, Math.round(cell.x - drag.grabX)));
+    const y = Math.max(0, Math.min(FLOOR_ROWS - p.h, Math.round(cell.y - drag.grabY)));
+    if (x !== drag.x || y !== drag.y) setDrag({ ...drag, x, y, moved: true });
+  }
+
+  function endDrag(p: PlacedTable) {
+    if (!drag || drag.id !== p.table.id) return;
+    // 겹치는 자리에 놓으면 저장하지 않고 원래 자리로 돌아간다
+    if (drag.moved && canPlace(placed, fixtures, p)) onMoveTable(p.table.id, p.x, p.y);
+    setDrag(null);
   }
 
   return (
@@ -102,6 +148,7 @@ export function FloorPlan({
       viewBox={`0 0 ${FLOOR_COLS} ${FLOOR_ROWS}`}
       preserveAspectRatio="xMidYMid meet"
       className="h-full w-full select-none"
+      style={editMode ? { touchAction: "none" } : undefined}
       role="img"
       aria-label="매장 홀 도면"
     >
@@ -114,7 +161,6 @@ export function FloorPlan({
         fill={pixel ? "#ead9b8" : "#f3f4f6"}
         stroke="#9ca3af"
         strokeWidth={0.1}
-        onClick={handleFloorTap}
         data-testid="floor-surface"
       />
       {editMode &&
@@ -148,8 +194,13 @@ export function FloorPlan({
         );
       })}
 
-      {placed.map(({ table: t, x, y, w, h }) => {
-        const c = tableColors(t, t.id === selectedTableId, pixel);
+      {placed.map((p) => {
+        const { table: t, x, y, w, h } = p;
+        const dragging = drag?.id === t.id;
+        const blocked = dragging && !canPlace(placed, fixtures, p);
+        const c = blocked
+          ? { fill: "#fecaca", stroke: "#dc2626", strokeWidth: 0.18 }
+          : tableColors(t, t.id === selectedTableId, pixel);
         const visit = t.active_visit;
         const chairs =
           t.orientation === "V"
@@ -168,8 +219,22 @@ export function FloorPlan({
         return (
           <g
             key={t.id}
-            onClick={() => onSelectTable(t.id)}
-            className="cursor-pointer"
+            role="button"
+            tabIndex={0}
+            aria-label={`${t.name} 테이블${visit ? `, ${visit.party_size}명 착석` : ", 빈 자리"}`}
+            aria-pressed={t.id === selectedTableId}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelectTable(t.id);
+              }
+            }}
+            onPointerDown={(e) => startDrag(e, p)}
+            onPointerMove={(e) => moveDrag(e, p)}
+            onPointerUp={() => endDrag(p)}
+            onPointerCancel={() => setDrag(null)}
+            className={editMode ? (dragging ? "cursor-grabbing" : "cursor-grab") : "cursor-pointer"}
+            opacity={dragging ? 0.85 : 1}
             data-testid={`floor-table-${t.name}`}
           >
             {chairs.slice(0, Math.min(t.seats, 4)).map(([cx, cy], i) => (

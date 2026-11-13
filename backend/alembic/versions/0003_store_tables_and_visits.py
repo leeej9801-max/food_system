@@ -8,7 +8,6 @@ Create Date: 2026-10-25
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision: str = "0003_store_tables_and_visits"
@@ -20,10 +19,10 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.create_table(
         "store_tables",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
@@ -40,16 +39,16 @@ def upgrade() -> None:
 
     op.create_table(
         "visit_sessions",
-        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column(
             "store_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("stores.id", ondelete="RESTRICT"),
             nullable=False,
         ),
         sa.Column(
             "table_id",
-            sa.String(length=36),
+            sa.Uuid(),
             sa.ForeignKey("store_tables.id", ondelete="RESTRICT"),
             nullable=False,
         ),

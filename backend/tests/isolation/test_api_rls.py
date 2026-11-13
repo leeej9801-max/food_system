@@ -8,6 +8,7 @@ import secrets
 from collections.abc import Generator
 
 import pytest
+from alembic import command
 from alembic.config import Config
 from fastapi import Request
 from fastapi.testclient import TestClient
@@ -15,7 +16,6 @@ from sqlalchemy import create_engine, make_url, text
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import Session, sessionmaker
 
-from alembic import command
 from app.core.config import settings
 from app.db.session import bind_request_scope, get_db
 from app.db.tenancy import RequestContext, apply_store_scope
@@ -33,6 +33,7 @@ RUNTIME_ROLE = "rls_api_runtime"
 
 @pytest.fixture(scope="module")
 def runtime_sessionmaker() -> Generator[sessionmaker, None, None]:
+    assert OWNER_URL
     admin = create_engine(OWNER_URL, isolation_level="AUTOCOMMIT")
     with admin.connect() as conn:
         conn.exec_driver_sql(f"DROP DATABASE IF EXISTS {TEST_DB} WITH (FORCE)")
@@ -220,7 +221,7 @@ def test_runtime_role_cannot_list_tokens_or_slots(runtime_sessionmaker, qr):
         rows = db.execute(
             text("SELECT store_id, table_id FROM app_resolve_table_qr(:t)"), {"t": qr["A"]["token"]}
         ).all()
-        assert rows == [(qr["A"]["store_id"], qr["A"]["table_id"])]
+        assert [tuple(map(str, r)) for r in rows] == [(qr["A"]["store_id"], qr["A"]["table_id"])]
         none = db.execute(text("SELECT count(*) FROM app_resolve_table_qr('')")).scalar_one()
         assert none == 0
 
@@ -237,7 +238,7 @@ def test_runtime_role_cannot_insert_slot_for_other_store(runtime_sessionmaker, s
                 text(
                     "INSERT INTO session_slots (id, store_id, session_id, slot_no, state, "
                     "display_opt_out, created_at, updated_at) VALUES "
-                    "('x', :b, :v, 9, 'SILHOUETTE', false, now(), now())"
+                    "(gen_random_uuid(), :b, :v, 9, 'SILHOUETTE', false, now(), now())"
                 ),
                 {"b": stores["B"]["id"], "v": visit_id},
             )

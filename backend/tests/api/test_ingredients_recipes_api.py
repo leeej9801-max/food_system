@@ -1,48 +1,10 @@
-from collections.abc import Generator
 from decimal import Decimal
 
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from app.db.base import Base
 from app.db.models import AuditEvent
-from app.db.session import get_db
-from app.main import create_app
-
-
-@pytest.fixture
-def db_session() -> Generator[Session, None, None]:
-    engine = create_engine(
-        "sqlite+pysqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-        future=True,
-    )
-    Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(
-        bind=engine, autoflush=False, autocommit=False, expire_on_commit=False
-    )
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture
-def client(db_session: Session) -> Generator[TestClient, None, None]:
-    app = create_app()
-
-    def _override_get_db() -> Generator[Session, None, None]:
-        yield db_session
-
-    app.dependency_overrides[get_db] = _override_get_db
-    with TestClient(app) as c:
-        yield c
 
 
 def _create_store(client: TestClient, name: str = "양식 비스트로 파일럿") -> dict:
@@ -77,7 +39,7 @@ def test_ac1_ingredient_crud_duplicate_and_deactivate(client: TestClient) -> Non
         json={"name": "스파게티면", "base_unit": "g", "purchase_unit": "kg"},
     )
     assert dup.status_code == 409
-    assert dup.json()["error"]["code"] == "DUPLICATE_INGREDIENT_NAME"
+    assert dup.json()["code"] == "DUPLICATE_INGREDIENT_NAME"
 
     # 비활성화 후 조회
     deactivated = client.patch(
@@ -105,7 +67,7 @@ def test_ac2_ingredient_invalid_conversion_factor_returns_422(client: TestClient
         },
     )
     assert resp.status_code == 422
-    assert resp.json()["error"]["code"] == "VALIDATION_ERROR"
+    assert resp.json()["code"] == "VALIDATION_ERROR"
 
 
 def test_ac3_ac4_ac5_recipe_upsert_links_menu_and_ingredient_and_audits(
@@ -120,7 +82,12 @@ def test_ac3_ac4_ac5_recipe_upsert_links_menu_and_ingredient_and_audits(
     ).json()
     pasta = client.post(
         f"/api/v1/stores/{store_id}/ingredients",
-        json={"name": "스파게티면", "base_unit": "g", "purchase_unit": "kg", "conversion_factor": 1000},
+        json={
+            "name": "스파게티면",
+            "base_unit": "g",
+            "purchase_unit": "kg",
+            "conversion_factor": 1000,
+        },
     ).json()
     bacon = client.post(
         f"/api/v1/stores/{store_id}/ingredients",
@@ -139,7 +106,7 @@ def test_ac3_ac4_ac5_recipe_upsert_links_menu_and_ingredient_and_audits(
         },
     )
     assert dup_resp.status_code == 422
-    assert dup_resp.json()["error"]["code"] == "DUPLICATE_RECIPE_INGREDIENT"
+    assert dup_resp.json()["code"] == "DUPLICATE_RECIPE_INGREDIENT"
 
     # 정상 레시피 등록 (version 1)
     put_v1 = client.put(
@@ -192,9 +159,7 @@ def test_ac3_ac4_ac5_recipe_upsert_links_menu_and_ingredient_and_audits(
 
     # AC-5: 레시피 audit_events 기록 확인
     events = list(
-        db_session.scalars(
-            select(AuditEvent).where(AuditEvent.entity_type == "recipe")
-        ).all()
+        db_session.scalars(select(AuditEvent).where(AuditEvent.entity_type == "recipe")).all()
     )
     assert len(events) == 2
 
