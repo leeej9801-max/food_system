@@ -26,21 +26,23 @@ MEAL_LOVE_TABLES: tuple[tuple[str, int, int, str, int], ...] = (
     ("T6", 12, 16, "H", 4),
     ("T7", 7, 10, "H", 2),
     ("T8", 7, 16, "H", 2),
-    ("T9", 2, 2, "V", 4),
-    ("T10", 2, 7, "V", 4),
-    ("T11", 2, 12, "V", 4),
-    ("T12", 2, 17, "V", 4),
+    ("T9", 2, 1, "V", 4),
+    ("T10", 2, 6, "V", 4),
+    ("T11", 2, 11, "V", 4),
+    ("T12", 2, 16, "V", 4),
 )
 
 MEAL_LOVE_FIXTURES: tuple[dict[str, object], ...] = (
     {"kind": "WALL", "x": 2, "y": 0, "w": 23, "h": 1, "label": None},
-    {"kind": "WALL", "x": 27, "y": 3, "w": 1, "h": 14, "label": None},
-    {"kind": "ENTRANCE", "x": 27, "y": 17, "w": 1, "h": 4, "label": "입구"},
+    {"kind": "WALL", "x": 27, "y": 3, "w": 1, "h": 10, "label": None},
+    {"kind": "ENTRANCE", "x": 27, "y": 13, "w": 1, "h": 4, "label": None},
     {"kind": "PARTITION", "x": 19, "y": 11, "w": 8, "h": 1, "label": None},
     {"kind": "WAITING", "x": 19, "y": 12, "w": 8, "h": 1, "label": None},
-    {"kind": "COUNTER", "x": 21, "y": 19, "w": 6, "h": 3, "label": "카운터"},
+    {"kind": "COUNTER", "x": 21, "y": 15, "w": 6, "h": 3, "label": "카운터"},
     {"kind": "PARTITION", "x": 11, "y": 7, "w": 1, "h": 13, "label": None},
-    {"kind": "SOFA", "x": 0, "y": 2, "w": 2, "h": 19, "label": None},
+    {"kind": "SOFA", "x": 0, "y": 1, "w": 2, "h": 19, "label": None},
+    # 맨 아래 줄은 주방. 홀 기록에는 안 쓰지만 도트 홀에서 주방으로 꾸민다 (U-50)
+    {"kind": "KITCHEN", "x": 0, "y": 21, "w": 28, "h": 3, "label": "주방"},
 )
 
 PRESETS = {"meal_love": (MEAL_LOVE_TABLES, MEAL_LOVE_FIXTURES)}
