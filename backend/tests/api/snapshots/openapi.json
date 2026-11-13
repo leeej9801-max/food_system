@@ -1688,6 +1688,45 @@
         "title": "InventoryReceiptResponse",
         "type": "object"
       },
+      "MenuCategoryCreate": {
+        "properties": {
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "MenuCategoryCreate",
+        "type": "object"
+      },
+      "MenuCategoryResponse": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "menu_count": {
+            "title": "Menu Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "menu_count"
+        ],
+        "title": "MenuCategoryResponse",
+        "type": "object"
+      },
       "MenuCostIngredientBreakdown": {
         "properties": {
           "base_line_cost": {
@@ -1960,6 +1999,34 @@
           "name"
         ],
         "title": "MenuCreate",
+        "type": "object"
+      },
+      "MenuDeleteResponse": {
+        "description": "판매·POS 기록이 없으면 지우고, 있으면 출시대기(비활성)로 돌린다 (U-49).",
+        "properties": {
+          "menu": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MenuResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {
+            "enum": [
+              "DELETED",
+              "DEACTIVATED"
+            ],
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "MenuDeleteResponse",
         "type": "object"
       },
       "MenuResponse": {
@@ -5844,6 +5911,104 @@
         ]
       }
     },
+    "/api/v1/stores/{store_id}/menu-categories": {
+      "get": {
+        "operationId": "get_menu_categories_api_v1_stores__store_id__menu_categories_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MenuCategoryResponse"
+                  },
+                  "title": "Response Get Menu Categories Api V1 Stores  Store Id  Menu Categories Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Menu Categories",
+        "tags": [
+          "menus"
+        ]
+      },
+      "post": {
+        "operationId": "post_menu_category_api_v1_stores__store_id__menu_categories_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuCategoryCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuCategoryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Menu Category",
+        "tags": [
+          "menus"
+        ]
+      }
+    },
     "/api/v1/stores/{store_id}/menus": {
       "get": {
         "operationId": "get_menus_api_v1_stores__store_id__menus_get",
@@ -5996,6 +6161,57 @@
       }
     },
     "/api/v1/stores/{store_id}/menus/{menu_id}": {
+      "delete": {
+        "operationId": "delete_menu_api_v1_stores__store_id__menus__menu_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "menu_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Menu Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuDeleteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Menu",
+        "tags": [
+          "menus"
+        ]
+      },
       "get": {
         "operationId": "get_menu_api_v1_stores__store_id__menus__menu_id__get",
         "parameters": [

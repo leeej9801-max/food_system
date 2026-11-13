@@ -64,6 +64,17 @@ export interface MenuItem {
   updated_at: string;
 }
 
+export interface MenuCategory {
+  id: string;
+  name: string;
+  menu_count: number;
+}
+
+export interface MenuDeleteResult {
+  result: "DELETED" | "DEACTIVATED";
+  menu: MenuItem | null;
+}
+
 export type BaseUnitType = "g" | "ml" | "ea";
 export type PurchaseUnitType = "kg" | "g" | "L" | "ml" | "ea" | "pack";
 

@@ -148,6 +148,31 @@ class MenuResponse(BaseModel):
     updated_at: datetime
 
 
+class MenuCategoryCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=50)
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        trimmed = v.strip()
+        if not trimmed:
+            raise ValueError("메뉴 유형은 공백만 입력할 수 없습니다.")
+        return trimmed
+
+
+class MenuCategoryResponse(BaseModel):
+    id: UUID
+    name: str
+    menu_count: int
+
+
+class MenuDeleteResponse(BaseModel):
+    """판매·POS 기록이 없으면 지우고, 있으면 출시대기(비활성)로 돌린다 (U-49)."""
+
+    result: Literal["DELETED", "DEACTIVATED"]
+    menu: MenuResponse | None = None
+
+
 BaseUnitType = Literal["g", "ml", "ea"]
 PurchaseUnitType = Literal["kg", "g", "L", "ml", "ea", "pack"]
 

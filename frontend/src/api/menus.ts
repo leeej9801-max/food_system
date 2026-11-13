@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { apiRequest } from "./client";
-import { menuItemSchema } from "./schemas";
-import type { MenuItem } from "../types";
+import { menuCategorySchema, menuDeleteSchema, menuItemSchema } from "./schemas";
+import type { MenuCategory, MenuDeleteResult, MenuItem } from "../types";
 
 export interface MenuListFilter {
   q?: string;
@@ -54,5 +54,20 @@ export function updateMenu(
   return apiRequest(menuItemSchema, `/stores/${storeId}/menus/${menuId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
+  });
+}
+
+export function deleteMenu(storeId: string, menuId: string): Promise<MenuDeleteResult> {
+  return apiRequest(menuDeleteSchema, `/stores/${storeId}/menus/${menuId}`, { method: "DELETE" });
+}
+
+export function fetchMenuCategories(storeId: string): Promise<MenuCategory[]> {
+  return apiRequest(z.array(menuCategorySchema), `/stores/${storeId}/menu-categories`);
+}
+
+export function createMenuCategory(storeId: string, name: string): Promise<MenuCategory> {
+  return apiRequest(menuCategorySchema, `/stores/${storeId}/menu-categories`, {
+    method: "POST",
+    body: JSON.stringify({ name }),
   });
 }

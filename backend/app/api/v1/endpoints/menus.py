@@ -5,11 +5,38 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas import MenuCreate, MenuResponse, MenuUpdate, RecipeResponse, RecipeUpsertRequest
+from app.schemas import (
+    MenuCategoryCreate,
+    MenuCategoryResponse,
+    MenuCreate,
+    MenuDeleteResponse,
+    MenuResponse,
+    MenuUpdate,
+    RecipeResponse,
+    RecipeUpsertRequest,
+)
 from app.services import ingredients as ingredient_service
 from app.services import menus as menu_service
 
 router = APIRouter(prefix="/stores/{store_id}/menus", tags=["menus"])
+category_router = APIRouter(prefix="/stores/{store_id}/menu-categories", tags=["menus"])
+
+
+@category_router.get("")
+def get_menu_categories(
+    store_id: UUID,
+    db: Annotated[Session, Depends(get_db)],
+) -> list[MenuCategoryResponse]:
+    return menu_service.list_categories(db, store_id=store_id)
+
+
+@category_router.post("", status_code=status.HTTP_201_CREATED)
+def post_menu_category(
+    store_id: UUID,
+    payload: MenuCategoryCreate,
+    db: Annotated[Session, Depends(get_db)],
+) -> MenuCategoryResponse:
+    return menu_service.create_category(db, store_id=store_id, payload=payload)
 
 
 @router.get("")
@@ -63,6 +90,22 @@ def patch_menu(
     item = menu_service.update_menu(db, store_id=store_id, menu_id=menu_id, payload=payload)
     linked_ids = menu_service.get_linked_menu_ids(db, store_id=store_id)
     return menu_service.to_menu_response(item, is_pos_linked=(item.id in linked_ids))
+
+
+@router.delete("/{menu_id}")
+def delete_menu(
+    store_id: UUID,
+    menu_id: UUID,
+    db: Annotated[Session, Depends(get_db)],
+) -> MenuDeleteResponse:
+    item = menu_service.delete_menu(db, store_id=store_id, menu_id=menu_id)
+    if item is None:
+        return MenuDeleteResponse(result="DELETED")
+    linked_ids = menu_service.get_linked_menu_ids(db, store_id=store_id)
+    return MenuDeleteResponse(
+        result="DEACTIVATED",
+        menu=menu_service.to_menu_response(item, is_pos_linked=(item.id in linked_ids)),
+    )
 
 
 @router.get("/{menu_id}/recipe")

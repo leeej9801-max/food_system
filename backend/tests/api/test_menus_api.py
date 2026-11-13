@@ -175,3 +175,62 @@ def test_ac8_audit_events_recorded_on_create_update_deactivate(
     summary = json.loads(events[1].change_summary)
     assert Decimal(summary["before"]["selling_price"]) == Decimal("8000.00")
     assert Decimal(summary["after"]["selling_price"]) == Decimal("8500.00")
+
+
+def test_categories_kept_without_menus_and_added_from_menu(client: TestClient) -> None:
+    store_id = _create_store(client)["id"]
+    base = f"/api/v1/stores/{store_id}"
+    resp = client.post(f"{base}/menu-categories", json={"name": " 뇨끼 "})
+    assert resp.status_code == 201
+    assert resp.json()["name"] == "뇨끼"
+    dup = client.post(f"{base}/menu-categories", json={"name": "뇨끼"})
+    assert dup.status_code == 409
+    assert dup.json()["code"] == "DUPLICATE_MENU_CATEGORY"
+
+    client.post(
+        f"{base}/menus", json={"name": "봉골레", "selling_price": 15000, "category": "파스타"}
+    )
+    client.post(
+        f"{base}/menus", json={"name": "알리오올리오", "selling_price": 13000, "category": "파스타"}
+    )
+    cats = {c["name"]: c["menu_count"] for c in client.get(f"{base}/menu-categories").json()}
+    assert cats == {"뇨끼": 0, "파스타": 2}
+
+
+def test_delete_menu_without_records_removes_it_with_recipe(client: TestClient) -> None:
+    store_id = _create_store(client)["id"]
+    base = f"/api/v1/stores/{store_id}"
+    menu = client.post(f"{base}/menus", json={"name": "리조또", "selling_price": 16000}).json()
+    ing = client.post(
+        f"{base}/ingredients",
+        json={"name": "쌀", "base_unit": "g", "purchase_unit": "kg"},
+    ).json()
+    assert (
+        client.put(
+            f"{base}/menus/{menu['id']}/recipe",
+            json={"status": "COMPLETE", "items": [{"ingredient_id": ing["id"], "quantity": 100}]},
+        ).status_code
+        == 200
+    )
+
+    resp = client.delete(f"{base}/menus/{menu['id']}")
+    assert resp.status_code == 200
+    assert resp.json() == {"result": "DELETED", "menu": None}
+    assert client.get(f"{base}/menus/{menu['id']}").status_code == 404
+
+
+def test_delete_menu_with_sales_switches_to_inactive(client: TestClient) -> None:
+    store_id = _create_store(client)["id"]
+    base = f"/api/v1/stores/{store_id}"
+    menu = client.post(f"{base}/menus", json={"name": "까르보나라", "selling_price": 15000}).json()
+    order = client.post(
+        f"{base}/sales-orders", json={"items": [{"menu_item_id": menu["id"], "quantity": 1}]}
+    )
+    assert order.status_code == 201
+
+    resp = client.delete(f"{base}/menus/{menu['id']}")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["result"] == "DEACTIVATED"
+    assert body["menu"]["is_active"] is False
+    assert client.get(f"{base}/menus/{menu['id']}").json()["is_active"] is False

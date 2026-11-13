@@ -53,6 +53,7 @@ def stores(client: TestClient) -> Stores:
 CROSS_STORE_CALLS = [
     ("GET", "/menus/{menu}", None),
     ("PATCH", "/menus/{menu}", {"name": "침범"}),
+    ("DELETE", "/menus/{menu}", None),
     ("GET", "/menus/{menu}/recipe", None),
     ("PUT", "/menus/{menu}/recipe", {"items": []}),
     ("GET", "/ingredients/{ingredient}", None),

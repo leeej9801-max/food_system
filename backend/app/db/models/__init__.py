@@ -564,3 +564,19 @@ class MonthlyExpense(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
     )
+
+
+class MenuCategory(Base):
+    """메뉴 유형. 메뉴가 없어도 남는다 (U-49)."""
+
+    __tablename__ = "menu_categories"
+    __table_args__ = (UniqueConstraint("store_id", "name", name="menu_categories_store_name_key"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )

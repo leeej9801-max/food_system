@@ -1,6 +1,13 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createMenu, fetchMenus, updateMenu } from "../api/menus";
+import {
+  createMenu,
+  createMenuCategory,
+  deleteMenu,
+  fetchMenuCategories,
+  fetchMenus,
+  updateMenu,
+} from "../api/menus";
 import { MenuFormModal } from "../components/MenuFormModal";
 import { RecipeEditorModal } from "../components/RecipeEditorModal";
 import { formatKrwPrice } from "../lib/menuValidation";
@@ -11,6 +18,9 @@ interface MenuManagementPageProps {
   store: Store;
 }
 
+type Toast = { type: "success" | "error"; text: string };
+
+// 위쪽 유형 카드로 아래 표를 거른다 (U-49)
 export function MenuManagementPage({ store }: MenuManagementPageProps) {
   const queryClient = useQueryClient();
   const [searchInput, setSearchInput] = useUrlState<string>("q", "");
@@ -21,81 +31,79 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMenu, setEditingMenu] = useState<MenuItem | null>(null);
   const [recipeTarget, setRecipeTarget] = useState<MenuItem | null>(null);
-  const [feedbackBanner, setFeedbackBanner] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [newCategory, setNewCategory] = useState<string | null>(null);
+  const [toast, setToast] = useState<Toast | null>(null);
 
   const menusQuery = useQuery({
     queryKey: ["menus", store.id, searchInput, categoryFilter, statusFilter],
     queryFn: () =>
-      fetchMenus(store.id, {
-        q: searchInput,
-        category: categoryFilter,
-        status: statusFilter,
-      }),
+      fetchMenus(store.id, { q: searchInput, category: categoryFilter, status: statusFilter }),
   });
 
-  // REV-001 F-02 해소: 필터링 여부와 무관하게 전체 메뉴에서 카테고리 목록을 유지
-  const allMenusQuery = useQuery({
-    queryKey: ["menus", store.id, "all-categories"],
-    queryFn: () => fetchMenus(store.id, { status: "all" }),
+  const categoriesQuery = useQuery({
+    queryKey: ["menu-categories", store.id],
+    queryFn: () => fetchMenuCategories(store.id),
   });
+  const categories = categoriesQuery.data ?? [];
+  const totalMenus = categories.reduce((n, c) => n + c.menu_count, 0);
 
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    for (const item of allMenusQuery.data ?? menusQuery.data ?? []) {
-      if (item.category) set.add(item.category);
+  function refresh() {
+    for (const key of ["menus", "menu-categories", "integration-status", "analytics-sales", "inventory-summary"]) {
+      queryClient.invalidateQueries({ queryKey: [key, store.id] });
     }
-    return Array.from(set).sort();
-  }, [allMenusQuery.data, menusQuery.data]);
+  }
+
+  function fail(err: Error, fallback: string) {
+    setToast({ type: "error", text: err.message || fallback });
+  }
 
   const createMutation = useMutation({
     mutationFn: (payload: Parameters<typeof createMenu>[1]) => createMenu(store.id, payload),
     onSuccess: (created) => {
-      queryClient.invalidateQueries({ queryKey: ["menus", store.id] });
-      queryClient.invalidateQueries({ queryKey: ["integration-status", store.id] });
-      queryClient.invalidateQueries({ queryKey: ["analytics-sales", store.id] });
-      queryClient.invalidateQueries({ queryKey: ["inventory-summary", store.id] });
-      setFeedbackBanner({
-        type: "success",
-        text: `메뉴 '${created.name}' 항목이 등록되었습니다.`,
-      });
+      refresh();
+      setToast({ type: "success", text: `'${created.name}' 메뉴를 등록했습니다.` });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({
-      menuId,
-      payload,
-    }: {
-      menuId: string;
-      payload: Parameters<typeof updateMenu>[2];
-    }) => updateMenu(store.id, menuId, payload),
+    mutationFn: ({ menuId, payload }: { menuId: string; payload: Parameters<typeof updateMenu>[2] }) =>
+      updateMenu(store.id, menuId, payload),
     onSuccess: (updated) => {
-      queryClient.invalidateQueries({ queryKey: ["menus", store.id] });
-      queryClient.invalidateQueries({ queryKey: ["integration-status", store.id] });
-      queryClient.invalidateQueries({ queryKey: ["analytics-sales", store.id] });
-      queryClient.invalidateQueries({ queryKey: ["inventory-summary", store.id] });
-      setFeedbackBanner({
+      refresh();
+      setToast({
         type: "success",
-        text: `메뉴 '${updated.name}' 상태(${updated.is_active ? "판매중" : "비활성"})가 저장되었습니다.`,
+        text: `'${updated.name}' ${updated.is_active ? "운영중" : "출시대기"}으로 저장했습니다.`,
       });
     },
-    onError: (err: Error) => {
-      setFeedbackBanner({
-        type: "error",
-        text: err.message || "메뉴 수정에 실패했습니다.",
-      });
-    },
+    onError: (err: Error) => fail(err, "메뉴 수정에 실패했습니다."),
   });
 
-  function handleOpenCreate() {
-    setEditingMenu(null);
-    setModalOpen(true);
-  }
+  const deleteMutation = useMutation({
+    mutationFn: (item: MenuItem) => deleteMenu(store.id, item.id),
+    onSuccess: (res, item) => {
+      refresh();
+      setToast({
+        type: "success",
+        text:
+          res.result === "DELETED"
+            ? `'${item.name}' 메뉴를 삭제했습니다.`
+            : `'${item.name}'은(는) 판매 기록이 있어 지우지 않고 출시대기로 바꿨습니다.`,
+      });
+    },
+    onError: (err: Error) => fail(err, "메뉴 삭제에 실패했습니다."),
+  });
 
-  function handleOpenEdit(item: MenuItem) {
+  const categoryMutation = useMutation({
+    mutationFn: (name: string) => createMenuCategory(store.id, name),
+    onSuccess: (created) => {
+      refresh();
+      setNewCategory(null);
+      setToast({ type: "success", text: `'${created.name}' 유형을 추가했습니다.` });
+    },
+    onError: (err: Error) => fail(err, "유형 추가에 실패했습니다."),
+  });
+
+  function openForm(item: MenuItem | null) {
     setEditingMenu(item);
     setModalOpen(true);
   }
@@ -108,242 +116,228 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
     }
   }
 
-  function handleToggleActive(item: MenuItem) {
-    updateMutation.mutate({
-      menuId: item.id,
-      payload: { is_active: !item.is_active },
-    });
+  function handleDelete(item: MenuItem) {
+    if (window.confirm(`'${item.name}' 메뉴를 삭제할까요? 판매 기록이 있으면 출시대기로만 바뀝니다.`)) {
+      deleteMutation.mutate(item);
+    }
   }
 
-  function renderRecipeBadge(item: MenuItem) {
+  function submitCategory(e: React.FormEvent) {
+    e.preventDefault();
+    const name = (newCategory ?? "").trim();
+    if (name) categoryMutation.mutate(name);
+  }
+
+  function renderRecipe(item: MenuItem) {
     if (item.recipe_status === "COMPLETE") {
-      return (
-        <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-          ● 완성 ({item.recipe_item_count}종)
-        </span>
-      );
+      return <span className="text-emerald-800">등록완료 +{item.recipe_item_count}</span>;
     }
     if (item.recipe_status === "PARTIAL") {
-      return (
-        <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
-          ▲ 일부 미입력 ({item.recipe_item_count}종)
-        </span>
-      );
+      return <span className="text-amber-800">등록중</span>;
     }
-    return (
-      <span className="inline-flex items-center rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-800">
-        미등록
-      </span>
-    );
+    return <span className="text-gray-500">미등록</span>;
   }
+
+  const cardBase = "rounded-lg border px-4 py-3 text-left transition-colors";
+  const cardClass = (on: boolean) =>
+    `${cardBase} ${on ? "border-accent-600 bg-accent-50" : "border-gray-200 bg-white hover:bg-gray-50"}`;
+  const rows = menusQuery.data ?? [];
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">메뉴 관리</h1>
-          <p className="text-sm text-gray-600">
-            매장 메뉴 마스터와 1인분 레시피를 관리합니다. 선택 정보(가격·카테고리·레시피)가 비어
-            있어도 저장 가능하며, 비활성화 시 과거 기록은 그대로 보존됩니다.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-700"
-          >
-            + 메뉴 추가
-          </button>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-900">메뉴 관리</h1>
+        <button
+          type="button"
+          onClick={() => openForm(null)}
+          className="rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-700"
+        >
+          + 메뉴 추가
+        </button>
       </div>
 
-      {feedbackBanner && (
+      {toast && (
         <div
+          key={toast.text}
           role="status"
-          className={`flex items-center justify-between rounded-lg border px-4 py-2.5 text-sm ${
-            feedbackBanner.type === "success"
+          onAnimationEnd={() => setToast(null)}
+          className={`fp-toast fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-lg border px-4 py-2 text-xs font-bold shadow-lg ${
+            toast.type === "success"
               ? "border-emerald-300 bg-emerald-50 text-emerald-900"
               : "border-red-300 bg-red-50 text-red-900"
           }`}
         >
-          <span>
-            <strong>{feedbackBanner.type === "success" ? "완료:" : "오류:"}</strong>{" "}
-            {feedbackBanner.text}
-          </span>
-          <button
-            type="button"
-            onClick={() => setFeedbackBanner(null)}
-            className="text-xs underline"
-          >
-            닫기
-          </button>
+          {toast.text}
         </div>
       )}
 
-      {/* 검색 및 필터 바 */}
-      <div className="grid grid-cols-1 gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:grid-cols-3">
-        <div>
-          <label htmlFor="menumanagement-f1" className="mb-1 block text-xs font-semibold text-gray-600">메뉴명 검색</label>
-          <input id="menumanagement-f1"
-            type="search"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="예: 까르보나라, 알리오올리오, 스테이크..."
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="menumanagement-f2" className="mb-1 block text-xs font-semibold text-gray-600">카테고리</label>
-          <select id="menumanagement-f2"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600"
+      {/* 메뉴 유형 카드: 누르면 아래 표를 그 유형으로 거른다 */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" data-testid="menu-category-cards">
+        <button
+          type="button"
+          aria-pressed={categoryFilter === ""}
+          onClick={() => setCategoryFilter("")}
+          className={cardClass(categoryFilter === "")}
+        >
+          <div className="text-sm font-semibold text-gray-900">전체</div>
+          <div className="text-xs text-gray-500">{totalMenus}개</div>
+        </button>
+        {categories.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            aria-pressed={categoryFilter === c.name}
+            onClick={() => setCategoryFilter(categoryFilter === c.name ? "" : c.name)}
+            className={cardClass(categoryFilter === c.name)}
           >
-            <option value="">전체 카테고리</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div className="text-sm font-semibold text-gray-900">{c.name}</div>
+            <div className="text-xs text-gray-500">{c.menu_count}개</div>
+          </button>
+        ))}
+        {newCategory === null ? (
+          <button
+            type="button"
+            onClick={() => setNewCategory("")}
+            className={`${cardBase} border-dashed border-gray-300 bg-white text-sm font-semibold text-gray-600 hover:bg-gray-50`}
+          >
+            + 유형 추가
+          </button>
+        ) : (
+          <form onSubmit={submitCategory} className={`${cardBase} border-accent-600 bg-white`}>
+            <label htmlFor="menu-new-category" className="sr-only">새 메뉴 유형</label>
+            <input
+              id="menu-new-category"
+              autoFocus
+              value={newCategory}
+              maxLength={50}
+              onChange={(e) => setNewCategory(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && setNewCategory(null)}
+              placeholder="예: 뇨끼"
+              className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+            />
+            <div className="mt-1.5 flex gap-1.5">
+              <button
+                type="submit"
+                disabled={categoryMutation.isPending}
+                className="rounded bg-accent-600 px-2 py-0.5 text-xs font-semibold text-white"
+              >
+                추가
+              </button>
+              <button
+                type="button"
+                onClick={() => setNewCategory(null)}
+                className="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-700"
+              >
+                취소
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
 
+      <div className="flex flex-wrap items-end gap-3">
         <div>
           <label htmlFor="menumanagement-f3" className="mb-1 block text-xs font-semibold text-gray-600">판매 상태</label>
           <select id="menumanagement-f3"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600"
           >
-            <option value="all">전체 (판매중 + 비활성)</option>
-            <option value="active">판매중(활성)만</option>
-            <option value="inactive">비활성(보관)만</option>
+            <option value="all">전체</option>
+            <option value="active">운영중</option>
+            <option value="inactive">출시대기</option>
           </select>
+        </div>
+        <div className="min-w-48 flex-1">
+          <label htmlFor="menumanagement-f1" className="mb-1 block text-xs font-semibold text-gray-600">메뉴 이름 검색</label>
+          <input id="menumanagement-f1"
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="예: 까르보나라"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600"
+          />
         </div>
       </div>
 
-      {/* 목록 테이블 */}
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
         {menusQuery.isLoading ? (
-          <div className="p-8 text-center text-sm text-gray-600">
-            메뉴 목록을 불러오는 중입니다...
-          </div>
+          <div className="p-8 text-center text-sm text-gray-600">메뉴 목록을 불러오는 중입니다...</div>
         ) : menusQuery.isError ? (
           <div className="p-8 text-center text-sm text-red-700">
             <p className="font-semibold">메뉴 목록 조회에 실패했습니다.</p>
-            <p className="mt-1 text-xs text-gray-600">
-              백엔드 서버가 실행 중인지 확인한 뒤 다시 시도해 주세요.
-            </p>
+            <p className="mt-1 text-xs text-gray-600">백엔드 서버가 실행 중인지 확인한 뒤 다시 시도해 주세요.</p>
           </div>
-        ) : (menusQuery.data ?? []).length === 0 ? (
+        ) : rows.length === 0 ? (
           <div className="p-10 text-center">
-            <p className="text-base font-semibold text-gray-800">아직 등록된 메뉴가 없습니다.</p>
-            <p className="mt-1 text-sm text-gray-500">
-              가짜 샘플 데이터를 표시하지 않습니다. 우측 상단 <strong>[+ 메뉴 추가]</strong> 버튼으로
-              매장의 첫 메뉴를 등록하세요.
+            <p className="text-base font-semibold text-gray-800">
+              {categoryFilter || searchInput || statusFilter !== "all" ? "조건에 맞는 메뉴가 없습니다." : "아직 등록된 메뉴가 없습니다."}
             </p>
             <button
               type="button"
-              onClick={handleOpenCreate}
+              onClick={() => openForm(null)}
               className="mt-4 rounded-lg bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700"
             >
-              + 첫 메뉴 추가하기
+              + 메뉴 추가
             </button>
           </div>
         ) : (
           <table className="w-full border-collapse text-left text-sm">
             <thead className="border-b border-gray-200 text-xs font-medium text-gray-600">
               <tr>
-                <th className="px-4 py-3">메뉴명</th>
-                <th className="px-4 py-3">카테고리</th>
-                <th className="px-4 py-3 text-right">판매가격</th>
-                <th className="px-4 py-3">판매 상태</th>
-                <th className="px-4 py-3">POS 연결</th>
+                <th className="px-4 py-3 text-right">no</th>
+                <th className="px-4 py-3">종류</th>
+                <th className="px-4 py-3">메뉴 이름</th>
+                <th className="px-4 py-3 text-right">가격</th>
+                <th className="px-4 py-3">운영</th>
                 <th className="px-4 py-3">레시피</th>
-                <th className="px-4 py-3 text-right">관리</th>
+                <th className="px-4 py-3"><span className="sr-only">레시피 보기</span></th>
+                <th className="px-4 py-3"><span className="sr-only">수정</span></th>
+                <th className="px-4 py-3"><span className="sr-only">삭제</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {(menusQuery.data ?? []).map((item) => (
-                <tr
-                  key={item.id}
-                  className={item.is_active ? "bg-white" : "bg-gray-50 text-gray-500"}
-                >
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    <div>{item.name}</div>
-                    {item.description && (
-                      <div className="text-xs text-gray-500">{item.description}</div>
-                    )}
+              {rows.map((item, i) => (
+                <tr key={item.id} className={item.is_active ? "" : "bg-gray-50 text-gray-500"}>
+                  <td className="px-4 py-3 text-right tabular-nums text-gray-500">{i + 1}</td>
+                  <td className="px-4 py-3">{item.category ?? <span className="text-xs text-gray-400">-</span>}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">{item.name}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">
+                    {item.selling_price !== null ? formatKrwPrice(item.selling_price) : <span className="text-xs text-gray-400">미입력</span>}
                   </td>
                   <td className="px-4 py-3">
-                    {item.category ? (
-                      <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
-                        {item.category}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-gray-500">미입력</span>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => updateMutation.mutate({ menuId: item.id, payload: { is_active: !item.is_active } })}
+                      disabled={updateMutation.isPending}
+                      title="눌러서 바꾸기"
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        item.is_active ? "bg-emerald-100 text-emerald-800" : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      {item.is_active ? "운영중" : "출시대기"}
+                    </button>
                   </td>
-                  <td className="px-4 py-3 tabular-nums text-right">
-                    {item.selling_price !== null ? (
-                      formatKrwPrice(item.selling_price)
-                    ) : (
-                      <span className="rounded bg-amber-50 px-2 py-0.5 text-xs font-sans text-amber-800">
-                        미입력
-                      </span>
-                    )}
+                  <td className="px-4 py-3 text-xs font-semibold">{renderRecipe(item)}</td>
+                  <td className="px-2 py-3">
+                    <button type="button" onClick={() => setRecipeTarget(item)} className="text-xs font-semibold text-accent-700 hover:underline">
+                      보기
+                    </button>
                   </td>
-                  <td className="px-4 py-3">
-                    {item.is_active ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-                        ● 판매중(활성)
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-700">
-                        ○ 비활성(보관)
-                      </span>
-                    )}
+                  <td className="px-2 py-3">
+                    <button type="button" onClick={() => openForm(item)} className="text-xs font-medium text-gray-700 hover:underline">
+                      수정
+                    </button>
                   </td>
-                  <td className="px-4 py-3">
-                    {item.pos_mapping_status === "LINKED" ? (
-                      <span className="inline-flex items-center rounded bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">
-                        ● 연결됨 (POS/CSV)
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                        대기 (이름 자동매칭)
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">{renderRecipeBadge(item)}</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="inline-flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setRecipeTarget(item)}
-                        className="rounded border border-accent-300 bg-accent-50 px-2.5 py-1 text-xs font-semibold text-accent-700 hover:bg-accent-100"
-                      >
-                        레시피
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEdit(item)}
-                        className="rounded border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
-                      >
-                        수정
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleActive(item)}
-                        disabled={updateMutation.isPending}
-                        className="rounded border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
-                      >
-                        {item.is_active ? "비활성화" : "재활성화"}
-                      </button>
-                    </div>
+                  <td className="px-2 py-3">
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(item)}
+                      disabled={deleteMutation.isPending}
+                      className="text-xs font-medium text-red-700 hover:underline"
+                    >
+                      삭제
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -355,6 +349,7 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
       <MenuFormModal
         open={modalOpen}
         initialMenu={editingMenu}
+        categories={categories.map((c) => c.name)}
         onClose={() => setModalOpen(false)}
         onSubmit={handleModalSubmit}
       />
@@ -365,12 +360,10 @@ export function MenuManagementPage({ store }: MenuManagementPageProps) {
         menuId={recipeTarget?.id ?? null}
         menuName={recipeTarget?.name ?? ""}
         onClose={() => setRecipeTarget(null)}
-        onSaved={() =>
-          setFeedbackBanner({
-            type: "success",
-            text: `메뉴 '${recipeTarget?.name}' 1인분 레시피가 저장되었습니다.`,
-          })
-        }
+        onSaved={() => {
+          refresh();
+          setToast({ type: "success", text: `'${recipeTarget?.name}' 레시피를 저장했습니다.` });
+        }}
       />
     </div>
   );

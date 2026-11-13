@@ -5,14 +5,23 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
-from app.db.models import AuditEvent, MenuItem, Store, StoreTable, utcnow
+from app.db.models import AuditEvent, MenuCategory, MenuItem, Store, StoreTable, utcnow
 from app.db.tenancy import RequestContext, bind_store_scope
 from app.repositories import audit as audit_repo
+from app.repositories import menu_categories as category_repo
 from app.repositories import menus as menu_repo
 from app.repositories import pos_mappings as pos_mapping_repo
 from app.repositories import sales_orders as sales_order_repo
 from app.repositories import stores as store_repo
-from app.schemas import MenuCreate, MenuResponse, MenuUpdate, StoreCreate, StoreUpdate
+from app.schemas import (
+    MenuCategoryCreate,
+    MenuCategoryResponse,
+    MenuCreate,
+    MenuResponse,
+    MenuUpdate,
+    StoreCreate,
+    StoreUpdate,
+)
 
 
 def record_audit(
@@ -224,6 +233,7 @@ def create_menu(db: Session, *, store_id: UUID, payload: MenuCreate) -> MenuItem
         description=payload.description,
         is_active=payload.is_active,
     )
+    _ensure_category(db, store_id=store_id, name=item.category)
     menu_repo.insert(db, item)
     retro_linked = _retroactive_link_unmapped_sales(db, store_id=store_id, menu_item=item)
     record_audit(
@@ -285,6 +295,7 @@ def update_menu(db: Session, *, store_id: UUID, menu_id: UUID, payload: MenuUpda
             continue
         setattr(item, field, value)
     item.updated_at = utcnow()
+    _ensure_category(db, store_id=store_id, name=item.category)
     db.flush()
 
     retro_linked = _retroactive_link_unmapped_sales(db, store_id=store_id, menu_item=item)
@@ -314,3 +325,73 @@ def update_menu(db: Session, *, store_id: UUID, menu_id: UUID, payload: MenuUpda
     )
     db.commit()
     return get_menu_or_404(db, store_id=store_id, menu_id=item.id)
+
+
+def _ensure_category(db: Session, *, store_id: UUID, name: str | None) -> None:
+    """메뉴에 처음 쓰인 유형은 유형 목록에도 남긴다 (U-49)."""
+    if name and category_repo.find_by_name(db, store_id, name) is None:
+        category_repo.insert(db, MenuCategory(store_id=store_id, name=name))
+
+
+def list_categories(db: Session, *, store_id: UUID) -> list[MenuCategoryResponse]:
+    get_store_or_404(db, store_id)
+    counts: dict[str, int] = {}
+    for item in menu_repo.list_by_store(db, store_id):
+        if item.category:
+            counts[item.category] = counts.get(item.category, 0) + 1
+    return [
+        MenuCategoryResponse(id=c.id, name=c.name, menu_count=counts.get(c.name, 0))
+        for c in category_repo.list_by_store(db, store_id)
+    ]
+
+
+def create_category(
+    db: Session, *, store_id: UUID, payload: MenuCategoryCreate
+) -> MenuCategoryResponse:
+    get_store_or_404(db, store_id)
+    if category_repo.find_by_name(db, store_id, payload.name) is not None:
+        raise AppError(
+            status_code=409,
+            code="DUPLICATE_MENU_CATEGORY",
+            message=f"이미 있는 메뉴 유형입니다: {payload.name}",
+            details=[{"field": "name", "message": "메뉴 유형 이름이 중복됩니다."}],
+        )
+    category = MenuCategory(store_id=store_id, name=payload.name)
+    category_repo.insert(db, category)
+    record_audit(
+        db,
+        store_id=store_id,
+        entity_type="menu_category",
+        entity_id=category.id,
+        action="created",
+        summary={"after": {"name": category.name}},
+    )
+    db.commit()
+    return MenuCategoryResponse(id=category.id, name=category.name, menu_count=0)
+
+
+def delete_menu(db: Session, *, store_id: UUID, menu_id: UUID) -> MenuItem | None:
+    """판매·POS 기록이 있으면 지우지 않고 출시대기로 돌려 그 메뉴를 돌려준다. 지웠으면 None (U-49)."""
+    item = get_menu_or_404(db, store_id=store_id, menu_id=menu_id)
+    snapshot = {"name": item.name, "category": item.category, "is_active": item.is_active}
+    if sales_order_repo.menu_has_items(db, store_id, menu_id) or pos_mapping_repo.menu_has_mapping(
+        db, store_id, menu_id
+    ):
+        item.is_active = False
+        item.updated_at = utcnow()
+        action = "deactivated_instead_of_delete"
+        kept: MenuItem | None = item
+    else:
+        menu_repo.delete(db, item)
+        action = "deleted"
+        kept = None
+    record_audit(
+        db,
+        store_id=store_id,
+        entity_type="menu_item",
+        entity_id=menu_id,
+        action=action,
+        summary={"before": snapshot},
+    )
+    db.commit()
+    return None if kept is None else get_menu_or_404(db, store_id=store_id, menu_id=menu_id)

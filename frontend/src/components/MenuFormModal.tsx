@@ -8,6 +8,7 @@ import { Dialog } from "./Dialog";
 interface MenuFormModalProps {
   open: boolean;
   initialMenu: MenuItem | null;
+  categories?: string[];
   onClose: () => void;
   onSubmit: (payload: {
     name: string;
@@ -18,7 +19,13 @@ interface MenuFormModalProps {
   }) => Promise<void>;
 }
 
-export function MenuFormModal({ open, initialMenu, onClose, onSubmit }: MenuFormModalProps) {
+export function MenuFormModal({
+  open,
+  initialMenu,
+  categories = [],
+  onClose,
+  onSubmit,
+}: MenuFormModalProps) {
   const [name, setName] = useState("");
   const [sellingPrice, setSellingPrice] = useState("");
   const [category, setCategory] = useState("");
@@ -174,15 +181,21 @@ export function MenuFormModal({ open, initialMenu, onClose, onSubmit }: MenuForm
 
             <div>
               <label htmlFor="menuform-f3" className="mb-1 block text-sm font-medium text-gray-800">
-                카테고리 (선택)
+                종류 (선택)
               </label>
               <input id="menuform-f3"
                 type="text"
+                list="menuform-categories"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="예: 식사, 안주, 음료"
+                placeholder="예: 파스타, 리조또, 음료"
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-accent-600"
               />
+              <datalist id="menuform-categories">
+                {categories.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
               {fieldErrors.category && (
                 <p className="mt-1 text-xs font-medium text-red-600">{fieldErrors.category}</p>
               )}

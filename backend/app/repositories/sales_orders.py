@@ -143,3 +143,14 @@ def sum_completed_sales_between(
         )
     )
     return total or Decimal(0)
+
+
+def menu_has_items(db: Session, store_id: UUID, menu_id: UUID) -> bool:
+    return (
+        db.scalars(
+            select(SalesOrderItem.id).where(
+                SalesOrderItem.store_id == store_id, SalesOrderItem.menu_item_id == menu_id
+            )
+        ).first()
+        is not None
+    )

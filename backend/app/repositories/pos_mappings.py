@@ -34,3 +34,14 @@ def list_by_store_ordered(db: Session, store_id: UUID) -> list[PosProductMapping
 def insert(db: Session, mapping: PosProductMapping) -> None:
     db.add(mapping)
     db.flush()
+
+
+def menu_has_mapping(db: Session, store_id: UUID, menu_id: UUID) -> bool:
+    return (
+        db.scalars(
+            select(PosProductMapping.id).where(
+                PosProductMapping.store_id == store_id, PosProductMapping.menu_item_id == menu_id
+            )
+        ).first()
+        is not None
+    )

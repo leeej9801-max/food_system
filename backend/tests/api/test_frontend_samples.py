@@ -63,6 +63,8 @@ def test_collect_frontend_response_samples(client: TestClient) -> None:
     call("visitSummarySchema", "GET", f"{s}/visits")
 
     menus = call("menuItemSchema", "GET", f"{s}/menus", unwrap=True)
+    call("menuCategorySchema", "POST", f"{s}/menu-categories", {"name": "뇨끼"})
+    call("menuCategorySchema", "GET", f"{s}/menu-categories", unwrap=True)
     ingredients = call("ingredientSchema", "GET", f"{s}/ingredients", unwrap=True)
     menu_id, ingredient_id = menus[0]["id"], ingredients[0]["id"]
     call("recipeDetailSchema", "GET", f"{s}/menus/{menu_id}/recipe")
@@ -119,6 +121,11 @@ def test_collect_frontend_response_samples(client: TestClient) -> None:
         f"{s}/pnl/2026-10/expenses",
         {"items": [{"code": "rent", "amount": 1000}]},
     )
+
+    extra = client.post(f"/api/v1{s}/menus", json={"name": "표본 삭제용"}).json()
+    call("menuDeleteSchema", "DELETE", f"{s}/menus/{extra['id']}")
+    sold = menus[0]
+    call("menuDeleteSchema", "DELETE", f"{s}/menus/{sold['id']}")
 
     problem = client.post("/api/v1/stores", json={})
     assert problem.status_code == 422

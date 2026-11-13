@@ -133,3 +133,11 @@ def find(db: Session, store_id: UUID, menu_id: UUID) -> MenuItem | None:
     return db.scalars(
         select(MenuItem).where(MenuItem.id == menu_id, MenuItem.store_id == store_id)
     ).first()
+
+
+def delete(db: Session, item: MenuItem) -> None:
+    """레시피(재료 줄 포함)와 함께 지운다."""
+    if item.recipe is not None:
+        db.delete(item.recipe)
+    db.delete(item)
+    db.flush()

@@ -129,6 +129,17 @@ export const menuItemSchema: z.ZodType<T.MenuItem> = z.object({
   updated_at: str,
 });
 
+export const menuCategorySchema: z.ZodType<T.MenuCategory> = z.object({
+  id: str,
+  name: str,
+  menu_count: num,
+});
+
+export const menuDeleteSchema: z.ZodType<T.MenuDeleteResult> = z.object({
+  result: z.enum(["DELETED", "DEACTIVATED"]),
+  menu: menuItemSchema.nullable(),
+});
+
 export const ingredientSchema: z.ZodType<T.Ingredient> = z.object({
   id: str,
   store_id: str,
