@@ -1,6 +1,7 @@
 """매장 도면 프리셋 (WO-20261105-001, U-31).
 
-좌표계는 가로 24칸 × 세로 28칸, 1칸 ≈ 34cm. 테이블 크기는 방향으로 정한다:
+좌표계는 가로 28칸 × 세로 24칸, 1칸 ≈ 34cm. 카운터(태블릿)에서 홀을 바라본 방향이다(U-47).
+테이블 크기는 방향으로 정한다:
 H(가로) 4×2칸, V(세로) 2×4칸(1200×600 기준). 의자는 화면에서 테이블 바깥 1칸에 그린다.
 """
 
@@ -13,30 +14,33 @@ from sqlalchemy.orm import Session
 from app.db.models import StoreTable, utcnow
 from app.services.menus import get_store_or_404, record_audit
 
-# 매장 A(meal love) 도면 DOCS/ilovemeal.jpg를 180° 돌린 실제 방향 기준 (입구가 위).
-# (이름, x, y, 방향) — 왼쪽 열 3, 왼쪽 위 1, 가운데 세로 4, 창가 아래 줄 4 = 12테이블 4인석
-MEAL_LOVE_TABLES: tuple[tuple[str, int, int, str], ...] = (
-    ("T1", 1, 3, "H"),
-    ("T2", 1, 9, "H"),
-    ("T3", 1, 15, "H"),
-    ("T4", 7, 3, "H"),
-    ("T5", 11, 7, "V"),
-    ("T6", 15, 7, "V"),
-    ("T7", 11, 15, "V"),
-    ("T8", 15, 15, "V"),
-    ("T9", 1, 24, "H"),
-    ("T10", 7, 24, "H"),
-    ("T11", 13, 24, "H"),
-    ("T12", 19, 24, "H"),
+# 매장 A(meal love) 도면 DOCS/ilovemeal.jpg 기준. 카운터에서 홀을 바라보게 돌렸다:
+# 입구·카운터 오른쪽, 소파 벽 왼쪽, 유리창 위·오른쪽. 주방은 홀 밖이라 넣지 않는다.
+# (이름, x, y, 방향, 좌석) — T7·T8은 2인석(3칸으로 짧게), T9~T12는 한쪽이 소파.
+MEAL_LOVE_TABLES: tuple[tuple[str, int, int, str, int], ...] = (
+    ("T1", 21, 1, "V", 4),
+    ("T2", 15, 1, "V", 4),
+    ("T3", 9, 1, "V", 4),
+    ("T4", 21, 7, "V", 4),
+    ("T5", 12, 10, "H", 4),
+    ("T6", 12, 16, "H", 4),
+    ("T7", 7, 10, "H", 2),
+    ("T8", 7, 16, "H", 2),
+    ("T9", 2, 2, "V", 4),
+    ("T10", 2, 7, "V", 4),
+    ("T11", 2, 12, "V", 4),
+    ("T12", 2, 17, "V", 4),
 )
 
 MEAL_LOVE_FIXTURES: tuple[dict[str, object], ...] = (
-    {"kind": "ENTRANCE", "x": 14, "y": 0, "w": 4, "h": 1, "label": "입구"},
-    {"kind": "COUNTER", "x": 19, "y": 1, "w": 5, "h": 3, "label": "카운터"},
-    {"kind": "KITCHEN", "x": 22, "y": 5, "w": 2, "h": 9, "label": "주방"},
-    {"kind": "PARTITION", "x": 6, "y": 1, "w": 1, "h": 6, "label": None},
-    {"kind": "PARTITION", "x": 10, "y": 13, "w": 8, "h": 1, "label": None},
-    {"kind": "WALL", "x": 0, "y": 27, "w": 24, "h": 1, "label": "창"},
+    {"kind": "WALL", "x": 2, "y": 0, "w": 23, "h": 1, "label": None},
+    {"kind": "WALL", "x": 27, "y": 3, "w": 1, "h": 14, "label": None},
+    {"kind": "ENTRANCE", "x": 27, "y": 17, "w": 1, "h": 4, "label": "입구"},
+    {"kind": "PARTITION", "x": 19, "y": 11, "w": 8, "h": 1, "label": None},
+    {"kind": "WAITING", "x": 19, "y": 12, "w": 8, "h": 1, "label": None},
+    {"kind": "COUNTER", "x": 21, "y": 19, "w": 6, "h": 3, "label": "카운터"},
+    {"kind": "PARTITION", "x": 11, "y": 7, "w": 1, "h": 13, "label": None},
+    {"kind": "SOFA", "x": 0, "y": 2, "w": 2, "h": 19, "label": None},
 )
 
 PRESETS = {"meal_love": (MEAL_LOVE_TABLES, MEAL_LOVE_FIXTURES)}
@@ -54,14 +58,14 @@ def apply_floor_preset(db: Session, store_id: UUID, preset: str = "meal_love") -
         for t in db.scalars(select(StoreTable).where(StoreTable.store_id == store_id)).all()
     }
     created = updated = 0
-    for name, x, y, orientation in tables_spec:
+    for name, x, y, orientation, seats in tables_spec:
         table = existing.get(name)
         if table is None:
             db.add(
                 StoreTable(
                     store_id=store_id,
                     name=name,
-                    seats=4,
+                    seats=seats,
                     grid_x=x,
                     grid_y=y,
                     orientation=orientation,
@@ -70,8 +74,13 @@ def apply_floor_preset(db: Session, store_id: UUID, preset: str = "meal_love") -
             )
             created += 1
             continue
-        if (table.grid_x, table.grid_y, table.orientation, table.seats) != (x, y, orientation, 4):
-            table.grid_x, table.grid_y, table.orientation, table.seats = x, y, orientation, 4
+        if (table.grid_x, table.grid_y, table.orientation, table.seats) != (
+            x,
+            y,
+            orientation,
+            seats,
+        ):
+            table.grid_x, table.grid_y, table.orientation, table.seats = x, y, orientation, seats
             table.updated_at = utcnow()
             updated += 1
     store.floor_fixtures = json.dumps(list(fixtures), ensure_ascii=False)

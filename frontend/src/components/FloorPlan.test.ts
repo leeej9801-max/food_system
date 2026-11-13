@@ -14,7 +14,7 @@ const box = (id: string, x: number, y: number) => ({
 
 describe("canPlace", () => {
   const others = [box("a", 0, 0), box("b", 10, 0)];
-  const wall = [{ kind: "PARTITION", x: 0, y: 10, w: 24, h: 1 }];
+  const wall = [{ kind: "PARTITION", x: 0, y: 10, w: 28, h: 1 }];
 
   it("빈 자리와 맞닿은 자리는 놓을 수 있다", () => {
     expect(canPlace(others, wall as never, box("b", 4, 0))).toBe(true);

@@ -57,10 +57,10 @@ def table(staff: TestClient) -> dict:
 
 def test_table_orientation_and_extended_grid(staff: TestClient, table: dict) -> None:
     url = f"/api/v1/stores/{table['store_id']}/tables/{table['table_id']}"
-    r = staff.patch(url, json={"grid_x": 23, "grid_y": 27, "orientation": "V"})
+    r = staff.patch(url, json={"grid_x": 27, "grid_y": 23, "orientation": "V"})
     assert r.status_code == 200
-    assert (r.json()["grid_x"], r.json()["grid_y"], r.json()["orientation"]) == (23, 27, "V")
-    assert staff.patch(url, json={"grid_x": 24}).status_code == 422
+    assert (r.json()["grid_x"], r.json()["grid_y"], r.json()["orientation"]) == (27, 23, "V")
+    assert staff.patch(url, json={"grid_x": 28}).status_code == 422
     assert staff.patch(url, json={"orientation": "X"}).status_code == 422
 
 
@@ -72,12 +72,13 @@ def test_floor_preset_is_idempotent(staff: TestClient, db_session: Session, tabl
 
     tables = staff.get(f"/api/v1/stores/{sid}/tables").json()
     assert len(tables) == 12
-    assert sum(t["orientation"] == "V" for t in tables) == 4
-    assert all(t["seats"] == 4 for t in tables)
-    by_name = {t["name"]: (t["grid_x"], t["grid_y"], t["orientation"]) for t in tables}
-    assert by_name == {n: (x, y, o) for n, x, y, o in MEAL_LOVE_TABLES}
+    assert sum(t["orientation"] == "V" for t in tables) == 8
+    by_name = {t["name"]: (t["grid_x"], t["grid_y"], t["orientation"], t["seats"]) for t in tables}
+    assert by_name == {n: (x, y, o, s) for n, x, y, o, s in MEAL_LOVE_TABLES}
+    assert by_name["T7"][3] == by_name["T8"][3] == 2
     kinds = {f["kind"] for f in staff.get(f"/api/v1/stores/{sid}").json()["floor_fixtures"]}
-    assert {"ENTRANCE", "COUNTER", "KITCHEN", "PARTITION"} <= kinds
+    assert {"ENTRANCE", "COUNTER", "PARTITION", "SOFA", "WAITING"} <= kinds
+    assert "KITCHEN" not in kinds
 
 
 # --- 사람별 성별·연령대 ---
@@ -283,6 +284,6 @@ def test_floor_reset_api_restores_preset(staff: TestClient, table: dict) -> None
     first = staff.post(f"{base}/floor/reset")
     assert first.status_code == 200
     by_name = {t["name"]: (t["grid_x"], t["grid_y"], t["orientation"]) for t in first.json()}
-    assert by_name == {n: (x, y, o) for n, x, y, o in MEAL_LOVE_TABLES}
+    assert by_name == {n: (x, y, o) for n, x, y, o, _ in MEAL_LOVE_TABLES}
     assert staff.post(f"{base}/floor/reset").json() == first.json()
     assert staff.post(f"/api/v1/stores/{uuid.uuid4()}/floor/reset").status_code == 404

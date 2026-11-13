@@ -43,7 +43,7 @@ export const storeSchema: z.ZodType<T.Store> = z.object({
   opening_hours: nstr,
   floor_fixtures: z.array(
     z.object({
-      kind: z.enum(["ENTRANCE", "COUNTER", "PARTITION", "KITCHEN", "WALL"]),
+      kind: z.enum(["ENTRANCE", "COUNTER", "PARTITION", "KITCHEN", "WALL", "SOFA", "PILLAR", "WAITING"]),
       x: num,
       y: num,
       w: num,

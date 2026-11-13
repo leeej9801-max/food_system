@@ -9,11 +9,19 @@ export interface Store {
   updated_at: string;
 }
 
-// 홀 좌표계: 가로 24칸 × 세로 28칸, 1칸 ≈ 34cm (U-31)
-export const FLOOR_COLS = 24;
-export const FLOOR_ROWS = 28;
+// 홀 좌표계: 가로 28칸 × 세로 24칸, 1칸 ≈ 34cm. 카운터에서 바라본 방향 (U-31, U-47)
+export const FLOOR_COLS = 28;
+export const FLOOR_ROWS = 24;
 
-export type FixtureKindType = "ENTRANCE" | "COUNTER" | "PARTITION" | "KITCHEN" | "WALL";
+export type FixtureKindType =
+  | "ENTRANCE"
+  | "COUNTER"
+  | "PARTITION"
+  | "KITCHEN"
+  | "WALL"
+  | "SOFA"
+  | "PILLAR"
+  | "WAITING";
 
 export interface FloorFixture {
   kind: FixtureKindType;

@@ -20,7 +20,7 @@ import {
   updateVisitSession,
   updateVisitSlot,
 } from "../api/stores";
-import { FloorPlan } from "../components/FloorPlan";
+import { FLOOR_COLORS, FloorPlan } from "../components/FloorPlan";
 import type {
   AgeBandType,
   GenderType,
@@ -339,11 +339,11 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                 {visitSummaryQuery.data?.active_guest_count ?? 0}명
               </span>
               <span className="inline-flex items-center gap-1">
-                <span className="inline-block h-2.5 w-2.5 rounded-sm border border-blue-600 bg-blue-100" />
+                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: FLOOR_COLORS.seated }} />
                 착석
               </span>
               <span className="inline-flex items-center gap-1">
-                <span className="inline-block h-2.5 w-2.5 rounded-sm border border-amber-600 bg-amber-100" />
+                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: FLOOR_COLORS.paid }} />
                 결제
               </span>
             </div>

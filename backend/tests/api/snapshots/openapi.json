@@ -395,7 +395,7 @@
       "FloorFixture": {
         "properties": {
           "h": {
-            "maximum": 28.0,
+            "maximum": 24.0,
             "minimum": 1.0,
             "title": "H",
             "type": "integer"
@@ -406,7 +406,10 @@
               "COUNTER",
               "PARTITION",
               "KITCHEN",
-              "WALL"
+              "WALL",
+              "SOFA",
+              "PILLAR",
+              "WAITING"
             ],
             "title": "Kind",
             "type": "string"
@@ -424,19 +427,19 @@
             "title": "Label"
           },
           "w": {
-            "maximum": 24.0,
+            "maximum": 28.0,
             "minimum": 1.0,
             "title": "W",
             "type": "integer"
           },
           "x": {
-            "exclusiveMaximum": 24.0,
+            "exclusiveMaximum": 28.0,
             "minimum": 0.0,
             "title": "X",
             "type": "integer"
           },
           "y": {
-            "exclusiveMaximum": 28.0,
+            "exclusiveMaximum": 24.0,
             "minimum": 0.0,
             "title": "Y",
             "type": "integer"
@@ -3249,14 +3252,14 @@
         "properties": {
           "grid_x": {
             "default": 0,
-            "exclusiveMaximum": 24.0,
+            "exclusiveMaximum": 28.0,
             "minimum": 0.0,
             "title": "Grid X",
             "type": "integer"
           },
           "grid_y": {
             "default": 0,
-            "exclusiveMaximum": 28.0,
+            "exclusiveMaximum": 24.0,
             "minimum": 0.0,
             "title": "Grid Y",
             "type": "integer"
@@ -3372,7 +3375,7 @@
           "grid_x": {
             "anyOf": [
               {
-                "exclusiveMaximum": 24.0,
+                "exclusiveMaximum": 28.0,
                 "minimum": 0.0,
                 "type": "integer"
               },
@@ -3385,7 +3388,7 @@
           "grid_y": {
             "anyOf": [
               {
-                "exclusiveMaximum": 28.0,
+                "exclusiveMaximum": 24.0,
                 "minimum": 0.0,
                 "type": "integer"
               },

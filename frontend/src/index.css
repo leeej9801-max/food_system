@@ -48,3 +48,14 @@ body {
 table {
   font-variant-numeric: tabular-nums;
 }
+
+/* 도면 테이블: 클릭 때 브라우저 기본 포커스 링(큰 타원)을 끄고, 키보드 포커스일 때만 둘레 선을 보인다 */
+.fp-table:focus {
+  outline: none;
+}
+.fp-focus {
+  opacity: 0;
+}
+.fp-table:focus-visible .fp-focus {
+  opacity: 1;
+}

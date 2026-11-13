@@ -41,11 +41,13 @@ class StoreUpdate(BaseModel):
         return trimmed
 
 
-FixtureKindType = Literal["ENTRANCE", "COUNTER", "PARTITION", "KITCHEN", "WALL"]
+FixtureKindType = Literal[
+    "ENTRANCE", "COUNTER", "PARTITION", "KITCHEN", "WALL", "SOFA", "PILLAR", "WAITING"
+]
 
-# 홀 좌표계: 가로 24칸 × 세로 28칸, 1칸 ≈ 34cm (U-31)
-FLOOR_COLS = 24
-FLOOR_ROWS = 28
+# 홀 좌표계: 가로 28칸 × 세로 24칸, 1칸 ≈ 34cm. 카운터에서 바라본 방향 (U-31, U-47)
+FLOOR_COLS = 28
+FLOOR_ROWS = 24
 
 
 class FloorFixture(BaseModel):
