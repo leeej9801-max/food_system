@@ -189,13 +189,7 @@ export function InventoryPage({ store }: InventoryPageProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">입고 · 재고</h1>
-          <p className="text-sm text-gray-600">
-            <strong>실재고(현장 실사값)</strong>와{" "}
-            <strong>예상 재고(입고 - 판매·레시피 이론소모량 ± 조정 추정치)</strong>를 분리해 표시합니다. 원가 단가는 최근 입고 단가 기준입니다 (PROVISIONAL P-12).
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-900">입고 · 재고</h1>
         <Link
           to="/ingredients"
           className="rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
@@ -233,9 +227,6 @@ export function InventoryPage({ store }: InventoryPageProps) {
           <div className="mt-1 text-2xl font-bold text-gray-900">
             {items.length}종
           </div>
-          <div className="mt-1 text-xs text-gray-500">
-            기본 단위(g/ml/ea) 환산 기준
-          </div>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white p-4">
@@ -249,31 +240,24 @@ export function InventoryPage({ store }: InventoryPageProps) {
           >
             {lowStockCount}종
           </div>
-          <div className="mt-1 text-xs text-gray-500">
-            예상 재고 ≤ 안전재고 또는 0 미만
-          </div>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <div className="text-xs font-semibold text-gray-500">
-            원가 산정 단가 기준 (D-05 / P-12)
+            원가 산정 단가 기준
           </div>
           <div className="mt-1 text-sm font-bold text-gray-900">
-            최근 입고 단가 기준 (PROVISIONAL)
-          </div>
-          <div className="mt-1 text-xs text-gray-500">
-            입고 시 과거 단가 이력은 덮어쓰지 않고 모두 보존됩니다
+            최근 입고 단가 기준
           </div>
         </div>
       </div>
 
       {items.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-600">
-          등록된 활성 식자재가 없습니다. 먼저{" "}
+          등록된 활성 식자재가 없습니다.{" "}
           <Link to="/ingredients" className="font-bold text-accent-600 underline">
             식자재·레시피
-          </Link>{" "}
-          화면에서 식자재를 등록해 주세요.
+          </Link>
         </div>
       ) : (
         <>
@@ -502,16 +486,13 @@ export function InventoryPage({ store }: InventoryPageProps) {
             <h2 className="text-base font-bold text-gray-900">
               식자재별 실재고(실사) · 이론 소모량 · 예상 재고(추정) 현황
             </h2>
-            <p className="mt-0.5 text-xs text-gray-500">
-              계산식: <code>예상 재고 = 최근 실재고 실사값 + 실사 이후 입고량 - 판매×레시피 이론 소모량 ± 폐기/조정</code>
-            </p>
 
             <div className="mt-4 overflow-x-auto">
               <table className="w-full border-collapse text-left text-xs">
                 <thead className="border-b border-gray-200 text-gray-600">
                   <tr>
                     <th className="px-3 py-2">식자재명</th>
-                    <th className="px-3 py-2">최근 입고 단가 (PROVISIONAL P-12)</th>
+                    <th className="px-3 py-2">최근 입고 단가</th>
                     <th className="px-3 py-2 bg-emerald-50/60 text-emerald-950">
                       최근 실재고 (실사 확인값)
                     </th>

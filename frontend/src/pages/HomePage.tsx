@@ -514,7 +514,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                       </table>
                       {blankSlots.length > 0 && (
                         <div className="mt-1 flex items-center justify-between rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600">
-                          <span>미입력 {blankSlots.length}명 (+를 누르면 이 자리부터 채움)</span>
+                          <span>미입력 {blankSlots.length}명</span>
                           <button
                             type="button"
                             aria-label="미입력 빼기"
@@ -642,10 +642,6 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   <div className="font-bold">
                     CSV / 수동 관리 모드 활성화됨
                   </div>
-                  <p className="mt-0.5">
-                    아래 주문 목록에서 품목 수량을 직접 증감하거나 환불(주문취소)로 전환할 수
-                    있으며, 현장 누락 주문을 즉시 추가할 수 있습니다.
-                  </p>
 
                   {/* 현장 수동 주문 빠른 추가 바 */}
                   <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-emerald-200/80 pt-3">
@@ -705,15 +701,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                 </div>
               ) : (salesOrdersQuery.data?.orders.length ?? 0) === 0 ? (
                 <div className="rounded-lg border border-gray-200 p-8 text-center text-sm text-gray-500">
-                  수집된 판매 주문이 없습니다. 위에서 현장 주문을 추가하거나{" "}
-                  <Link
-                    to="/settings"
-                    onClick={() => setOrderModalOpen(false)}
-                    className="font-bold text-accent-600 underline"
-                  >
-                    설정
-                  </Link>
-                  에서 판매 CSV를 업로드해 보세요.
+                  수집된 판매 주문이 없습니다.
                 </div>
               ) : (
                 <div className="space-y-3">

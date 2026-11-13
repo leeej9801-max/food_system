@@ -99,12 +99,7 @@ export function PnlPage({ store }: { store: Store }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">손익</h1>
-          <p className="text-sm text-gray-600">
-            월별 약식 손익계산. 총매출·식자재 사입비·카드수수료는 자동으로 채우고, 나머지는 직접 입력합니다.
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-900">손익</h1>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -144,7 +139,6 @@ export function PnlPage({ store }: { store: Store }) {
             <div className="rounded-lg border border-gray-200 bg-white p-4">
               <div className="text-xs font-semibold text-gray-500">총매출</div>
               <div className="mt-1 text-2xl font-bold text-gray-900">{won(pnl.revenue.amount)}</div>
-              <div className="mt-1 text-xs text-gray-500">{AUTO_HINT.revenue}</div>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4">
               <div className="text-xs font-semibold text-gray-500">총지출</div>
@@ -332,11 +326,6 @@ export function PnlPage({ store }: { store: Store }) {
                 </tfoot>
               </table>
             </div>
-            {draft && (
-              <p className="border-t border-gray-100 px-4 py-2 text-xs text-gray-500">
-                자동 항목은 비워 두면 자동 값을 씁니다. 숫자를 넣으면 그 값으로 바꿉니다. 저장 전 표는 저장된 값 기준입니다.
-              </p>
-            )}
           </div>
 
           <div className="rounded-lg border border-gray-200 bg-white p-4">
@@ -364,7 +353,6 @@ export function PnlPage({ store }: { store: Store }) {
                 <span className="mr-1 inline-block h-2 w-3 rounded bg-gray-400" />
                 총지출
               </span>
-              <span>오른쪽 숫자: 영업이익</span>
             </div>
           </div>
         </>

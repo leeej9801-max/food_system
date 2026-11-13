@@ -143,14 +143,9 @@ export function RecipeEditorModal({
     <Dialog label={`${menuName} 레시피`} onClose={onClose}>
       <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">
-              ‘{menuName}’ 1인분 레시피 설정
-            </h2>
-            <p className="mt-0.5 text-[12px] text-gray-600">
-              메뉴 관리와 식자재 화면이 같은 레시피를 함께 씁니다.
-            </p>
-          </div>
+          <h2 className="text-lg font-bold text-gray-900">
+            ‘{menuName}’ 1인분 레시피 설정
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -172,15 +167,13 @@ export function RecipeEditorModal({
           </div>
         ) : ingredients.length === 0 ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            아직 등록된 식자재가 없습니다. <strong>식자재·레시피</strong> 화면에서 식자재를
-            먼저 추가해 주세요.
+            등록된 식자재가 없습니다.
           </div>
         ) : (
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
               <span>
-                현재 버전: <strong>v{recipeQuery.data?.version ?? 0}</strong> (변경 저장 시 버전과
-                이력이 보존됩니다)
+                현재 버전: <strong>v{recipeQuery.data?.version ?? 0}</strong>
               </span>
               <div className="flex items-center gap-2">
                 <label htmlFor="recipeeditor-f1" className="font-semibold text-gray-700">레시피 완성도 표시:</label>
@@ -189,16 +182,15 @@ export function RecipeEditorModal({
                   onChange={(e) => setStatus(e.target.value as "COMPLETE" | "PARTIAL")}
                   className="rounded border border-gray-300 bg-white px-2 py-1 text-xs"
                 >
-                  <option value="COMPLETE">완성 (이론 소비량·원가 계산 반영)</option>
-                  <option value="PARTIAL">일부 미입력 (작성 중 표시)</option>
+                  <option value="COMPLETE">완성</option>
+                  <option value="PARTIAL">일부 미입력</option>
                 </select>
               </div>
             </div>
 
             {rows.length === 0 ? (
               <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
-                등록된 식자재 항목이 없습니다. 아래 <strong>[+ 재료 행 추가]</strong> 버튼을 눌러
-                1인분 기준 사용량을 등록하세요.
+                등록된 식자재 항목이 없습니다.
               </div>
             ) : (
               <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
@@ -244,7 +236,7 @@ export function RecipeEditorModal({
                         type="text"
                         value={row.notes}
                         onChange={(e) => handleUpdateRow(idx, { notes: e.target.value })}
-                        placeholder="메모 (선택, 예: 건면 기준)"
+                        placeholder="메모 (선택)"
                         className="rounded border border-gray-300 px-2.5 py-1.5 text-xs"
                       />
 
