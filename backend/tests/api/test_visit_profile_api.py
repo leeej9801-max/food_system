@@ -76,9 +76,13 @@ def test_floor_preset_is_idempotent(staff: TestClient, db_session: Session, tabl
     by_name = {t["name"]: (t["grid_x"], t["grid_y"], t["orientation"], t["seats"]) for t in tables}
     assert by_name == {n: (x, y, o, s) for n, x, y, o, s in MEAL_LOVE_TABLES}
     assert by_name["T7"][3] == by_name["T8"][3] == 2
-    kinds = {f["kind"] for f in staff.get(f"/api/v1/stores/{sid}").json()["floor_fixtures"]}
+    fixtures = staff.get(f"/api/v1/stores/{sid}").json()["floor_fixtures"]
+    kinds = {f["kind"] for f in fixtures}
     assert {"ENTRANCE", "COUNTER", "PARTITION", "SOFA", "WAITING", "KITCHEN"} <= kinds
     assert "PILLAR" not in kinds
+    counter = next(f for f in fixtures if f["kind"] == "COUNTER")
+    entrance = next(f for f in fixtures if f["kind"] == "ENTRANCE")
+    assert counter["y"] >= entrance["y"] + entrance["h"]
 
 
 # --- 사람별 성별·연령대 ---

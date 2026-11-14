@@ -38,7 +38,7 @@ MEAL_LOVE_FIXTURES: tuple[dict[str, object], ...] = (
     {"kind": "ENTRANCE", "x": 27, "y": 13, "w": 1, "h": 4, "label": None},
     {"kind": "PARTITION", "x": 19, "y": 11, "w": 8, "h": 1, "label": None},
     {"kind": "WAITING", "x": 19, "y": 12, "w": 8, "h": 1, "label": None},
-    {"kind": "COUNTER", "x": 21, "y": 15, "w": 6, "h": 3, "label": "카운터"},
+    {"kind": "COUNTER", "x": 21, "y": 18, "w": 6, "h": 3, "label": "카운터"},
     {"kind": "PARTITION", "x": 11, "y": 7, "w": 1, "h": 13, "label": None},
     {"kind": "SOFA", "x": 0, "y": 1, "w": 2, "h": 19, "label": None},
     # 맨 아래 줄은 주방. 홀 기록에는 안 쓰지만 도트 홀에서 주방으로 꾸민다 (U-50)

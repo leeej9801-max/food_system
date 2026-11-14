@@ -407,7 +407,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
         </section>
 
         <aside
-          className="card flex min-h-0 flex-col gap-2.5 !p-4 text-sm"
+          className="card flex min-h-0 flex-col gap-3 !p-4 text-sm"
           data-testid="visit-panel"
         >
           {!selectedTable ? (
@@ -453,71 +453,77 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               ) : (
                 <>
                   <div className="flex min-h-0 flex-1 flex-col">
-                    <div className="mb-1.5 flex shrink-0 justify-between text-xs font-bold text-muted">
+                    <div className="mb-1.5 flex shrink-0 items-center justify-between text-sm font-bold text-muted">
                       <span>인원 (남·여 연령별)</span>
-                      <span className="tabular-nums text-ink">총 {slots.length}명</span>
+                      <span className="text-base tabular-nums text-ink">총 {slots.length}명</span>
                     </div>
-                    <div className="min-h-0 flex-1 overflow-y-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="text-xs text-muted">
-                            <th className="w-12" />
-                            {GENDER_OPTIONS.map((g) => (
-                              <th key={g.value} className="pb-1.5 font-bold">
-                                {g.label}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {AGE_OPTIONS.map((a) => (
-                            <tr key={a.band}>
-                              <th className="py-1 text-left font-bold text-ink">{a.label}</th>
-                              {GENDER_OPTIONS.map((g) => {
-                                const match = (s: VisitSlot) => s.gender === g.value && s.age_band === a.band;
-                                const n = slots.filter(match).length;
-                                const label = `${a.label} ${g.label}`;
-                                return (
-                                  <td key={g.value} className="py-1">
-                                    <div className="flex items-center justify-center gap-1.5" data-testid="person-counter">
-                                      <button
-                                        type="button"
-                                        aria-label={`${label} 빼기`}
-                                        disabled={busy || !slots.some((s) => match(s) && staffOwned(s))}
-                                        onClick={() => removeLast(match)}
-                                        className="h-9 w-9 rounded-full bg-ground text-sm font-bold text-ink transition hover:bg-accent-50 disabled:opacity-30"
-                                      >
-                                        −
-                                      </button>
-                                      <span className={`w-6 text-center text-sm font-bold tabular-nums ${n ? "text-ink" : "text-muted/40"}`}>
-                                        {n}
-                                      </span>
-                                      <button
-                                        type="button"
-                                        aria-label={`${label} 더하기`}
-                                        disabled={busy}
-                                        onClick={() => addPerson(g.value, a.band)}
-                                        className="h-9 w-9 rounded-full bg-ground text-sm font-bold text-ink transition hover:bg-accent-50 disabled:opacity-30"
-                                      >
-                                        +
-                                      </button>
-                                    </div>
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+                      <div className="grid shrink-0 grid-cols-[3rem_1fr_1fr] items-center pb-1 text-center text-sm font-bold text-muted">
+                        <span />
+                        {GENDER_OPTIONS.map((g) => (
+                          <span key={g.value}>{g.label}</span>
+                        ))}
+                      </div>
+                      <div className="flex flex-1 flex-col justify-between gap-1.5">
+                        {AGE_OPTIONS.map((a) => (
+                          <div
+                            key={a.band}
+                            className="grid flex-1 grid-cols-[3rem_1fr_1fr] items-center gap-1.5"
+                          >
+                            <span className="text-base font-extrabold text-ink">{a.label}</span>
+                            {GENDER_OPTIONS.map((g) => {
+                              const match = (s: VisitSlot) =>
+                                s.gender === g.value && s.age_band === a.band;
+                              const n = slots.filter(match).length;
+                              const label = `${a.label} ${g.label}`;
+                              return (
+                                <div
+                                  key={g.value}
+                                  className="flex items-center justify-center gap-2"
+                                  data-testid="person-counter"
+                                >
+                                  <button
+                                    type="button"
+                                    aria-label={`${label} 빼기`}
+                                    disabled={
+                                      busy || !slots.some((s) => match(s) && staffOwned(s))
+                                    }
+                                    onClick={() => removeLast(match)}
+                                    className="h-14 w-14 shrink-0 rounded-2xl bg-ground text-xl font-extrabold text-ink transition hover:bg-accent-50 active:scale-95 disabled:opacity-30"
+                                  >
+                                    −
+                                  </button>
+                                  <span
+                                    className={`w-7 text-center text-lg font-extrabold tabular-nums ${
+                                      n ? "text-ink" : "text-muted/40"
+                                    }`}
+                                  >
+                                    {n}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    aria-label={`${label} 더하기`}
+                                    disabled={busy}
+                                    onClick={() => addPerson(g.value, a.band)}
+                                    className="h-14 w-14 shrink-0 rounded-2xl bg-ground text-xl font-extrabold text-ink transition hover:bg-accent-50 active:scale-95 disabled:opacity-30"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </div>
                       {blankSlots.length > 0 && (
-                        <div className="mt-1.5 flex items-center justify-between rounded-xl bg-ground px-3 py-1.5 text-xs text-muted">
+                        <div className="mt-2 flex shrink-0 items-center justify-between rounded-xl bg-ground px-3 py-2 text-sm text-muted">
                           <span className="font-semibold">미입력 {blankSlots.length}명</span>
                           <button
                             type="button"
                             aria-label="미입력 빼기"
                             disabled={busy || !blankSlots.some(staffOwned)}
                             onClick={() => removeLast(isBlank)}
-                            className="h-8 w-8 rounded-full bg-white font-bold text-ink disabled:opacity-30"
+                            className="h-11 w-11 rounded-xl bg-white text-lg font-extrabold text-ink disabled:opacity-30"
                           >
                             −
                           </button>
@@ -527,10 +533,10 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   </div>
 
                   <div className="shrink-0">
-                    <div className="mb-1.5 text-xs font-bold text-muted">
+                    <div className="mb-1.5 text-sm font-bold text-muted">
                       동반 관계{contextByGuest ? " (손님 입력)" : ""}
                     </div>
-                    <div className="grid grid-cols-6 gap-1">
+                    <div className="grid grid-cols-6 gap-1.5">
                       {RELATIONSHIP_OPTIONS.map((o) => {
                         const isSelected = activeVisit.relationship === o.value;
                         return (
@@ -540,7 +546,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                             aria-pressed={isSelected}
                             disabled={contextByGuest || busy}
                             onClick={() => updateVisitMutation.mutate({ relationship: o.value })}
-                            className="pill pill-sm pill-soft !px-1 justify-center disabled:opacity-40"
+                            className="pill pill-soft !min-h-12 !px-1 justify-center !text-sm !font-bold disabled:opacity-40"
                           >
                             {o.label}
                           </button>
@@ -549,35 +555,21 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                     </div>
                   </div>
 
-                  <div className="grid shrink-0 grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() =>
-                        updateVisitMutation.mutate({
-                          status: activeVisit.status === "PAID" ? "SEATED" : "PAID",
-                        })
-                      }
-                      className={`pill h-11 justify-center text-sm disabled:opacity-50 ${
-                        activeVisit.status === "PAID" ? "pill-soft" : "pill-primary"
-                      }`}
-                    >
-                      {activeVisit.status === "PAID" ? "결제 취소" : "결제 완료"}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => updateVisitMutation.mutate({ status: "LEFT" })}
-                      className="pill pill-dark h-11 justify-center text-sm disabled:opacity-50"
-                    >
-                      퇴점 (비우기)
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => updateVisitMutation.mutate({ status: "LEFT" })}
+                    className="pill pill-dark !min-h-12 shrink-0 justify-center !text-base !font-bold disabled:opacity-50"
+                  >
+                    퇴점 (비우기)
+                  </button>
                   {csvMode && (
                     <button
                       type="button"
                       disabled={busy}
-                      onClick={() => updateVisitMutation.mutate({ status: "LEFT", closed_reason: "NO_ORDER" })}
+                      onClick={() =>
+                        updateVisitMutation.mutate({ status: "LEFT", closed_reason: "NO_ORDER" })
+                      }
                       className="pill pill-sm pill-soft shrink-0 justify-center disabled:opacity-50"
                     >
                       주문 없이 나감
@@ -591,7 +583,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                 <button
                   type="button"
                   onClick={() => setOrderModalOpen(true)}
-                  className="pill pill-sm pill-soft mt-auto shrink-0 justify-center"
+                  className="pill pill-sm pill-soft shrink-0 justify-center"
                 >
                   주문 수정 · 환불 (POS 연동)
                 </button>
