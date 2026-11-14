@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchPnl, savePnlExpenses } from "../api/pnl";
+import { HeroKpi } from "../components/HeroKpi";
 import type { PnlLine, PnlResponse, Store } from "../types";
 
 const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
@@ -176,27 +177,25 @@ export function PnlPage({ store }: { store: Store }) {
       {pnl && (
         <>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border border-gray-200 bg-white p-4">
+            <HeroKpi
+              label="영업이익"
+              value={won(pnl.operating_profit)}
+              tone={pnl.operating_profit < 0 ? "alert" : "normal"}
+            >
+              영업이익률 {pct(pnl.operating_margin_percent)}
+            </HeroKpi>
+            <div className="rounded-[26px] bg-white p-5">
               <div className="text-xs font-semibold text-gray-500">총매출</div>
               <div className="mt-1 text-2xl font-bold text-gray-900">{won(pnl.revenue.amount)}</div>
             </div>
-            <div className="rounded-lg border border-gray-200 bg-white p-4">
+            <div className="rounded-[26px] bg-white p-5">
               <div className="text-xs font-semibold text-gray-500">총지출</div>
               <div className="mt-1 text-2xl font-bold text-gray-900">{won(pnl.total_expenses)}</div>
               <div className="mt-1 text-xs text-gray-500">
                 매출 대비 {pct(pnl.revenue.amount ? ((pnl.total_expenses * 100) / pnl.revenue.amount).toFixed(1) : null)}
               </div>
             </div>
-            <div className="rounded-lg border border-gray-200 bg-white p-4">
-              <div className="text-xs font-semibold text-gray-500">영업이익</div>
-              <div
-                className={`mt-1 text-2xl font-bold ${pnl.operating_profit < 0 ? "text-red-700" : "text-gray-900"}`}
-              >
-                {won(pnl.operating_profit)}
-              </div>
-              <div className="mt-1 text-xs text-gray-500">영업이익률 {pct(pnl.operating_margin_percent)}</div>
-            </div>
-            <div className="rounded-lg border border-gray-200 bg-white p-4">
+            <div className="rounded-[26px] bg-white p-5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-gray-500">최근 6개월</span>
                 <span className="flex gap-2 text-gray-500">

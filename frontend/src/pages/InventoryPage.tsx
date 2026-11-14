@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppLink as Link } from "../components/AppLink";
 import { Dialog } from "../components/Dialog";
+import { HeroKpi } from "../components/HeroKpi";
 import { ApiClientError } from "../api/client";
 import {
   createAdjustment,
@@ -290,17 +291,10 @@ export function InventoryPage({ store }: InventoryPageProps) {
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg bg-white p-4">
-          <div className="text-xs font-semibold text-gray-500">활성 식자재</div>
-          <div className="mt-1 text-2xl font-bold text-gray-900">{items.length}종</div>
-        </div>
-        <div className="rounded-lg bg-white p-4">
-          <div className="text-xs font-semibold text-gray-500">부족 · 점검</div>
-          <div className={`mt-1 text-2xl font-bold ${alerts > 0 ? "text-amber-600" : "text-gray-900"}`}>
-            {alerts}종
-          </div>
-        </div>
-        <div className="rounded-lg bg-white p-4">
+        <HeroKpi label="부족 · 점검" value={alerts} unit="종" tone={alerts > 0 ? "alert" : "normal"}>
+          활성 식자재 {items.length}종
+        </HeroKpi>
+        <div className="rounded-[26px] bg-white p-5 sm:col-span-2">
           <div className="text-xs font-semibold text-gray-500">단가 변동 (최근 입고 대 평균)</div>
           {changes.length === 0 ? (
             <div className="mt-2 text-sm text-gray-400">입고 2건 이상부터</div>

@@ -341,8 +341,8 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
 
 function ShellLayout({ store }: { store: Store }) {
   const location = useLocation();
-  // 평상시 홀 영업 중에는 HOME 화면 공간 극대화를 위해 사이드 메뉴를 기본 접힘 상태로 시작
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // 넓은 화면은 사이드 메뉴를 펼친 채, 태블릿 세로 이하는 접은 채 시작한다
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024);
   const [metaverseMode, setMetaverseMode] = useState<boolean>(() => {
     try {
       return localStorage.getItem("restaurant_ax_metaverse_mode") !== "false";
@@ -378,16 +378,21 @@ function ShellLayout({ store }: { store: Store }) {
   const activeTablesCount = tablesQuery.data?.length ?? 0;
 
   const navItems = [
-    { to: "/home", label: "홈 · 홀 테이블" },
-    { to: "/menus", label: "메뉴 관리" },
-    { to: "/ingredients", label: "식자재 · 레시피" },
-    { to: "/inventory", label: "입고 · 재고" },
-    { to: "/pnl", label: "손익" },
-    { to: "/analytics", label: "분석 대시보드" },
-    { to: "/settings", label: "설정 (POS·매장·CSV)" },
+    { to: "/home", label: "홀", icon: "M3 10.5 12 4l9 6.5V20H3z M9.5 20v-5h5v5" },
+    { to: "/menus", label: "메뉴 관리", icon: "M7 3v8 M4.5 3v5a2.5 2.5 0 0 0 5 0V3 M7 11v10 M17 3c-2 1.5-3 4-3 7h3v11" },
+    { to: "/ingredients", label: "식자재 관리", icon: "M5 19c0-8 5-14 14-14 0 9-6 14-14 14z M5 19l7-7" },
+    { to: "/inventory", label: "재고·입고", icon: "M12 3 4 7v10l8 4 8-4V7z M4 7l8 4 8-4 M12 11v10" },
+    { to: "/pnl", label: "손익", icon: "M4 6h16v12H4z M4 10h16 M15 14h2" },
+    { to: "/analytics", label: "분석", icon: "M4 20h16 M7 16v-5 M12 16V7 M17 16v-8" },
+    { to: "/settings", label: "설정", icon: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z M12 3v2 M12 19v2 M3 12h2 M19 12h2 M5.6 5.6l1.4 1.4 M17 17l1.4 1.4 M5.6 18.4 7 17 M17 7l1.4-1.4" },
   ];
 
-  const currentNav = navItems.find((item) => location.pathname.startsWith(item.to));
+  const today = new Date().toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    weekday: "short",
+  });
   const headerRef = useRef<HTMLElement>(null);
 
   // 홈 기록 화면이 문서 스크롤 없이 남은 높이를 쓰도록 헤더 높이를 CSS 변수로 알린다 (U-31)
@@ -404,157 +409,142 @@ function ShellLayout({ store }: { store: Store }) {
 
   return (
     <div className="min-h-[var(--app-viewport-height)] bg-ground text-gray-900">
-      {/* 태블릿 친화형 컴팩트 상단 상태 & 네비게이션 바 (U-08) */}
-      <header ref={headerRef} className="sticky top-0 z-30 border-b border-gray-200 bg-white px-4 py-2">
-        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-x-6 gap-y-2">
-          {/* 좌측: 사이드 메뉴 토글 + 매장 정보 + 도트 홀 스위치 */}
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setSidebarOpen((v) => !v)}
-              aria-label="사이드 메뉴 토글"
-              aria-expanded={sidebarOpen}
-              className={`inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium transition ${
-                sidebarOpen
-                  ? "border-gray-900 bg-gray-900 text-white"
-                  : "border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
-              }`}
-            >
-              {sidebarOpen ? "메뉴 닫기" : "메뉴"}
-            </button>
-
-            <div className="flex items-baseline gap-2">
-              <Link to="/home" className="text-base font-bold text-gray-900 hover:text-accent-700">
-                {store.name}
-              </Link>
-              {location.pathname === "/home" && (
-                <h1 className="text-base font-semibold text-gray-500">/ 홀 테이블</h1>
-              )}
-              <span className="hidden text-[12px] text-gray-600 sm:inline">
-                {store.business_days ?? "영업일 미설정"} · {store.opening_hours ?? "시간 미설정"}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">2D 도트 홀</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={metaverseMode}
-                aria-label="2D 도트 홀 모드 전환"
-                onClick={() => handleSetMetaverseMode(!metaverseMode)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                  metaverseMode ? "bg-gray-900" : "bg-gray-300"
+      {/* 좌측 고정 사이드 메뉴 (시안 A). 좁은 화면에서는 배경을 덮는 서랍으로 연다. */}
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="메뉴 닫기"
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-30 bg-ink/30 lg:hidden"
+        />
+      )}
+      <aside
+        inert={!sidebarOpen}
+        className={`fixed inset-y-0 left-0 z-40 flex w-[216px] flex-col bg-white px-5 py-8 transition-transform duration-200 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <Link to="/home" className="mb-8 truncate px-2.5 text-[19px] font-bold tracking-tight text-ink">
+          {store.name}
+        </Link>
+        <nav className="flex flex-col gap-1.5">
+          {navItems.map((item) => {
+            const active = location.pathname.startsWith(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                aria-current={active ? "page" : undefined}
+                onClick={() => {
+                  if (window.innerWidth < 1024) setSidebarOpen(false);
+                }}
+                className={`flex min-h-12 items-center gap-3 rounded-full px-4 text-sm transition ${
+                  active ? "bg-accent-600 font-semibold text-white" : "text-gray-500 hover:bg-ground"
                 }`}
               >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0 transition duration-200 ease-in-out ${
-                    metaverseMode ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
-              </button>
-              <span className="w-7 text-[12px] font-medium text-gray-600">
-                {metaverseMode ? "ON" : "OFF"}
-              </span>
-            </div>
-
-            {currentNav && location.pathname !== "/home" && (
-              <Link
-                to="/home"
-                className="text-sm font-medium text-accent-700 hover:text-accent-900"
-              >
-                ← 홀 테이블로
-              </Link>
-            )}
-          </div>
-
-          {/* 우측: 축소된 핵심 지표 요약 (U-08) */}
-          <dl className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm tabular-nums">
-            <div className="flex items-baseline gap-1.5">
-              <dt className="text-gray-600">홀 착석</dt>
-              <dd className="font-semibold text-gray-900">
-                {visitSummary?.active_table_count ?? 0}/{activeTablesCount}테이블 ·{" "}
-                {visitSummary?.active_guest_count ?? 0}명
-              </dd>
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <dt className="text-gray-600">누적 방문</dt>
-              <dd className="font-semibold text-gray-900">
-                {visitSummary?.total_visit_count ?? 0}팀 · {visitSummary?.total_guest_count ?? 0}명
-              </dd>
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <dt className="text-gray-600">순매출</dt>
-              <dd className="font-semibold text-gray-900">
-                {integration && integration.total_orders_count > 0
-                  ? `${Number(integration.net_sales_amount).toLocaleString("ko-KR")}원 (${integration.total_orders_count}건)`
-                  : "0원"}
-              </dd>
-            </div>
-            <Link
-              to="/settings"
-              className={`hidden rounded px-2 py-0.5 text-[12px] font-medium xl:inline-block ${
-                integration?.connection_status === "READY_CSV"
-                  ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  : "bg-amber-50 text-amber-900"
-              }`}
-            >
-              {integration?.mode === "CSV_UPLOAD"
-                ? "CSV/수동 모드"
-                : `${integration?.mode ?? "POS"} (미검증)`}
-            </Link>
-          </dl>
-        </div>
-      </header>
-
-      {/* 본문 레이아웃: 사이드바 열림 시 좌측 고정 레일, 닫힘 시 태블릿 전체 폭 100% 활용 */}
-      <div className="mx-auto max-w-[1600px] px-4 py-4">
-        <div
-          className={
-            sidebarOpen
-              ? "grid grid-cols-1 gap-4 md:grid-cols-[220px_1fr]"
-              : "grid grid-cols-1"
-          }
-        >
-          {sidebarOpen && (
-            <aside className="self-start rounded-lg border border-gray-200 bg-white p-2">
-              <div className="mb-1 flex items-center justify-between px-2 pt-1">
-                <span className="text-[12px] text-gray-600">화면 이동</span>
-                <button
-                  type="button"
-                  onClick={() => setSidebarOpen(false)}
-                  className="text-[12px] font-medium text-gray-600 hover:text-gray-900"
+                <svg
+                  aria-hidden
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  접기
-                </button>
-              </div>
-              <nav className="space-y-0.5">
-                {navItems.map((item) => {
-                  const active = location.pathname.startsWith(item.to);
-                  return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      aria-current={active ? "page" : undefined}
-                      onClick={() => {
-                        if (window.innerWidth < 1024 || item.to === "/home") {
-                          setSidebarOpen(false);
-                        }
-                      }}
-                      className={`flex min-h-11 items-center rounded-md px-3 text-sm transition ${
-                        active
-                          ? "bg-gray-100 font-semibold text-gray-900"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </aside>
-          )}
+                  <path d={item.icon} />
+                </svg>
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
 
+      <div className={`transition-[padding] duration-200 ${sidebarOpen ? "lg:pl-[216px]" : ""}`}>
+        <header ref={headerRef} className="sticky top-0 z-20 bg-ground px-4 py-3 lg:px-8">
+          <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-x-6 gap-y-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSidebarOpen((v) => !v)}
+                aria-label="사이드 메뉴 토글"
+                aria-expanded={sidebarOpen}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink hover:bg-accent-50"
+              >
+                <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
+                  <path d="M4 7h16 M4 12h16 M4 17h16" />
+                </svg>
+              </button>
+              <div className="flex items-baseline gap-2">
+                <span className="text-base font-bold text-ink">{store.name}</span>
+                <span className="hidden text-[12px] text-gray-500 sm:inline">
+                  {store.business_days ?? "영업일 미설정"} · {store.opening_hours ?? "시간 미설정"}
+                </span>
+              </div>
+              {location.pathname === "/home" && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">2D 도트 홀</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={metaverseMode}
+                    aria-label="2D 도트 홀 모드 전환"
+                    onClick={() => handleSetMetaverseMode(!metaverseMode)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                      metaverseMode ? "bg-accent-600" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0 transition duration-200 ease-in-out ${
+                        metaverseMode ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <dl className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm tabular-nums">
+              <div className="flex items-baseline gap-1.5">
+                <dt className="text-gray-500">홀 착석</dt>
+                <dd className="font-semibold text-ink">
+                  {visitSummary?.active_table_count ?? 0}/{activeTablesCount}테이블 ·{" "}
+                  {visitSummary?.active_guest_count ?? 0}명
+                </dd>
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <dt className="text-gray-500">누적 방문</dt>
+                <dd className="font-semibold text-ink">
+                  {visitSummary?.total_visit_count ?? 0}팀 · {visitSummary?.total_guest_count ?? 0}명
+                </dd>
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <dt className="text-gray-500">순매출</dt>
+                <dd className="font-semibold text-ink">
+                  {integration && integration.total_orders_count > 0
+                    ? `${Number(integration.net_sales_amount).toLocaleString("ko-KR")}원 (${integration.total_orders_count}건)`
+                    : "0원"}
+                </dd>
+              </div>
+              <Link
+                to="/settings"
+                className={`hidden rounded-full px-2.5 py-0.5 text-[12px] font-medium xl:inline-block ${
+                  integration?.connection_status === "READY_CSV"
+                    ? "bg-white text-gray-600 hover:bg-accent-50"
+                    : "bg-amber-50 text-amber-900"
+                }`}
+              >
+                {integration?.mode === "CSV_UPLOAD"
+                  ? "CSV/수동 모드"
+                  : `${integration?.mode ?? "POS"} (미검증)`}
+              </Link>
+              <span className="hidden text-gray-500 lg:inline">{today}</span>
+            </dl>
+          </div>
+        </header>
+
+        <div className="mx-auto max-w-[1600px] px-4 pb-6 lg:px-8">
           <main className="min-w-0">
             <Routes>
               <Route path="/" element={<Navigate to={withStore("/home", location.search)} replace />} />

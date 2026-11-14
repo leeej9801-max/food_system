@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge, type BadgeVariant } from "@astryxdesign/core/Badge";
 import { Button } from "@astryxdesign/core/Button";
-import { Card } from "@astryxdesign/core/Card";
 import { Dialog } from "@astryxdesign/core/Dialog";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { Heading } from "@astryxdesign/core/Heading";
@@ -25,6 +24,7 @@ import {
   fetchIngredients,
   updateIngredient,
 } from "../api/ingredients";
+import { HeroKpi } from "../components/HeroKpi";
 import { RecipeEditorModal } from "../components/RecipeEditorModal";
 import { useUrlState } from "../lib/useUrlState";
 import type {
@@ -207,46 +207,18 @@ function IngredientManagement({ store }: Props) {
   ];
 
   const insights = insightsQuery.data;
+  const all = listQuery.data ?? [];
+  const restock = all.filter((i) => i.stock_status === "NEEDS_RESTOCK");
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5 p-4">
+    <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Heading level={1}>식자재 관리</Heading>
         <Button variant="primary" label="식자재 추가" onClick={() => setForm(EMPTY_FORM)} />
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        <RankCard title="최근 7일 사용량" items={insights?.recent_usage} />
-        <RankCard title="연결 메뉴 많은 순" items={insights?.linked_menus} />
-        <Card padding={3}>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-baseline justify-between">
-              <Text type="label" weight="semibold">
-                레시피 미등록 메뉴
-              </Text>
-              <Text type="supporting" color="secondary">
-                {insights?.menus_without_recipe.length ?? 0}개
-              </Text>
-            </div>
-            {insights && insights.menus_without_recipe.length === 0 ? (
-              <Text color="secondary">모두 등록됨</Text>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {insights?.menus_without_recipe.slice(0, 6).map((m) => (
-                  <Button
-                    key={m.menu_id}
-                    size="sm"
-                    variant="secondary"
-                    label={m.name}
-                    onClick={() => setRecipeTarget({ id: m.menu_id, name: m.name })}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </Card>
-      </div>
-
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SegmentedControl
           label="상태"
@@ -284,10 +256,55 @@ function IngredientManagement({ store }: Props) {
           }
         />
       ) : (
-        <Card padding={0}>
+        <div className="overflow-hidden rounded-[26px] bg-white">
           <Table<Row> data={rows} columns={columns} idKey="id" hasHover />
-        </Card>
+        </div>
       )}
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <HeroKpi
+          label="입고 필요"
+          value={restock.length}
+          unit="종"
+          tone={restock.length > 0 ? "alert" : "normal"}
+        >
+          {restock.length > 0
+            ? restock.slice(0, 3).map((i) => i.name).join(", ") + (restock.length > 3 ? ` 외 ${restock.length - 3}종` : "")
+            : `활성 ${all.filter((i) => i.is_active).length}종 모두 충분`}
+        </HeroKpi>
+        <RankCard title="최근 7일 사용량" items={insights?.recent_usage} />
+        <RankCard title="연결 메뉴 많은 순" items={insights?.linked_menus} />
+        <div className="rounded-[26px] bg-white p-5">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between">
+              <Text type="label" weight="semibold">
+                레시피 미등록 메뉴
+              </Text>
+              <Text type="supporting" color="secondary">
+                {insights?.menus_without_recipe.length ?? 0}개
+              </Text>
+            </div>
+            {insights && insights.menus_without_recipe.length === 0 ? (
+              <Text color="secondary">모두 등록됨</Text>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {insights?.menus_without_recipe.slice(0, 6).map((m) => (
+                  <Button
+                    key={m.menu_id}
+                    size="sm"
+                    variant="secondary"
+                    label={m.name}
+                    onClick={() => setRecipeTarget({ id: m.menu_id, name: m.name })}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      </div>
+
 
       <Dialog
         isOpen={form !== null}
@@ -361,7 +378,7 @@ function IngredientManagement({ store }: Props) {
 
 function RankCard({ title, items }: { title: string; items?: IngredientRankItem[] }) {
   return (
-    <Card padding={3}>
+    <div className="rounded-[26px] bg-white p-5">
       <div className="flex flex-col gap-2">
         <Text type="label" weight="semibold">
           {title}
@@ -383,6 +400,6 @@ function RankCard({ title, items }: { title: string; items?: IngredientRankItem[
           </ol>
         )}
       </div>
-    </Card>
+    </div>
   );
 }

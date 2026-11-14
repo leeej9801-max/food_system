@@ -1,6 +1,7 @@
 import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AppLink as Link } from "../components/AppLink";
+import { HeroKpi } from "../components/HeroKpi";
 import { fetchSalesAnalytics, simulateMenuCosts } from "../api/analytics";
 import type { Store } from "../types";
 
@@ -66,21 +67,17 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
 
       {/* 상단 핵심 지표 카드 */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="text-xs font-semibold text-gray-500">
-            누적 순매출 (취소 제외)
-          </div>
-          <div className="mt-1 text-2xl font-bold text-gray-900">
-            {sales
-              ? `${Number(sales.total_net_sales).toLocaleString("ko-KR")}원`
-              : "0원"}
-          </div>
-          <div className="mt-1 text-xs text-gray-500">
-            완료 주문 {sales?.total_completed_orders ?? 0}건
-          </div>
-        </div>
+        <HeroKpi
+          label="누적 순매출"
+          value={Number(sales?.total_net_sales ?? 0).toLocaleString("ko-KR")}
+          unit="원"
+        >
+          완료 주문 {sales?.total_completed_orders ?? 0}건
+          {sales && sales.total_completed_orders > 0 &&
+            ` · 객단가 ${Math.round(Number(sales.total_net_sales) / sales.total_completed_orders).toLocaleString("ko-KR")}원`}
+        </HeroKpi>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="rounded-[26px] bg-white p-5">
           <div className="text-xs font-semibold text-gray-500">
             누적 판매 수량
           </div>
@@ -93,7 +90,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="rounded-[26px] bg-white p-5">
           <div className="text-xs font-semibold text-gray-500">
             원가 산정 단가 기준
           </div>
@@ -102,7 +99,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="rounded-[26px] bg-white p-5">
           <div className="text-xs font-semibold text-gray-500">
             고원가율 주의 메뉴 (≥ 35%)
           </div>

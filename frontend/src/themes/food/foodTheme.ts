@@ -13,8 +13,8 @@ export const foodTheme = defineTheme({
     heading: { family: "Pretendard Variable", fallbacks: sans },
   },
   tokens: {
-    "--color-accent": ["#8c2f55", "#e09ab7"],
-    "--color-background-body": ["#faf8f9", "#1b1b1b"],
+    "--color-accent": ["#2f6bff", "#a9c4ff"],
+    "--color-background-body": ["#f1f4f9", "#1b1b1b"],
   },
   components: {
     button: { base: { borderRadius: "9999px" } },

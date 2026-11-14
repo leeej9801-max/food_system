@@ -194,11 +194,11 @@
     --color-syntax-added-marker: var(--color-syntax-punctuation);
     --color-syntax-removed-marker: var(--color-syntax-punctuation);
     --color-background-surface: light-dark(#ffffff, #262626);
-    --color-background-body: light-dark(#faf8f9, #1b1b1b);
+    --color-background-body: light-dark(#f1f4f9, #1b1b1b);
     --color-background-card: light-dark(#ffffff, #1b1b1b);
     --color-background-popover: light-dark(#ffffff, #1b1b1b);
     --color-background-muted: light-dark(#f1f1f1, #1b1b1b);
-    --color-accent: light-dark(#8c2f55, #e09ab7);
+    --color-accent: light-dark(#2f6bff, #a9c4ff);
     --color-accent-muted: light-dark(#d4d4d4, #474747);
     --color-neutral: light-dark(#0000000F, #ffffff1A);
     --color-overlay: light-dark(#00000080, #000000CC);

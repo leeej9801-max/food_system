@@ -6,6 +6,7 @@ import { ClickableCard } from "@astryxdesign/core/ClickableCard";
 import { Card } from "@astryxdesign/core/Card";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { Heading } from "@astryxdesign/core/Heading";
+import { HeroKpi } from "../components/HeroKpi";
 import { MoreMenu } from "@astryxdesign/core/MoreMenu";
 import { SegmentedControl, SegmentedControlItem } from "@astryxdesign/core/SegmentedControl";
 import { Switch } from "@astryxdesign/core/Switch";
@@ -72,6 +73,11 @@ function MenuManagement({ store }: MenuManagementPageProps) {
   });
   const categories = categoriesQuery.data ?? [];
   const totalMenus = categories.reduce((n, c) => n + c.menu_count, 0);
+  const activeQuery = useQuery({
+    queryKey: ["menus", store.id, "active-count"],
+    queryFn: () => fetchMenus(store.id, { status: "active" }),
+  });
+  const activeCount = activeQuery.data?.length ?? 0;
 
   function refresh() {
     for (const key of ["menus", "menu-categories", "integration-status", "analytics-sales", "inventory-summary"]) {
@@ -247,6 +253,9 @@ function MenuManagement({ store }: MenuManagementPageProps) {
 
       {/* 메뉴 유형 카드: 누르면 아래 표를 그 유형으로 거른다 */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" data-testid="menu-category-cards">
+        <HeroKpi label="운영 중 메뉴" value={activeCount} unit="개" className="col-span-2">
+          출시 대기 {Math.max(totalMenus - activeCount, 0)}개
+        </HeroKpi>
         {categoryCard("all", "전체", totalMenus, "", false)}
         {categories.map((c) => categoryCard(c.id, c.name, c.menu_count, c.name, true))}
         {newCategory === null ? (
