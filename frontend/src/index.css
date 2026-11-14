@@ -15,6 +15,9 @@
   /* 화면 바탕과 강조 KPI 카드 바탕 */
   --color-ground: #f1f4f9;
   --color-ink: #0f1e3d;
+  /* 보조 글씨(진남 65%)와 구분선(진남 9%) */
+  --color-muted: #636d81;
+  --color-rule: #e9ebee;
 
   /* 단일 강조색(파랑). 진한 단계는 작은 표시·주 버튼에만, 옅은 단계는 선택 상태·배지 면에 쓴다. */
   --color-accent-50: #eef3ff;
@@ -38,19 +41,249 @@ body {
   --app-viewport-height: 100dvh;
 }
 
-/* 노트북에서는 브라우저 100%에서 사용자가 요청한 67% 밀도로 표시한다. */
-@media (min-width: 1024px) and (max-width: 1535px) and (max-height: 900px) and (pointer: fine) {
-  :root {
-    --app-viewport-height: calc(100dvh / 0.67);
-  }
-
-  body {
-    zoom: 0.67;
-  }
-}
 
 table {
   font-variant-numeric: tabular-nums;
+}
+
+/* 시안 A 공통 부품 (U-52). 패드(가로 1024~1280)가 기준이고, 넓은 화면은 간격만 넓힌다. */
+@layer components {
+  .page-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 16px;
+    margin-bottom: 16px;
+  }
+  .page-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+  .page-title h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1.1px;
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+  .page-title .title-divider {
+    width: 1px;
+    height: 21px;
+    background: color-mix(in srgb, var(--color-ink) 20%, transparent);
+  }
+  .page-title .title-meta {
+    font-size: 14px;
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+  .page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .card {
+    min-width: 0;
+    border-radius: 16px;
+    background: #fff;
+    padding: 24px;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .card-head h2 {
+    font-size: 16px;
+    font-weight: 650;
+    letter-spacing: -0.4px;
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+  .card-meta {
+    font-size: 12px;
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 550;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .pill:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .pill-sm {
+    min-height: 34px;
+    padding: 0 14px;
+    font-size: 12px;
+  }
+  .pill-primary {
+    background: var(--color-accent-600);
+    color: #fff;
+  }
+  .pill-primary:hover:not(:disabled) {
+    background: var(--color-accent-700);
+  }
+  .pill-secondary {
+    background: #fff;
+    color: var(--color-ink);
+  }
+  .pill-secondary:hover:not(:disabled) {
+    background: var(--color-accent-50);
+  }
+  /* 흰 카드 안에서 쓰는 보조 버튼 */
+  .pill-soft {
+    background: var(--color-ground);
+    color: var(--color-ink);
+  }
+  .pill-soft:hover:not(:disabled) {
+    background: var(--color-accent-50);
+  }
+  .pill-soft[aria-pressed="true"] {
+    background: var(--color-ink);
+    color: #fff;
+  }
+  .pill-dark {
+    background: var(--color-ink);
+    color: #fff;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .chip-ok {
+    background: var(--color-accent-50);
+    color: var(--color-accent-700);
+  }
+  .chip-warn {
+    background: #fff3db;
+    color: #965d11;
+  }
+  .chip-danger {
+    background: #fdecec;
+    color: #b42318;
+  }
+  .chip-idle {
+    background: var(--color-ground);
+    color: var(--color-muted);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table th {
+    height: 39px;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--color-rule);
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+  .data-table td {
+    height: 49px;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--color-rule);
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+  .data-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .data-table th:first-child,
+  .data-table td:first-child {
+    padding-left: 0;
+  }
+  .data-table th:last-child,
+  .data-table td:last-child {
+    padding-right: 0;
+  }
+
+  .kpi-label {
+    font-size: 15px;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .kpi-value {
+    margin-top: 12px;
+    font-size: 30px;
+    font-weight: 650;
+    letter-spacing: -1.1px;
+    line-height: 1.15;
+    color: var(--color-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-value small {
+    margin-left: 5px;
+    font-size: 14px;
+    font-weight: 450;
+    letter-spacing: 0;
+  }
+  .kpi-sub {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* 패드 가로(1280 이하): 카드 안쪽과 숫자를 한 단계 줄인다 */
+@media (max-width: 1280px) {
+  .card {
+    padding: 20px;
+  }
+  .kpi-value {
+    font-size: 25px;
+  }
+}
+
+/* 손가락 입력 기기: 누르는 영역을 44px 이상으로 */
+@media (pointer: coarse) {
+  .pill {
+    min-height: 44px;
+  }
+  .pill-sm {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title h1 {
+    font-size: 24px;
+  }
 }
 
 /* 도면 테이블: 클릭 때 브라우저 기본 포커스 링(큰 타원)을 끄고, 키보드 포커스일 때만 둘레 선을 보인다 */

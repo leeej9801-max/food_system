@@ -420,7 +420,7 @@ function ShellLayout({ store }: { store: Store }) {
       )}
       <aside
         inert={!sidebarOpen}
-        className={`fixed inset-y-0 left-0 z-40 flex w-[216px] flex-col bg-white px-5 py-8 transition-transform duration-200 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-[216px] flex-col bg-white px-5 py-8 transition-transform duration-200 lg:w-[184px] lg:px-3.5 xl:w-[216px] xl:px-5 xl:py-[35px] ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -461,9 +461,9 @@ function ShellLayout({ store }: { store: Store }) {
         </nav>
       </aside>
 
-      <div className={`transition-[padding] duration-200 ${sidebarOpen ? "lg:pl-[216px]" : ""}`}>
-        <header ref={headerRef} className="sticky top-0 z-20 bg-ground px-4 py-3 lg:px-8">
-          <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-x-6 gap-y-2">
+      <div className={`transition-[padding] duration-200 ${sidebarOpen ? "lg:pl-[184px] xl:pl-[216px]" : ""}`}>
+        <header ref={headerRef} className="sticky top-0 z-20 flex min-h-[68px] items-center bg-ground px-4 py-3 md:px-6 xl:px-9">
+          <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center justify-between gap-x-6 gap-y-2">
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
@@ -544,7 +544,7 @@ function ShellLayout({ store }: { store: Store }) {
           </div>
         </header>
 
-        <div className="mx-auto max-w-[1600px] px-4 pb-6 lg:px-8">
+        <div className="mx-auto max-w-[1600px] px-4 pt-3 pb-9 md:px-6 xl:px-9">
           <main className="min-w-0">
             <Routes>
               <Route path="/" element={<Navigate to={withStore("/home", location.search)} replace />} />
