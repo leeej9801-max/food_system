@@ -114,10 +114,17 @@ def test_auto_items_and_month_boundary(client: TestClient, db_session: Session) 
         "ratio_percent": "0.0",
     }
     assert oct_["operating_profit"] == 20_000 - 7_001 - 400
+    days = {d["date"]: d for d in oct_["daily"]}
+    assert len(days) == 31
+    assert days["2026-10-31"] == {"date": "2026-10-31", "revenue": 20_000, "expenses": 400}
+    assert days["2026-10-20"] == {"date": "2026-10-20", "revenue": 0, "expenses": 7_001}
+    assert sum(d["revenue"] for d in oct_["daily"]) == 20_000
 
     nov = client.get(f"/api/v1/stores/{sid}/pnl", params={"month": "2026-11"}).json()
     assert nov["revenue"]["amount"] == 5_005
     assert _line(nov, "card_fee")["amount"] == 100  # 100.1 → 100
+    assert nov["daily"][0] == {"date": "2026-11-01", "revenue": 5_005, "expenses": 100}
+    assert len(nov["daily"]) == 30
 
     # 수기 값은 자동 값을 덮어쓰고, 비우면 다시 자동 값이 된다. 수수료율도 바꿀 수 있다.
     r = client.put(

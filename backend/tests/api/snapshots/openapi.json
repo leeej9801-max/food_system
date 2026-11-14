@@ -2389,6 +2389,31 @@
         "title": "MenuWithoutRecipe",
         "type": "object"
       },
+      "PnlDay": {
+        "description": "하루 매출과 날짜가 있는 지출(식자재 입고 + 카드 수수료). 월 단위 수기 항목은 넣지 않는다.",
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "expenses": {
+            "title": "Expenses",
+            "type": "integer"
+          },
+          "revenue": {
+            "title": "Revenue",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "revenue",
+          "expenses"
+        ],
+        "title": "PnlDay",
+        "type": "object"
+      },
       "PnlExpenseInput": {
         "properties": {
           "amount": {
@@ -2504,6 +2529,13 @@
             "title": "Card Fee Percent",
             "type": "string"
           },
+          "daily": {
+            "items": {
+              "$ref": "#/components/schemas/PnlDay"
+            },
+            "title": "Daily",
+            "type": "array"
+          },
           "expenses": {
             "items": {
               "$ref": "#/components/schemas/PnlLine"
@@ -2559,7 +2591,8 @@
           "total_expenses",
           "operating_profit",
           "operating_margin_percent",
-          "trend"
+          "trend",
+          "daily"
         ],
         "title": "PnlResponse",
         "type": "object"

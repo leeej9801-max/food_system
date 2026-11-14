@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -52,3 +52,19 @@ def sum_receipt_cost_between(
         )
     )
     return total or Decimal(0)
+
+
+def sum_receipt_cost_by_day(
+    db: Session, store_id: UUID, start: datetime, end: datetime, tz: str
+) -> dict[date, Decimal]:
+    day = func.date(func.timezone(tz, InventoryReceipt.received_at))
+    rows = db.execute(
+        select(day, func.sum(InventoryReceipt.total_cost))
+        .where(
+            InventoryReceipt.store_id == store_id,
+            InventoryReceipt.received_at >= start,
+            InventoryReceipt.received_at < end,
+        )
+        .group_by(day)
+    ).all()
+    return {d: t for d, t in rows}

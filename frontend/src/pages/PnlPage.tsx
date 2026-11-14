@@ -40,9 +40,48 @@ const AUTO_HINT: Record<string, string> = {
   card_fee: "총매출 × 카드수수료율",
 };
 
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+function PnlCalendar({ days }: { days: PnlResponse["daily"] }) {
+  if (days.length === 0) return null;
+  const [y, m] = days[0].date.split("-").map(Number);
+  const lead = new Date(y, m - 1, 1).getDay();
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-4">
+      <div className="grid grid-cols-7 gap-1 text-xs">
+        {WEEKDAYS.map((w) => (
+          <div key={w} className="pb-1 text-center font-semibold text-gray-500">
+            {w}
+          </div>
+        ))}
+        {Array.from({ length: lead }, (_, i) => (
+          <div key={`lead-${i}`} />
+        ))}
+        {days.map((d) => (
+          <div key={d.date} className="min-h-16 rounded-md bg-gray-50 p-1.5">
+            {/* 날씨 아이콘 자리(왼쪽 위): 날씨 API 연결 후 날짜 앞에 넣는다 */}
+            <div className="text-gray-500">{Number(d.date.slice(8))}</div>
+            {d.revenue > 0 && (
+              <div className="mt-0.5 truncate text-right tabular-nums text-emerald-700">
+                +{d.revenue.toLocaleString("ko-KR")}
+              </div>
+            )}
+            {d.expenses > 0 && (
+              <div className="truncate text-right tabular-nums text-red-600">
+                -{d.expenses.toLocaleString("ko-KR")}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function PnlPage({ store }: { store: Store }) {
   const [month, setMonth] = useState(thisMonth);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const pnlQuery = useQuery({
@@ -94,6 +133,7 @@ export function PnlPage({ store }: { store: Store }) {
     );
   };
 
+  const expanded = open || draft !== null;
   const maxTrend = Math.max(1, ...(pnl?.trend.flatMap((p) => [p.revenue, p.total_expenses]) ?? [1]));
 
   return (
@@ -135,7 +175,7 @@ export function PnlPage({ store }: { store: Store }) {
 
       {pnl && (
         <>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-gray-200 bg-white p-4">
               <div className="text-xs font-semibold text-gray-500">총매출</div>
               <div className="mt-1 text-2xl font-bold text-gray-900">{won(pnl.revenue.amount)}</div>
@@ -156,11 +196,57 @@ export function PnlPage({ store }: { store: Store }) {
               </div>
               <div className="mt-1 text-xs text-gray-500">영업이익률 {pct(pnl.operating_margin_percent)}</div>
             </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-4">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-gray-500">최근 6개월</span>
+                <span className="flex gap-2 text-gray-500">
+                  <span>
+                    <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-blue-500" />
+                    매출
+                  </span>
+                  <span>
+                    <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-gray-400" />
+                    지출
+                  </span>
+                </span>
+              </div>
+              <div className="mt-2 flex gap-1.5">
+                {pnl.trend.map((p) => (
+                  <div
+                    key={p.month}
+                    className="flex flex-1 flex-col items-center gap-1"
+                    title={`${p.month} 매출 ${won(p.revenue)} · 지출 ${won(p.total_expenses)}`}
+                  >
+                    <div className="flex h-14 w-full items-end justify-center gap-0.5">
+                      <div className="w-2 rounded-t-sm bg-blue-500" style={{ height: `${(p.revenue / maxTrend) * 100}%` }} />
+                      <div
+                        className="w-2 rounded-t-sm bg-gray-400"
+                        style={{ height: `${(p.total_expenses / maxTrend) * 100}%` }}
+                      />
+                    </div>
+                    <span className={`text-[10px] ${p.month === pnl.month ? "font-bold text-gray-900" : "text-gray-500"}`}>
+                      {Number(p.month.slice(5))}월
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="rounded-lg border border-gray-200 bg-white">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-4 py-3">
-              <h2 className="text-sm font-bold text-gray-900">{pnl.month} 약식 손익계산</h2>
+              <button
+                type="button"
+                aria-expanded={expanded}
+                disabled={draft !== null}
+                className="flex items-center gap-2 text-sm font-bold text-gray-900"
+                onClick={() => setOpen(!open)}
+              >
+                <span aria-hidden className={`text-xs text-gray-400 transition-transform ${expanded ? "rotate-90" : ""}`}>
+                  ▶
+                </span>
+                {pnl.month} 약식 손익계산
+              </button>
               {draft ? (
                 <div className="flex items-center gap-2">
                   <label className="text-xs text-gray-600">
@@ -227,6 +313,7 @@ export function PnlPage({ store }: { store: Store }) {
             )}
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
+                {expanded && (
                 <thead className="bg-gray-50 text-xs text-gray-500">
                   <tr>
                     <th className="px-4 py-2 text-left font-semibold">항목</th>
@@ -234,6 +321,8 @@ export function PnlPage({ store }: { store: Store }) {
                     <th className="px-4 py-2 text-right font-semibold">매출 대비</th>
                   </tr>
                 </thead>
+                )}
+                {expanded && (
                 <tbody className="divide-y divide-gray-100">
                   {pnl.expenses.map((l, i) => (
                     <tr key={`${l.code}-${i}`}>
@@ -295,7 +384,8 @@ export function PnlPage({ store }: { store: Store }) {
                       </tr>
                     ))}
                 </tbody>
-                <tfoot className="border-t-2 border-gray-200 font-semibold">
+                )}
+                <tfoot className={`font-semibold ${expanded ? "border-t-2 border-gray-200" : ""}`}>
                   {draft && (
                     <tr>
                       <td className="px-4 py-2" colSpan={3}>
@@ -328,33 +418,7 @@ export function PnlPage({ store }: { store: Store }) {
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <h2 className="text-sm font-bold text-gray-900">최근 6개월</h2>
-            <div className="mt-3 space-y-2">
-              {pnl.trend.map((p) => (
-                <div key={p.month} className="grid grid-cols-[4.5rem_1fr_7rem] items-center gap-2 text-xs">
-                  <span className="text-gray-600">{p.month}</span>
-                  <div className="space-y-0.5">
-                    <div className="h-2 rounded bg-blue-500" style={{ width: `${(p.revenue / maxTrend) * 100}%` }} />
-                    <div className="h-2 rounded bg-gray-400" style={{ width: `${(p.total_expenses / maxTrend) * 100}%` }} />
-                  </div>
-                  <span className={`text-right tabular-nums ${p.operating_profit < 0 ? "text-red-700" : "text-gray-900"}`}>
-                    {won(p.operating_profit)}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 flex gap-4 text-xs text-gray-500">
-              <span>
-                <span className="mr-1 inline-block h-2 w-3 rounded bg-blue-500" />
-                총매출
-              </span>
-              <span>
-                <span className="mr-1 inline-block h-2 w-3 rounded bg-gray-400" />
-                총지출
-              </span>
-            </div>
-          </div>
+          <PnlCalendar days={pnl.daily} />
         </>
       )}
     </div>

@@ -462,6 +462,7 @@ export interface PnlResponse {
   operating_profit: number;
   operating_margin_percent: string | null;
   trend: { month: string; revenue: number; total_expenses: number; operating_profit: number }[];
+  daily: { date: string; revenue: number; expenses: number }[];
 }
 
 export interface PnlExpensesUpdate {

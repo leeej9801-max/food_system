@@ -1,5 +1,5 @@
 from collections.abc import Collection
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -143,6 +143,27 @@ def sum_completed_sales_between(
         )
     )
     return total or Decimal(0)
+
+
+def sum_completed_sales_by_day(
+    db: Session, store_id: UUID, start: datetime, end: datetime, tz: str
+) -> dict[date, Decimal]:
+    """sum_completed_sales_between을 매장 시간대 날짜별로 나눈 값."""
+    when = func.coalesce(SalesOrder.ordered_at, SalesOrder.received_at)
+    day = func.date(func.timezone(tz, when))
+    rows = db.execute(
+        select(day, func.sum(SalesOrderItem.unit_price * SalesOrderItem.quantity))
+        .join(SalesOrder, SalesOrderItem.order_id == SalesOrder.id)
+        .where(
+            SalesOrder.store_id == store_id,
+            SalesOrder.status == "COMPLETED",
+            SalesOrderItem.status == "COMPLETED",
+            when >= start,
+            when < end,
+        )
+        .group_by(day)
+    ).all()
+    return {d: t for d, t in rows}
 
 
 def menu_has_items(db: Session, store_id: UUID, menu_id: UUID) -> bool:

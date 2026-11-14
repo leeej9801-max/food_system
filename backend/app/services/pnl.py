@@ -1,6 +1,6 @@
 """월별 손익표 (WO-20261111-002). 계산은 전부 이 파일의 결정론적 코드다."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from uuid import UUID
 from zoneinfo import ZoneInfo
@@ -12,7 +12,7 @@ from app.db.models import MonthlyExpense, utcnow
 from app.repositories import inventory as inventory_repo
 from app.repositories import monthly_expenses as expense_repo
 from app.repositories import sales_orders as sales_order_repo
-from app.schemas import PnlExpensesUpdate, PnlLine, PnlResponse, PnlTrendPoint
+from app.schemas import PnlDay, PnlExpensesUpdate, PnlLine, PnlResponse, PnlTrendPoint
 from app.services.menus import get_store_or_404, record_audit
 
 REVENUE = ("revenue", "총매출")
@@ -94,6 +94,23 @@ def _build(db: Session, store_id: UUID, month: str, tz: str, card_fee_percent: D
     return revenue, lines
 
 
+def _daily(
+    db: Session, store_id: UUID, month: str, tz: str, card_fee_percent: Decimal
+) -> list[PnlDay]:
+    """달력용. 수기 값으로 덮어쓴 월 합계와는 다를 수 있다(날짜가 있는 기록만 쓴다)."""
+    start, end = _bounds(month, tz)
+    sales = sales_order_repo.sum_completed_sales_by_day(db, store_id, start, end, tz)
+    costs = inventory_repo.sum_receipt_cost_by_day(db, store_id, start, end, tz)
+    days = []
+    d = start.date()
+    while d < end.date():
+        s = sales.get(d, Decimal(0))
+        fee = s * card_fee_percent / 100
+        days.append(PnlDay(date=d, revenue=_won(s), expenses=_won(costs.get(d, Decimal(0)) + fee)))
+        d += timedelta(days=1)
+    return days
+
+
 def get_pnl(db: Session, *, store_id: UUID, month: str) -> PnlResponse:
     store = get_store_or_404(db, store_id)
     revenue, lines = _build(db, store_id, month, store.timezone, store.card_fee_percent)
@@ -129,6 +146,7 @@ def get_pnl(db: Session, *, store_id: UUID, month: str) -> PnlResponse:
         operating_profit=revenue[2] - total,
         operating_margin_percent=_percent(revenue[2] - total, revenue[2]),
         trend=trend,
+        daily=_daily(db, store_id, month, store.timezone, store.card_fee_percent),
     )
 
 

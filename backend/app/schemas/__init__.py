@@ -853,6 +853,14 @@ class PnlTrendPoint(BaseModel):
     operating_profit: int
 
 
+class PnlDay(BaseModel):
+    """하루 매출과 날짜가 있는 지출(식자재 입고 + 카드 수수료). 월 단위 수기 항목은 넣지 않는다."""
+
+    date: date
+    revenue: int
+    expenses: int
+
+
 class PnlResponse(BaseModel):
     store_id: UUID
     month: str
@@ -863,6 +871,7 @@ class PnlResponse(BaseModel):
     operating_profit: int
     operating_margin_percent: Decimal | None
     trend: list[PnlTrendPoint]  # 최근 6개월, 오래된 달부터
+    daily: list[PnlDay]  # 그 달 모든 날, 1일부터
 
 
 class PnlExpenseInput(BaseModel):

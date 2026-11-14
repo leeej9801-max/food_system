@@ -421,4 +421,5 @@ export const pnlSchema: z.ZodType<T.PnlResponse> = z.object({
   trend: z.array(
     z.object({ month: str, revenue: num, total_expenses: num, operating_profit: num })
   ),
+  daily: z.array(z.object({ date: str, revenue: num, expenses: num })),
 });
