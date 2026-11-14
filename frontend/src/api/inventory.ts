@@ -7,6 +7,7 @@ import type {
   InventoryAdjustment,
   InventoryCount,
   InventoryReceipt,
+  PurchaseUnitType,
 } from "../types";
 
 export function fetchInventorySummary(
@@ -30,6 +31,7 @@ export function createReceipt(
   payload: {
     ingredient_id: string;
     purchase_quantity: number;
+    purchase_unit?: PurchaseUnitType;
     total_cost: number;
     supplier_name?: string | null;
     notes?: string | null;

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppLink as Link } from "../components/AppLink";
-import { useUrlState } from "../lib/useUrlState";
+import { Dialog } from "../components/Dialog";
 import { ApiClientError } from "../api/client";
 import {
   createAdjustment,
@@ -13,6 +13,9 @@ import {
 import type {
   AdjustmentReasonType,
   IngredientInventoryItem,
+  InventoryReceipt,
+  PurchaseUnitType,
+  StockAlertStatusType,
   Store,
 } from "../types";
 
@@ -20,645 +23,450 @@ interface InventoryPageProps {
   store: Store;
 }
 
+type Action = "RECEIPT" | "COUNT" | "ADJUST";
+
+const ACTION_LABELS: Record<Action, string> = { RECEIPT: "입고", COUNT: "실사", ADJUST: "폐기·보정" };
+
 const REASON_LABELS: Record<AdjustmentReasonType, string> = {
-  WASTE: "조리 폐기 / 로스",
-  SPOILAGE: "유통기한 경과 / 변질",
-  CORRECTION: "수량 오차 보정",
-  OTHER: "기타 조정",
+  WASTE: "조리 폐기",
+  SPOILAGE: "유통기한 경과",
+  CORRECTION: "수량 보정",
+  OTHER: "기타",
 };
+
+// 상태는 한 단어. 정상 초록 / 부족 노랑 / 점검(예상 재고 음수) 빨강
+const STATUS: Record<StockAlertStatusType, { label: string; className: string }> = {
+  OK: { label: "정상", className: "bg-emerald-50 text-emerald-700" },
+  LOW_STOCK: { label: "부족", className: "bg-amber-50 text-amber-700" },
+  NEGATIVE_WARNING: { label: "점검", className: "bg-red-50 text-red-700" },
+};
+
+const SAME_DIMENSION: Record<string, PurchaseUnitType[]> = {
+  kg: ["kg", "g"],
+  g: ["kg", "g"],
+  L: ["L", "ml"],
+  ml: ["L", "ml"],
+  ea: ["ea"],
+};
+
+const unitLabel = (u: string) => (u === "ea" ? "개" : u);
+const fmt = (v: string | number) => Number(v).toLocaleString("ko-KR");
+const errorText = (err: unknown, fallback: string) =>
+  err instanceof ApiClientError || err instanceof Error ? err.message : fallback;
+
+/** 식자재별 최근 입고 단가가 그 식자재 평균 입고 단가와 얼마나 다른지. 입고 2건 이상만. */
+function priceChanges(receipts: InventoryReceipt[]) {
+  const byIngredient = new Map<string, InventoryReceipt[]>();
+  for (const r of receipts) {
+    byIngredient.set(r.ingredient_id, [...(byIngredient.get(r.ingredient_id) ?? []), r]);
+  }
+  const rows = [];
+  for (const list of byIngredient.values()) {
+    if (list.length < 2) continue;
+    const latest = Number(list[0].unit_cost_per_base); // 목록은 최근 입고부터
+    const avg = list.reduce((sum, r) => sum + Number(r.unit_cost_per_base), 0) / list.length;
+    if (avg === 0) continue;
+    rows.push({ name: list[0].ingredient_name, percent: ((latest - avg) / avg) * 100 });
+  }
+  return rows.sort((a, b) => Math.abs(b.percent) - Math.abs(a.percent)).slice(0, 3);
+}
+
+function ActionDialog({
+  store,
+  item,
+  action,
+  onClose,
+  onDone,
+}: {
+  store: Store;
+  item: IngredientInventoryItem;
+  action: Action;
+  onClose: () => void;
+  onDone: (text: string) => void;
+}) {
+  const units = SAME_DIMENSION[item.base_unit] ?? [item.base_unit as PurchaseUnitType];
+  const [quantity, setQuantity] = useState("");
+  const [unit, setUnit] = useState<PurchaseUnitType>(
+    units.includes(item.purchase_unit as PurchaseUnitType)
+      ? (item.purchase_unit as PurchaseUnitType)
+      : units[0]
+  );
+  const [totalCost, setTotalCost] = useState("");
+  const [supplier, setSupplier] = useState("");
+  const [reason, setReason] = useState<AdjustmentReasonType>("WASTE");
+  const [notes, setNotes] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const q = Number(quantity);
+      const note = notes.trim() || null;
+      if (action === "RECEIPT") {
+        const cost = Number(totalCost);
+        if (!Number.isFinite(q) || q <= 0) throw new Error("수량은 0보다 커야 합니다.");
+        if (totalCost.trim() === "" || !Number.isFinite(cost) || cost < 0)
+          throw new Error("금액은 0 이상이어야 합니다.");
+        await createReceipt(store.id, {
+          ingredient_id: item.ingredient_id,
+          purchase_quantity: q,
+          purchase_unit: unit,
+          total_cost: cost,
+          supplier_name: supplier.trim() || null,
+          notes: note,
+        });
+        return `${item.ingredient_name} ${fmt(q)}${unitLabel(unit)} 입고`;
+      }
+      if (action === "COUNT") {
+        if (quantity.trim() === "" || !Number.isFinite(q) || q < 0)
+          throw new Error("수량은 0 이상이어야 합니다.");
+        await createCount(store.id, { ingredient_id: item.ingredient_id, actual_quantity: q, notes: note });
+        return `${item.ingredient_name} 실사 ${fmt(q)}${unitLabel(item.base_unit)}`;
+      }
+      if (!Number.isFinite(q) || q === 0) throw new Error("수량은 0이 아니어야 합니다.");
+      // 폐기는 항상 빼는 값. 보정·기타는 입력한 부호 그대로
+      const delta = reason === "WASTE" || reason === "SPOILAGE" ? -Math.abs(q) : q;
+      await createAdjustment(store.id, {
+        ingredient_id: item.ingredient_id,
+        quantity_delta: delta,
+        reason,
+        notes: note,
+      });
+      return `${item.ingredient_name} ${REASON_LABELS[reason]} ${fmt(delta)}${unitLabel(item.base_unit)}`;
+    },
+    onSuccess: onDone,
+    onError: (err) => setError(errorText(err, "저장하지 못했습니다.")),
+  });
+
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    mutation.mutate();
+  }
+
+  const input = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm";
+  const signed = action === "ADJUST" && (reason === "CORRECTION" || reason === "OTHER");
+
+  return (
+    <Dialog label={`${item.ingredient_name} ${ACTION_LABELS[action]}`} onClose={onClose}>
+      <form onSubmit={submit} className="w-full max-w-sm space-y-3 rounded-xl bg-white p-5 shadow-xl">
+        <h2 className="text-base font-bold text-gray-900">
+          {item.ingredient_name} {ACTION_LABELS[action]}
+        </h2>
+
+        {action === "ADJUST" && (
+          <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="사유">
+            {(Object.keys(REASON_LABELS) as AdjustmentReasonType[]).map((r) => (
+              <button
+                key={r}
+                type="button"
+                role="radio"
+                aria-checked={reason === r}
+                onClick={() => setReason(r)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                  reason === r ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
+                }`}
+              >
+                {REASON_LABELS[r]}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <label className="block text-xs font-semibold text-gray-600">
+          {action === "COUNT" ? "실재고" : signed ? "수량 (빼려면 -)" : "수량"}
+          <div className="mt-1 flex gap-2">
+            <input
+              autoFocus
+              inputMode="decimal"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              className={input}
+            />
+            {action === "RECEIPT" && units.length > 1 ? (
+              <select
+                aria-label="단위"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value as PurchaseUnitType)}
+                className="rounded-lg border border-gray-300 px-2 text-sm"
+              >
+                {units.map((u) => (
+                  <option key={u} value={u}>
+                    {unitLabel(u)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="self-center text-sm text-gray-500">
+                {unitLabel(action === "RECEIPT" ? unit : item.base_unit)}
+              </span>
+            )}
+          </div>
+        </label>
+
+        {action === "RECEIPT" && (
+          <>
+            <label className="block text-xs font-semibold text-gray-600">
+              총 금액 (원)
+              <input
+                inputMode="numeric"
+                value={totalCost}
+                onChange={(e) => setTotalCost(e.target.value)}
+                className={`mt-1 ${input}`}
+              />
+            </label>
+            <label className="block text-xs font-semibold text-gray-600">
+              공급처
+              <input value={supplier} onChange={(e) => setSupplier(e.target.value)} className={`mt-1 ${input}`} />
+            </label>
+          </>
+        )}
+
+        <label className="block text-xs font-semibold text-gray-600">
+          메모
+          <input value={notes} onChange={(e) => setNotes(e.target.value)} className={`mt-1 ${input}`} />
+        </label>
+
+        {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
+
+        <div className="flex justify-end gap-2 pt-1">
+          <button type="button" onClick={onClose} className="rounded-full px-4 py-2 text-sm font-semibold text-gray-600">
+            취소
+          </button>
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {mutation.isPending ? "저장 중..." : "저장"}
+          </button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
 
 export function InventoryPage({ store }: InventoryPageProps) {
   const queryClient = useQueryClient();
-  const [selectedIngredientId, setSelectedIngredientId] = useUrlState<string>("ingredient", "");
-  const [activeTab, setActiveTab] = useUrlState<"RECEIPT" | "COUNT" | "ADJUST">(
-    "tab", "RECEIPT", ["RECEIPT", "COUNT", "ADJUST"]
-  );
-
-  // 입고 폼 상태
-  const [purchaseQty, setPurchaseQty] = useState("1");
-  const [totalCost, setTotalCost] = useState("");
-  const [supplierName, setSupplierName] = useState("");
-  const [receiptNotes, setReceiptNotes] = useState("");
-
-  // 실재고 실사 폼 상태
-  const [actualQty, setActualQty] = useState("");
-  const [countNotes, setCountNotes] = useState("");
-
-  // 폐기/조정 폼 상태
-  const [deltaQty, setDeltaQty] = useState("-100");
-  const [adjReason, setAdjReason] = useState<AdjustmentReasonType>("WASTE");
-  const [adjNotes, setAdjNotes] = useState("");
-
-  const [banner, setBanner] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [active, setActive] = useState<{ item: IngredientInventoryItem; action: Action } | null>(null);
+  const [banner, setBanner] = useState<string | null>(null);
 
   const summaryQuery = useQuery({
     queryKey: ["inventory-summary", store.id],
     queryFn: () => fetchInventorySummary(store.id, false),
   });
-
   const receiptsQuery = useQuery({
     queryKey: ["inventory-receipts", store.id],
     queryFn: () => fetchReceipts(store.id),
   });
 
   const items = summaryQuery.data ?? [];
-  const currentIngredient: IngredientInventoryItem | undefined =
-    items.find((i) => i.ingredient_id === selectedIngredientId) ?? items[0];
+  const receipts = receiptsQuery.data ?? [];
+  const alerts = items.filter((i) => i.stock_status !== "OK").length;
+  const changes = priceChanges(receipts);
 
-  function refreshInventory() {
-    queryClient.invalidateQueries({ queryKey: ["inventory-summary", store.id] });
-    queryClient.invalidateQueries({ queryKey: ["inventory-receipts", store.id] });
+  function done(text: string) {
+    setActive(null);
+    setBanner(`${text} 완료`);
+    void queryClient.invalidateQueries({ queryKey: ["inventory-summary", store.id] });
+    void queryClient.invalidateQueries({ queryKey: ["inventory-receipts", store.id] });
   }
 
-  const createReceiptMutation = useMutation({
-    mutationFn: () => {
-      if (!currentIngredient) throw new Error("식자재를 먼저 선택해 주세요.");
-      const pQty = Number(purchaseQty);
-      const tCost = Number(totalCost);
-      if (!Number.isFinite(pQty) || pQty <= 0) {
-        throw new Error("구매 수량은 0보다 커야 합니다.");
-      }
-      if (!Number.isFinite(tCost) || tCost < 0) {
-        throw new Error("총 구매금액은 0 이상이어야 합니다.");
-      }
-      return createReceipt(store.id, {
-        ingredient_id: currentIngredient.ingredient_id,
-        purchase_quantity: pQty,
-        total_cost: tCost,
-        supplier_name: supplierName.trim() || null,
-        notes: receiptNotes.trim() || null,
-      });
-    },
-    onSuccess: (created) => {
-      refreshInventory();
-      setTotalCost("");
-      setReceiptNotes("");
-      setBanner({
-        type: "success",
-        text: `'${created.ingredient_name}' 입고 등록 완료: ${Number(
-          created.purchase_quantity
-        )} ${created.purchase_unit} (환산 ${Number(
-          created.base_quantity
-        ).toLocaleString("ko-KR")} ${created.base_unit}, 단가 ${Number(
-          created.unit_cost_per_base
-        )}원/${created.base_unit}) — 과거 단가 이력 보존됨`,
-      });
-    },
-    onError: (err: unknown) => {
-      const msg =
-        err instanceof ApiClientError || err instanceof Error
-          ? err.message
-          : "입고 등록에 실패했습니다.";
-      setBanner({ type: "error", text: msg });
-    },
-  });
-
-  const createCountMutation = useMutation({
-    mutationFn: () => {
-      if (!currentIngredient) throw new Error("식자재를 먼저 선택해 주세요.");
-      const aQty = Number(actualQty);
-      if (!Number.isFinite(aQty) || aQty < 0) {
-        throw new Error("실재고 실사 수량은 0 이상이어야 합니다.");
-      }
-      return createCount(store.id, {
-        ingredient_id: currentIngredient.ingredient_id,
-        actual_quantity: aQty,
-        notes: countNotes.trim() || null,
-      });
-    },
-    onSuccess: (created) => {
-      refreshInventory();
-      setActualQty("");
-      setCountNotes("");
-      setBanner({
-        type: "success",
-        text: `'${created.ingredient_name}' 실재고 실사(${Number(
-          created.actual_quantity
-        ).toLocaleString("ko-KR")} ${created.base_unit})가 기록되었으며 예상 재고 기준점이 현재 시각으로 갱신되었습니다.`,
-      });
-    },
-    onError: (err: unknown) => {
-      const msg =
-        err instanceof ApiClientError || err instanceof Error
-          ? err.message
-          : "실재고 실사 등록에 실패했습니다.";
-      setBanner({ type: "error", text: msg });
-    },
-  });
-
-  const createAdjustmentMutation = useMutation({
-    mutationFn: () => {
-      if (!currentIngredient) throw new Error("식자재를 먼저 선택해 주세요.");
-      const dQty = Number(deltaQty);
-      if (!Number.isFinite(dQty) || dQty === 0) {
-        throw new Error("조정 수량은 0이 아닌 숫자여야 합니다 (폐기는 음수 입력).");
-      }
-      return createAdjustment(store.id, {
-        ingredient_id: currentIngredient.ingredient_id,
-        quantity_delta: dQty,
-        reason: adjReason,
-        notes: adjNotes.trim() || null,
-      });
-    },
-    onSuccess: (created) => {
-      refreshInventory();
-      setAdjNotes("");
-      setBanner({
-        type: "success",
-        text: `'${created.ingredient_name}' 재고 조정(${Number(
-          created.quantity_delta
-        ).toLocaleString("ko-KR")} ${created.base_unit}, ${
-          REASON_LABELS[created.reason]
-        })이 반영되었습니다.`,
-      });
-    },
-    onError: (err: unknown) => {
-      const msg =
-        err instanceof ApiClientError || err instanceof Error
-          ? err.message
-          : "재고 조정 등록에 실패했습니다.";
-      setBanner({ type: "error", text: msg });
-    },
-  });
-
-  const lowStockCount = items.filter((i) => i.stock_status !== "OK").length;
+  const th = "px-3 py-2.5 font-semibold";
+  const num = "px-3 py-3 text-right tabular-nums";
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">입고 · 재고</h1>
-        <Link
-          to="/ingredients"
-          className="rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-        >
-          식자재 · 단위 마스터 관리 →
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-bold text-gray-900">입고 · 재고</h1>
+        <Link to="/ingredients" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
+          식자재 관리 →
         </Link>
       </div>
 
       {banner && (
-        <div
-          role="status"
-          className={`flex items-center justify-between rounded-lg border px-4 py-2.5 text-sm ${
-            banner.type === "success"
-              ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-              : "border-red-300 bg-red-50 text-red-900"
-          }`}
-        >
-          <span>{banner.text}</span>
-          <button
-            type="button"
-            onClick={() => setBanner(null)}
-            className="text-xs underline"
-          >
-            닫기
-          </button>
+        <div role="status" className="rounded-lg bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800">
+          {banner}
         </div>
       )}
 
-      {/* 상단 요약 배너 */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="text-xs font-semibold text-gray-500">
-            관리 중인 활성 식자재
-          </div>
-          <div className="mt-1 text-2xl font-bold text-gray-900">
-            {items.length}종
+        <div className="rounded-lg bg-white p-4">
+          <div className="text-xs font-semibold text-gray-500">활성 식자재</div>
+          <div className="mt-1 text-2xl font-bold text-gray-900">{items.length}종</div>
+        </div>
+        <div className="rounded-lg bg-white p-4">
+          <div className="text-xs font-semibold text-gray-500">부족 · 점검</div>
+          <div className={`mt-1 text-2xl font-bold ${alerts > 0 ? "text-amber-600" : "text-gray-900"}`}>
+            {alerts}종
           </div>
         </div>
-
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="text-xs font-semibold text-gray-500">
-            안전재고 부족 / 음수 점검 필요
-          </div>
-          <div
-            className={`mt-1 text-2xl font-bold ${
-              lowStockCount > 0 ? "text-amber-700" : "text-emerald-700"
-            }`}
-          >
-            {lowStockCount}종
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="text-xs font-semibold text-gray-500">
-            원가 산정 단가 기준
-          </div>
-          <div className="mt-1 text-sm font-bold text-gray-900">
-            최근 입고 단가 기준
-          </div>
+        <div className="rounded-lg bg-white p-4">
+          <div className="text-xs font-semibold text-gray-500">단가 변동 (최근 입고 대 평균)</div>
+          {changes.length === 0 ? (
+            <div className="mt-2 text-sm text-gray-400">입고 2건 이상부터</div>
+          ) : (
+            <ol className="mt-2 space-y-1 text-sm">
+              {changes.map((c) => (
+                <li key={c.name} className="flex justify-between">
+                  <span className="truncate text-gray-800">{c.name}</span>
+                  <span className={`font-semibold tabular-nums ${c.percent > 0 ? "text-red-600" : "text-blue-600"}`}>
+                    {c.percent > 0 ? "▲" : "▼"} {Math.abs(c.percent).toFixed(1)}%
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
       </div>
 
-      {items.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-600">
-          등록된 활성 식자재가 없습니다.{" "}
-          <Link to="/ingredients" className="font-bold text-accent-600 underline">
-            식자재·레시피
+      {summaryQuery.isError && (
+        <p className="text-sm text-red-600">{errorText(summaryQuery.error, "재고를 불러오지 못했습니다.")}</p>
+      )}
+
+      {!summaryQuery.isLoading && items.length === 0 ? (
+        <div className="rounded-lg bg-white p-8 text-center">
+          <p className="text-sm text-gray-600">등록된 식자재가 없습니다</p>
+          <Link
+            to="/ingredients"
+            className="mt-3 inline-block rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white"
+          >
+            식자재 추가
           </Link>
         </div>
       ) : (
-        <>
-          {/* 입고 / 실사 / 폐기·조정 빠른 입력 카드 */}
-          <div className="rounded-lg border border-gray-200 bg-white p-5 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-3">
-              <div className="flex items-center gap-2">
-                <label htmlFor="inventory-f1" className="text-xs font-bold text-gray-700">
-                  대상 식자재 선택:
-                </label>
-                <select id="inventory-f1"
-                  value={currentIngredient?.ingredient_id ?? ""}
-                  onChange={(e) => setSelectedIngredientId(e.target.value)}
-                  className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold text-gray-900"
-                >
-                  {items.map((i) => (
-                    <option key={i.ingredient_id} value={i.ingredient_id}>
-                      {i.ingredient_name} (구매: {i.purchase_unit} → 기본:{" "}
-                      {i.base_unit}, 변환 ×{Number(i.conversion_factor)})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("RECEIPT")}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
-                    activeTab === "RECEIPT"
-                      ? "bg-accent-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  + 입고 · 구매단가 등록
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("COUNT")}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
-                    activeTab === "COUNT"
-                      ? "bg-accent-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  실재고 실사 입력
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("ADJUST")}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
-                    activeTab === "ADJUST"
-                      ? "bg-accent-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  ± 폐기 · 수량 보정
-                </button>
-              </div>
-            </div>
-
-            {activeTab === "RECEIPT" && currentIngredient && (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-5 items-end">
-                <div>
-                  <label htmlFor="inventory-f2" className="mb-1 block text-xs font-semibold text-gray-700">
-                    입고 수량 (구매단위: {currentIngredient.purchase_unit})
-                  </label>
-                  <input id="inventory-f2"
-                    type="number"
-                    step="0.001"
-                    min="0.001"
-                    value={purchaseQty}
-                    onChange={(e) => setPurchaseQty(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="inventory-f3" className="mb-1 block text-xs font-semibold text-gray-700">
-                    총 구매금액 (원)
-                  </label>
-                  <input id="inventory-f3"
-                    type="number"
-                    min="0"
-                    value={totalCost}
-                    onChange={(e) => setTotalCost(e.target.value)}
-                    placeholder="예: 30000"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="inventory-f4" className="mb-1 block text-xs font-semibold text-gray-700">
-                    공급처 (선택)
-                  </label>
-                  <input id="inventory-f4"
-                    type="text"
-                    value={supplierName}
-                    onChange={(e) => setSupplierName(e.target.value)}
-                    placeholder="예: 이탈리아푸드"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="inventory-f5" className="mb-1 block text-xs font-semibold text-gray-700">
-                    메모 (선택)
-                  </label>
-                  <input id="inventory-f5"
-                    type="text"
-                    value={receiptNotes}
-                    onChange={(e) => setReceiptNotes(e.target.value)}
-                    placeholder="명세서 번호 등"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
-                <button
-                  type="button"
-                  disabled={createReceiptMutation.isPending}
-                  onClick={() => createReceiptMutation.mutate()}
-                  className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-bold text-white hover:bg-accent-700 disabled:opacity-50"
-                >
-                  입고 저장
-                </button>
-              </div>
-            )}
-
-            {activeTab === "COUNT" && currentIngredient && (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-4 items-end">
-                <div className="sm:col-span-2">
-                  <label htmlFor="inventory-f6" className="mb-1 block text-xs font-semibold text-gray-700">
-                    실제 확인한 실재고 수량 (기본단위: {currentIngredient.base_unit})
-                  </label>
-                  <input id="inventory-f6"
-                    type="number"
-                    step="0.001"
-                    min="0"
-                    value={actualQty}
-                    onChange={(e) => setActualQty(e.target.value)}
-                    placeholder={`현재 예상 재고: ${Number(
-                      currentIngredient.estimated_quantity
-                    ).toLocaleString("ko-KR")} ${currentIngredient.base_unit}`}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="inventory-f7" className="mb-1 block text-xs font-semibold text-gray-700">
-                    실사 메모 (선택)
-                  </label>
-                  <input id="inventory-f7"
-                    type="text"
-                    value={countNotes}
-                    onChange={(e) => setCountNotes(e.target.value)}
-                    placeholder="예: 마감 실사"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
-                <button
-                  type="button"
-                  disabled={createCountMutation.isPending}
-                  onClick={() => createCountMutation.mutate()}
-                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  실재고 기준점 저장
-                </button>
-              </div>
-            )}
-
-            {activeTab === "ADJUST" && currentIngredient && (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-4 items-end">
-                <div>
-                  <label htmlFor="inventory-f8" className="mb-1 block text-xs font-semibold text-gray-700">
-                    증감 수량 ({currentIngredient.base_unit}, 폐기는 음수)
-                  </label>
-                  <input id="inventory-f8"
-                    type="number"
-                    step="0.001"
-                    value={deltaQty}
-                    onChange={(e) => setDeltaQty(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="inventory-f9" className="mb-1 block text-xs font-semibold text-gray-700">
-                    사유
-                  </label>
-                  <select id="inventory-f9"
-                    value={adjReason}
-                    onChange={(e) =>
-                      setAdjReason(e.target.value as AdjustmentReasonType)
-                    }
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  >
-                    {(Object.keys(REASON_LABELS) as AdjustmentReasonType[]).map(
-                      (r) => (
-                        <option key={r} value={r}>
-                          {REASON_LABELS[r]}
-                        </option>
-                      )
-                    )}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="inventory-f10" className="mb-1 block text-xs font-semibold text-gray-700">
-                    비고 (선택)
-                  </label>
-                  <input id="inventory-f10"
-                    type="text"
-                    value={adjNotes}
-                    onChange={(e) => setAdjNotes(e.target.value)}
-                    placeholder="상세 사유"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
-                <button
-                  type="button"
-                  disabled={createAdjustmentMutation.isPending}
-                  onClick={() => createAdjustmentMutation.mutate()}
-                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-bold text-white hover:bg-amber-700 disabled:opacity-50"
-                >
-                  폐기·조정 반영
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* 식자재별 실재고 vs 예상 재고 분리 비교 표 */}
-          <div className="rounded-lg border border-gray-200 bg-white p-5">
-            <h2 className="text-base font-bold text-gray-900">
-              식자재별 실재고(실사) · 이론 소모량 · 예상 재고(추정) 현황
-            </h2>
-
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full border-collapse text-left text-xs">
-                <thead className="border-b border-gray-200 text-gray-600">
-                  <tr>
-                    <th className="px-3 py-2">식자재명</th>
-                    <th className="px-3 py-2">최근 입고 단가</th>
-                    <th className="px-3 py-2 bg-emerald-50/60 text-emerald-950">
-                      최근 실재고 (실사 확인값)
-                    </th>
-                    <th className="px-3 py-2 text-right">+ 입고량</th>
-                    <th className="px-3 py-2 text-right">- 이론 소모량 (판매×레시피)</th>
-                    <th className="px-3 py-2 text-right">± 폐기/조정</th>
-                    <th className="px-3 py-2 text-right bg-accent-50/60 text-accent-950">
-                      현재 예상 재고 (추정치)
-                    </th>
-                    <th className="px-3 py-2">안전재고 상태</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {items.map((row) => (
-                    <tr key={row.ingredient_id}>
-                      <td className="px-3 py-2.5 font-bold text-gray-900">
-                        {row.ingredient_name}
-                        <div className="text-[12px] font-normal text-gray-500">
-                          기본: {row.base_unit} / 구매: {row.purchase_unit}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        {row.latest_unit_cost_per_purchase ? (
-                          <div>
-                            <span className="font-semibold text-gray-900">
-                              {Number(
-                                row.latest_unit_cost_per_purchase
-                              ).toLocaleString("ko-KR")}
-                              원/{row.purchase_unit}
-                            </span>
-                            <div className="text-[12px] text-gray-500">
-                              ({Number(row.latest_unit_cost_per_base)}원/
-                              {row.base_unit})
+        <div className="overflow-x-auto rounded-lg bg-white">
+          <table className="w-full min-w-[860px] text-sm">
+            <thead className="text-xs text-gray-500">
+              <tr className="border-b border-gray-100 text-left">
+                <th className={th}>식자재</th>
+                <th className={`${th} text-right`}>최근 입고 단가</th>
+                <th className={`${th} text-right`}>마지막 실사</th>
+                <th className={`${th} text-right`}>실사 후 입고</th>
+                <th className={`${th} text-right`}>실사 후 소모</th>
+                <th className={`${th} text-right`}>실사 후 폐기·보정</th>
+                <th className={`${th} text-right`}>예상 재고</th>
+                <th className={th}>상태</th>
+                <th className={th}>
+                  <span className="sr-only">기록</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((i) => {
+                const u = unitLabel(i.base_unit);
+                const status = STATUS[i.stock_status];
+                return (
+                  <tr key={i.ingredient_id} className="border-b border-gray-100 last:border-0">
+                    <td className="px-3 py-3 font-semibold text-gray-900">{i.ingredient_name}</td>
+                    <td className={num}>
+                      {i.latest_unit_cost_per_purchase === null
+                        ? "-"
+                        : `${fmt(i.latest_unit_cost_per_purchase)}원/${unitLabel(i.purchase_unit)}`}
+                    </td>
+                    <td className={num}>
+                      {i.last_actual_quantity === null ? (
+                        <span className="text-gray-400">없음</span>
+                      ) : (
+                        <>
+                          {fmt(i.last_actual_quantity)}
+                          {u}
+                          {i.last_counted_at && (
+                            <div className="text-xs text-gray-400">
+                              {new Date(i.last_counted_at).toLocaleDateString("ko-KR")}
                             </div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-500">입고 단가 미등록</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5 bg-emerald-50/30 tabular-nums">
-                        {row.last_actual_quantity !== null ? (
-                          <div>
-                            <strong className="text-emerald-900">
-                              {Number(row.last_actual_quantity).toLocaleString(
-                                "ko-KR"
-                              )}{" "}
-                              {row.base_unit}
-                            </strong>
-                            <div className="text-[12px] text-gray-500">
-                              {row.last_counted_at
-                                ? new Date(
-                                    row.last_counted_at
-                                  ).toLocaleTimeString("ko-KR")
-                                : ""}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-500">
-                            미실사 (0 {row.base_unit} 기준)
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5 tabular-nums text-right text-gray-700">
-                        +{Number(row.receipts_since_count_base).toLocaleString("ko-KR")}{" "}
-                        {row.base_unit}
-                      </td>
-                      <td className="px-3 py-2.5 tabular-nums text-right text-gray-700">
-                        -{Number(row.theoretical_consumption_base).toLocaleString("ko-KR")}{" "}
-                        {row.base_unit}
-                      </td>
-                      <td className="px-3 py-2.5 tabular-nums text-right text-gray-700">
-                        {Number(row.adjustments_since_count_base) > 0 ? "+" : ""}
-                        {Number(row.adjustments_since_count_base).toLocaleString("ko-KR")}{" "}
-                        {row.base_unit}
-                      </td>
-                      <td className="px-3 py-2.5 bg-accent-50/30 tabular-nums text-right font-bold text-accent-950">
-                        {Number(row.estimated_quantity).toLocaleString("ko-KR")}{" "}
-                        {row.base_unit}{" "}
-                        <span className="text-[12px] font-normal text-accent-700">
-                          (추정)
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        {row.stock_status === "NEGATIVE_WARNING" ? (
-                          <span className="inline-block rounded bg-red-100 px-2 py-0.5 text-[12px] font-bold text-red-900">
-                            음수 재고 (입고누락/실사점검 필요)
-                          </span>
-                        ) : row.stock_status === "LOW_STOCK" ? (
-                          <span className="inline-block rounded bg-amber-100 px-2 py-0.5 text-[12px] font-bold text-amber-900">
-                            ● 안전재고 이하 (발주 권장)
-                          </span>
-                        ) : (
-                          <span className="inline-block rounded bg-emerald-100 px-2 py-0.5 text-[12px] font-semibold text-emerald-900">
-                            정상
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* 하단: 입고 및 구매단가 변동 이력 보존 표 */}
-          <div className="rounded-lg border border-gray-200 bg-white p-5">
-            <h2 className="text-sm font-bold text-gray-900">
-              입고 및 구매단가 변동 이력
-            </h2>
-            {(receiptsQuery.data ?? []).length === 0 ? (
-              <p className="mt-2 text-xs text-gray-500">
-                아직 등록된 입고 내역이 없습니다.
-              </p>
-            ) : (
-              <div className="mt-3 overflow-x-auto">
-                <table className="w-full border-collapse text-left text-xs">
-                  <thead className="border-b border-gray-200 text-gray-600">
-                    <tr>
-                      <th className="px-3 py-2">입고 시각</th>
-                      <th className="px-3 py-2">식자재</th>
-                      <th className="px-3 py-2 text-right">구매 수량</th>
-                      <th className="px-3 py-2 text-right">환산 수량 (기본단위)</th>
-                      <th className="px-3 py-2 text-right">총 구매금액</th>
-                      <th className="px-3 py-2 text-right">구매단위당 단가</th>
-                      <th className="px-3 py-2 text-right">기본단위당 단가</th>
-                      <th className="px-3 py-2">공급처</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {(receiptsQuery.data ?? []).slice(0, 20).map((r) => (
-                      <tr key={r.id}>
-                        <td className="px-3 py-2 tabular-nums">
-                          {new Date(r.received_at).toLocaleString("ko-KR")}
-                        </td>
-                        <td className="px-3 py-2 font-semibold">
-                          {r.ingredient_name}
-                        </td>
-                        <td className="px-3 py-2 tabular-nums text-right">
-                          {Number(r.purchase_quantity).toLocaleString("ko-KR")}{" "}
-                          {r.purchase_unit}
-                        </td>
-                        <td className="px-3 py-2 tabular-nums text-right">
-                          {Number(r.base_quantity).toLocaleString("ko-KR")}{" "}
-                          {r.base_unit}
-                        </td>
-                        <td className="px-3 py-2 tabular-nums text-right font-semibold">
-                          {Number(r.total_cost).toLocaleString("ko-KR")}원
-                        </td>
-                        <td className="px-3 py-2 tabular-nums text-right">
-                          {Number(r.unit_cost_per_purchase).toLocaleString(
-                            "ko-KR"
                           )}
-                          원/{r.purchase_unit}
-                        </td>
-                        <td className="px-3 py-2 tabular-nums text-right">
-                          {Number(r.unit_cost_per_base)}원/{r.base_unit}
-                        </td>
-                        <td className="px-3 py-2">{r.supplier_name ?? "-"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                        </>
+                      )}
+                    </td>
+                    <td className={`${num} text-emerald-700`}>+{fmt(i.receipts_since_count_base)}{u}</td>
+                    <td className={`${num} text-gray-600`}>-{fmt(i.theoretical_consumption_base)}{u}</td>
+                    <td className={`${num} text-gray-600`}>{fmt(i.adjustments_since_count_base)}{u}</td>
+                    <td className={`${num} font-bold text-gray-900`}>{fmt(i.estimated_quantity)}{u}</td>
+                    <td className="px-3 py-3">
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${status.className}`}>
+                        {status.label}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex justify-end gap-1">
+                        {(Object.keys(ACTION_LABELS) as Action[]).map((a) => (
+                          <button
+                            key={a}
+                            type="button"
+                            onClick={() => {
+                              setBanner(null);
+                              setActive({ item: i, action: a });
+                            }}
+                            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${
+                              a === "RECEIPT" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {ACTION_LABELS[a]}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <details className="group rounded-lg bg-white">
+        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-bold text-gray-900">
+          <span aria-hidden className="text-xs text-gray-400 transition-transform group-open:rotate-90">
+            ▶
+          </span>
+          입고 · 단가 이력
+          <span className="font-normal text-gray-400">{receipts.length}건</span>
+        </summary>
+        {receipts.length === 0 ? (
+          <p className="px-4 pb-4 text-sm text-gray-400">입고 기록이 없습니다</p>
+        ) : (
+          <div className="overflow-x-auto px-1 pb-2">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead className="text-xs text-gray-500">
+                <tr className="border-b border-gray-100 text-left">
+                  <th className={th}>입고 일시</th>
+                  <th className={th}>식자재</th>
+                  <th className={`${th} text-right`}>수량</th>
+                  <th className={`${th} text-right`}>금액</th>
+                  <th className={`${th} text-right`}>단가</th>
+                  <th className={th}>공급처</th>
+                </tr>
+              </thead>
+              <tbody>
+                {receipts.slice(0, 50).map((r) => (
+                  <tr key={r.id} className="border-b border-gray-100 last:border-0">
+                    <td className="px-3 py-2.5 text-gray-600">{new Date(r.received_at).toLocaleString("ko-KR")}</td>
+                    <td className="px-3 py-2.5 font-semibold text-gray-900">{r.ingredient_name}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">
+                      {fmt(r.purchase_quantity)}
+                      {unitLabel(r.purchase_unit)}
+                    </td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{fmt(r.total_cost)}원</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">
+                      {fmt(r.unit_cost_per_purchase)}원/{unitLabel(r.purchase_unit)}
+                    </td>
+                    <td className="px-3 py-2.5 text-gray-600">{r.supplier_name ?? "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </>
+        )}
+      </details>
+
+      {active && (
+        <ActionDialog
+          store={store}
+          item={active.item}
+          action={active.action}
+          onClose={() => setActive(null)}
+          onDone={done}
+        />
       )}
     </div>
   );
