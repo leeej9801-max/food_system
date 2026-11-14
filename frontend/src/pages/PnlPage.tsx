@@ -58,10 +58,14 @@ function PnlCalendar({ days }: { days: PnlResponse["daily"] }) {
   const [y, m] = days[0].date.split("-").map(Number);
   const lead = new Date(y, m - 1, 1).getDay();
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <div className="grid grid-cols-7 gap-1 text-xs">
+    <section className="card">
+      <div className="card-head">
+        <h2>일별 매출 · 지출</h2>
+        <span className="card-meta">{y}.{String(m).padStart(2, "0")}</span>
+      </div>
+      <div className="grid grid-cols-7 gap-1.5 text-xs">
         {WEEKDAYS.map((w) => (
-          <div key={w} className="pb-1 text-center font-semibold text-gray-500">
+          <div key={w} className="pb-1 text-center font-medium text-muted">
             {w}
           </div>
         ))}
@@ -69,23 +73,23 @@ function PnlCalendar({ days }: { days: PnlResponse["daily"] }) {
           <div key={`lead-${i}`} />
         ))}
         {days.map((d) => (
-          <div key={d.date} className="min-h-16 rounded-md bg-gray-50 p-1.5">
+          <div key={d.date} className="min-h-16 min-w-0 rounded-xl bg-ground p-2">
             {/* 날씨 아이콘 자리(왼쪽 위): 날씨 API 연결 후 날짜 앞에 넣는다 */}
-            <div className="text-gray-500">{Number(d.date.slice(8))}</div>
+            <div className="text-muted tabular-nums">{Number(d.date.slice(8))}</div>
             {d.revenue > 0 && (
-              <div className="mt-0.5 truncate text-right tabular-nums text-emerald-700">
+              <div className="mt-0.5 truncate text-right font-medium text-accent-700 tabular-nums">
                 +{d.revenue.toLocaleString("ko-KR")}
               </div>
             )}
             {d.expenses > 0 && (
-              <div className="truncate text-right tabular-nums text-red-600">
+              <div className="truncate text-right font-medium text-[#b42318] tabular-nums">
                 -{d.expenses.toLocaleString("ko-KR")}
               </div>
             )}
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -136,7 +140,7 @@ export function PnlPage({ store }: { store: Store }) {
         min={0}
         inputMode="numeric"
         aria-label={`${l.label} 금액`}
-        className="w-36 rounded border border-gray-300 px-2 py-1 text-right text-sm"
+        className="h-9 w-36 rounded-lg bg-ground px-3 text-right text-sm text-ink tabular-nums"
         placeholder={auto && l.source === "auto" ? String(l.amount) : auto ? "자동" : "0"}
         value={draft.values[l.code] ?? ""}
         onChange={(e) => setDraft({ ...draft, values: { ...draft.values, [l.code]: e.target.value } })}
@@ -148,13 +152,17 @@ export function PnlPage({ store }: { store: Store }) {
   const maxTrend = Math.max(1, ...(pnl?.trend.flatMap((p) => [p.revenue, p.total_expenses]) ?? [1]));
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">손익</h1>
-        <div className="flex items-center gap-2">
+    <div>
+      <div className="page-heading">
+        <div className="page-title">
+          <h1>손익</h1>
+          <span className="title-divider" />
+          <span className="title-meta">{month}</span>
+        </div>
+        <div className="page-actions">
           <button
             type="button"
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-100"
+            className="pill pill-sm pill-secondary"
             onClick={() => changeMonth(shiftMonth(month, -1))}
             aria-label="이전 달"
           >
@@ -164,12 +172,12 @@ export function PnlPage({ store }: { store: Store }) {
             type="month"
             value={month}
             onChange={(e) => e.target.value && changeMonth(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="pill pill-sm pill-secondary tabular-nums"
             aria-label="손익 월"
           />
           <button
             type="button"
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-100"
+            className="pill pill-sm pill-secondary"
             onClick={() => changeMonth(shiftMonth(month, 1))}
             aria-label="다음 달"
           >
@@ -179,14 +187,14 @@ export function PnlPage({ store }: { store: Store }) {
       </div>
 
       {pnlQuery.isError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="mb-4 rounded-2xl bg-[#fdecec] px-4 py-3 text-sm text-[#b42318]">
           손익을 불러오지 못했습니다: {(pnlQuery.error as Error).message}
         </div>
       )}
 
       {pnl && (
-        <>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="flex flex-col gap-4 xl:gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 xl:gap-5">
             <HeroKpi
               label="영업이익"
               value={pnl.operating_profit.toLocaleString("ko-KR")}
@@ -196,78 +204,104 @@ export function PnlPage({ store }: { store: Store }) {
             >
               {profitDelta(pnl.trend) ? "지난달 대비 · " : ""}영업이익률 {pct(pnl.operating_margin_percent)}
             </HeroKpi>
-            <div className="rounded-2xl bg-white p-5">
-              <div className="text-xs font-semibold text-gray-500">총매출</div>
-              <div className="mt-1 text-2xl font-bold text-gray-900">{won(pnl.revenue.amount)}</div>
-            </div>
-            <div className="rounded-2xl bg-white p-5">
-              <div className="text-xs font-semibold text-gray-500">총지출</div>
-              <div className="mt-1 text-2xl font-bold text-gray-900">{won(pnl.total_expenses)}</div>
-              <div className="mt-1 truncate text-xs text-gray-500">
+
+            <section className="card">
+              <div className="kpi-label">총매출</div>
+              <div className="kpi-value">
+                {pnl.revenue.amount.toLocaleString("ko-KR")}
+                <small>원</small>
+              </div>
+              <div className="kpi-sub">판매 합계</div>
+            </section>
+
+            <section className="card">
+              <div className="kpi-label">총지출</div>
+              <div className="kpi-value">
+                {pnl.total_expenses.toLocaleString("ko-KR")}
+                <small>원</small>
+              </div>
+              <div className="kpi-sub">
                 매출 대비 {pct(pnl.revenue.amount ? ((pnl.total_expenses * 100) / pnl.revenue.amount).toFixed(1) : null)}
               </div>
-            </div>
-            <div className="rounded-2xl bg-white p-5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-gray-500">최근 6개월</span>
-                <span className="flex gap-2 text-gray-500">
-                  <span>
-                    <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-blue-500" />
+            </section>
+
+            <section className="card">
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <span className="font-semibold text-ink">최근 6개월</span>
+                <span className="flex gap-2 text-muted">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="inline-block h-2 w-2 rounded-sm bg-accent-600" />
                     매출
                   </span>
-                  <span>
-                    <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-gray-400" />
+                  <span className="inline-flex items-center gap-1">
+                    <span className="inline-block h-2 w-2 rounded-sm bg-accent-300" />
                     지출
                   </span>
                 </span>
               </div>
-              <div className="mt-2 flex gap-1.5">
+              <div className="mt-3 flex gap-1.5">
                 {pnl.trend.map((p) => (
                   <div
                     key={p.month}
-                    className="flex flex-1 flex-col items-center gap-1"
+                    className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
                     title={`${p.month} 매출 ${won(p.revenue)} · 지출 ${won(p.total_expenses)}`}
                   >
-                    <div className="flex h-14 w-full items-end justify-center gap-0.5">
-                      <div className="w-2 rounded-t-sm bg-blue-500" style={{ height: `${(p.revenue / maxTrend) * 100}%` }} />
+                    <div className="flex h-16 w-full items-end justify-center gap-1 rounded-lg bg-ground px-1 pt-1">
                       <div
-                        className="w-2 rounded-t-sm bg-gray-400"
-                        style={{ height: `${(p.total_expenses / maxTrend) * 100}%` }}
+                        className="w-2 rounded-t-sm bg-accent-600"
+                        style={{ height: `${Math.max(4, (p.revenue / maxTrend) * 100)}%` }}
+                      />
+                      <div
+                        className="w-2 rounded-t-sm bg-accent-300"
+                        style={{ height: `${Math.max(4, (p.total_expenses / maxTrend) * 100)}%` }}
                       />
                     </div>
-                    <span className={`text-[10px] ${p.month === pnl.month ? "font-bold text-gray-900" : "text-gray-500"}`}>
+                    <span
+                      className={`text-[11px] tabular-nums ${
+                        p.month === pnl.month ? "font-semibold text-ink" : "text-muted"
+                      }`}
+                    >
                       {Number(p.month.slice(5))}월
                     </span>
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-4 py-3">
+          <section className="card">
+            <div className="card-head flex-wrap">
               <button
                 type="button"
                 aria-expanded={expanded}
                 disabled={draft !== null}
-                className="flex items-center gap-2 text-sm font-bold text-gray-900"
+                className="flex items-center gap-2 text-base font-semibold tracking-[-0.4px] text-ink"
                 onClick={() => setOpen(!open)}
               >
-                <span aria-hidden className={`text-xs text-gray-400 transition-transform ${expanded ? "rotate-90" : ""}`}>
-                  ▶
-                </span>
+                <svg
+                  aria-hidden
+                  viewBox="0 0 24 24"
+                  className={`h-4 w-4 text-muted transition-transform ${expanded ? "rotate-180" : "-rotate-90"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
                 {pnl.month} 약식 손익계산
               </button>
               {draft ? (
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-600">
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="flex items-center gap-1.5 text-xs text-muted">
                     카드수수료율{" "}
                     <input
                       type="number"
                       min={0}
                       max={10}
                       step="0.01"
-                      className="w-20 rounded border border-gray-300 px-2 py-1 text-right text-sm"
+                      className="h-9 w-20 rounded-lg bg-ground px-2 text-right text-sm text-ink tabular-nums"
                       value={draft.fee}
                       onChange={(e) => setDraft({ ...draft, fee: e.target.value })}
                     />
@@ -275,7 +309,7 @@ export function PnlPage({ store }: { store: Store }) {
                   </label>
                   <button
                     type="button"
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                    className="pill pill-sm pill-soft"
                     onClick={async () => {
                       // 고정비용: 지난달 수기 값을 그대로 가져온다. 자동 항목(입고·카드수수료)은 건드리지 않는다.
                       const prev = toDraft(await fetchPnl(store.id, shiftMonth(month, -1)));
@@ -290,7 +324,7 @@ export function PnlPage({ store }: { store: Store }) {
                   </button>
                   <button
                     type="button"
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                    className="pill pill-sm pill-soft"
                     onClick={() => {
                       setDraft(null);
                       saveMutation.reset();
@@ -301,7 +335,7 @@ export function PnlPage({ store }: { store: Store }) {
                   <button
                     type="button"
                     disabled={saveMutation.isPending}
-                    className="rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                    className="pill pill-sm pill-primary"
                     onClick={() => saveMutation.mutate(draft)}
                   >
                     {saveMutation.isPending ? "저장 중…" : "저장"}
@@ -310,99 +344,98 @@ export function PnlPage({ store }: { store: Store }) {
               ) : (
                 <button
                   type="button"
-                  className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                  className="pill pill-sm pill-soft"
                   onClick={() => setDraft(toDraft(pnl))}
                 >
                   지출 입력
                 </button>
               )}
             </div>
+
             {saveMutation.isError && (
-              <div className="border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+              <div className="mb-3 rounded-xl bg-[#fdecec] px-4 py-2 text-sm text-[#b42318]">
                 저장 실패: {(saveMutation.error as Error).message}
               </div>
             )}
+
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="data-table">
                 {expanded && (
-                <thead className="bg-gray-50 text-xs text-gray-500">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-semibold">항목</th>
-                    <th className="px-4 py-2 text-right font-semibold">금액</th>
-                    <th className="px-4 py-2 text-right font-semibold">매출 대비</th>
-                  </tr>
-                </thead>
+                  <thead>
+                    <tr>
+                      <th>항목</th>
+                      <th className="!text-right">금액</th>
+                      <th className="!text-right">매출 대비</th>
+                    </tr>
+                  </thead>
                 )}
                 {expanded && (
-                <tbody className="divide-y divide-gray-100">
-                  {pnl.expenses.map((l, i) => (
-                    <tr key={`${l.code}-${i}`}>
-                      <td className="px-4 py-2 text-gray-800">
-                        {l.label}
-                        {l.source === "auto" && (
-                          <span
-                            className="ml-2 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700"
-                            title={AUTO_HINT[l.code]}
-                          >
-                            자동
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums">{amountCell(l)}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-gray-500">{pct(l.ratio_percent)}</td>
-                    </tr>
-                  ))}
-                  {draft &&
-                    draft.others.map((o, i) => (
-                      <tr key={`new-other-${i}`} className="bg-amber-50/40">
-                        <td className="px-4 py-2" colSpan={1}>
-                          <input
-                            aria-label="기타 항목 이름"
-                            placeholder="기타 항목 이름"
-                            maxLength={50}
-                            className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
-                            value={o.label}
-                            onChange={(e) => {
-                              const others = [...draft.others];
-                              others[i] = { ...o, label: e.target.value };
-                              setDraft({ ...draft, others });
-                            }}
-                          />
+                  <tbody>
+                    {pnl.expenses.map((l, i) => (
+                      <tr key={`${l.code}-${i}`}>
+                        <td>
+                          <span className="font-medium text-ink">{l.label}</span>
+                          {l.source === "auto" && (
+                            <span className="chip chip-ok ml-2" title={AUTO_HINT[l.code]}>
+                              자동
+                            </span>
+                          )}
                         </td>
-                        <td className="px-4 py-2 text-right">
-                          <input
-                            type="number"
-                            min={0}
-                            aria-label="기타 항목 금액"
-                            className="w-36 rounded border border-gray-300 px-2 py-1 text-right text-sm"
-                            value={o.amount}
-                            onChange={(e) => {
-                              const others = [...draft.others];
-                              others[i] = { ...o, amount: e.target.value };
-                              setDraft({ ...draft, others });
-                            }}
-                          />
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          <button
-                            type="button"
-                            className="text-xs text-red-600 hover:underline"
-                            onClick={() => setDraft({ ...draft, others: draft.others.filter((_, j) => j !== i) })}
-                          >
-                            삭제
-                          </button>
-                        </td>
+                        <td className="!text-right tabular-nums">{amountCell(l)}</td>
+                        <td className="!text-right text-muted tabular-nums">{pct(l.ratio_percent)}</td>
                       </tr>
                     ))}
-                </tbody>
+                    {draft &&
+                      draft.others.map((o, i) => (
+                        <tr key={`new-other-${i}`}>
+                          <td>
+                            <input
+                              aria-label="기타 항목 이름"
+                              placeholder="기타 항목 이름"
+                              maxLength={50}
+                              className="h-9 w-full rounded-lg bg-ground px-3 text-sm text-ink"
+                              value={o.label}
+                              onChange={(e) => {
+                                const others = [...draft.others];
+                                others[i] = { ...o, label: e.target.value };
+                                setDraft({ ...draft, others });
+                              }}
+                            />
+                          </td>
+                          <td className="!text-right">
+                            <input
+                              type="number"
+                              min={0}
+                              aria-label="기타 항목 금액"
+                              className="h-9 w-36 rounded-lg bg-ground px-3 text-right text-sm text-ink tabular-nums"
+                              value={o.amount}
+                              onChange={(e) => {
+                                const others = [...draft.others];
+                                others[i] = { ...o, amount: e.target.value };
+                                setDraft({ ...draft, others });
+                              }}
+                            />
+                          </td>
+                          <td className="!text-right">
+                            <button
+                              type="button"
+                              className="pill pill-sm pill-soft text-[#b42318]"
+                              onClick={() => setDraft({ ...draft, others: draft.others.filter((_, j) => j !== i) })}
+                            >
+                              삭제
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
                 )}
-                <tfoot className={`font-semibold ${expanded ? "border-t-2 border-gray-200" : ""}`}>
+                <tfoot className={`font-semibold ${expanded ? "border-t border-rule" : ""}`}>
                   {draft && (
                     <tr>
-                      <td className="px-4 py-2" colSpan={3}>
+                      <td colSpan={3} className="py-2">
                         <button
                           type="button"
-                          className="text-xs font-semibold text-blue-700 hover:underline"
+                          className="pill pill-sm pill-soft"
                           onClick={() => setDraft({ ...draft, others: [...draft.others, { label: "", amount: "" }] })}
                         >
                           + 기타 항목 추가
@@ -411,26 +444,28 @@ export function PnlPage({ store }: { store: Store }) {
                     </tr>
                   )}
                   <tr>
-                    <td className="px-4 py-2">총지출</td>
-                    <td className="px-4 py-2 text-right tabular-nums">{won(pnl.total_expenses)}</td>
-                    <td className="px-4 py-2" />
+                    <td>총지출</td>
+                    <td className="!text-right tabular-nums">{won(pnl.total_expenses)}</td>
+                    <td />
                   </tr>
                   <tr>
-                    <td className="px-4 py-2">영업이익</td>
+                    <td>영업이익</td>
                     <td
-                      className={`px-4 py-2 text-right tabular-nums ${pnl.operating_profit < 0 ? "text-red-700" : ""}`}
+                      className={`!text-right tabular-nums ${
+                        pnl.operating_profit < 0 ? "!text-[#b42318]" : ""
+                      }`}
                     >
                       {won(pnl.operating_profit)}
                     </td>
-                    <td className="px-4 py-2 text-right tabular-nums">{pct(pnl.operating_margin_percent)}</td>
+                    <td className="!text-right tabular-nums">{pct(pnl.operating_margin_percent)}</td>
                   </tr>
                 </tfoot>
               </table>
             </div>
-          </div>
+          </section>
 
           <PnlCalendar days={pnl.daily} />
-        </>
+        </div>
       )}
     </div>
   );
