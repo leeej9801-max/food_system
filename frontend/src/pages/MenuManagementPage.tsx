@@ -25,6 +25,7 @@ import {
 } from "../api/menus";
 import { MenuFormModal } from "../components/MenuFormModal";
 import { RecipeEditorModal } from "../components/RecipeEditorModal";
+import { getMenuCategoryToneClass } from "../lib/menuCategoryColor";
 import { formatKrwPrice } from "../lib/menuValidation";
 import { useUrlState } from "../lib/useUrlState";
 import type { MenuItem, Store } from "../types";
@@ -186,8 +187,18 @@ function MenuManagement({ store }: MenuManagementPageProps) {
   const columns: TableColumn<Row>[] = [
     { key: "no", header: "no", width: pixel(48), align: "start" },
     {
-      key: "category", header: "종류", width: proportional(1, { minWidth: 100 }), align: "start",
-      renderCell: (m) => m.category ?? "-",
+      key: "category",
+      header: "종류",
+      width: proportional(1, { minWidth: 100 }),
+      align: "start",
+      renderCell: (m) =>
+        m.category ? (
+          <span className={`menu-category-chip ${getMenuCategoryToneClass(m.category)}`}>
+            {m.category}
+          </span>
+        ) : (
+          "-"
+        ),
     },
     {
       key: "name",

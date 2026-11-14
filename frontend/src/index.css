@@ -411,15 +411,65 @@ table {
 }
 .menu-summary:focus-visible,
 .menu-category-tab:focus-visible,
-.menu-recipe-chip:focus-visible {
+.menu-recipe-chip:focus-visible,
+.menu-category-chip:focus-visible,
+.restock-hero-card:focus-visible {
   outline: 2px solid var(--color-accent-600);
   outline-offset: 2px;
+}
+.menu-category-chip {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.menu-category-tone-blue {
+  background: var(--color-background-blue, #b9d7ff);
+  color: var(--color-text-blue, #003978);
+}
+.menu-category-tone-teal {
+  background: var(--color-background-teal, #a9e2d6);
+  color: var(--color-text-teal, #00463d);
+}
+.menu-category-tone-purple {
+  background: var(--color-background-purple, #f7d5ff);
+  color: var(--color-text-purple, #5c0e6c);
+}
+.menu-category-tone-green {
+  background: var(--color-background-green, #bce0bb);
+  color: var(--color-text-green, #00490b);
+}
+.menu-category-tone-orange {
+  background: var(--color-background-orange, #ffc7a1);
+  color: var(--color-text-orange, #622700);
+}
+.menu-category-tone-cyan {
+  background: var(--color-background-cyan, #9ae2f4);
+  color: var(--color-text-cyan, #004351);
+}
+.menu-category-tone-pink {
+  background: var(--color-background-pink, #ffc0d7);
+  color: var(--color-text-pink, #70003f);
+}
+.menu-category-tone-yellow {
+  background: var(--color-background-yellow, #fae19e);
+  color: var(--color-text-yellow, #4b3900);
+}
+.menu-category-tone-neutral {
+  background: var(--color-background-gray, #e2e2e2);
+  color: var(--color-text-gray, #1b1b1b);
 }
 .menu-table-region {
   min-width: 0;
   min-height: 180px;
 }
-.menu-management .astryx-table-header-cell {
+.menu-management .astryx-table-header-cell,
+.ingredient-management .astryx-table-header-cell {
   position: sticky;
   top: 0;
   z-index: 1;
@@ -430,11 +480,14 @@ table {
   font-size: 13px;
   cursor: pointer;
 }
-.menu-recipe-chip:hover {
+.menu-recipe-chip:hover,
+.menu-category-chip:hover {
   filter: brightness(0.96);
 }
 .menu-management .astryx-switch,
-.menu-management .astryx-switch-thumb {
+.menu-management .astryx-switch-thumb,
+.ingredient-management .astryx-switch,
+.ingredient-management .astryx-switch-thumb {
   transition-duration: 180ms;
 }
 @media (pointer: coarse) {
@@ -443,17 +496,30 @@ table {
   }
 }
 @media (min-width: 768px) and (min-height: 600px) {
-  .menu-management {
+  .menu-management,
+  .ingredient-management {
     display: flex;
     height: calc(var(--app-viewport-height) - var(--app-header-height, 56px) - 3rem);
     min-height: 0;
     flex-direction: column;
   }
-  .menu-management .page-heading {
+  .menu-management .page-heading,
+  .ingredient-management .page-heading {
     margin-bottom: 12px;
   }
   .menu-category-bar {
     grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .ingredient-layout {
+    min-height: 0;
+    flex: 1;
+    align-items: stretch;
+  }
+  .ingredient-side {
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .menu-list {
     min-height: 0;
@@ -472,7 +538,9 @@ table {
 }
 @media (prefers-reduced-motion: reduce) {
   .menu-management .astryx-switch,
-  .menu-management .astryx-switch-thumb {
+  .menu-management .astryx-switch-thumb,
+  .ingredient-management .astryx-switch,
+  .ingredient-management .astryx-switch-thumb {
     animation: none !important;
     transition: none !important;
   }

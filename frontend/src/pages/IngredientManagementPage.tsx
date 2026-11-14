@@ -7,6 +7,7 @@ import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { Heading } from "@astryxdesign/core/Heading";
 import { MoreMenu } from "@astryxdesign/core/MoreMenu";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
+import { Pagination } from "@astryxdesign/core/Pagination";
 import { SegmentedControl, SegmentedControlItem } from "@astryxdesign/core/SegmentedControl";
 import { Selector } from "@astryxdesign/core/Selector";
 import { Switch } from "@astryxdesign/core/Switch";
@@ -24,13 +25,17 @@ import {
   fetchIngredients,
   updateIngredient,
 } from "../api/ingredients";
-import { HeroKpi } from "../components/HeroKpi";
+import { fetchInventorySummary } from "../api/inventory";
+import { fetchMenus } from "../api/menus";
 import { RecipeEditorModal } from "../components/RecipeEditorModal";
+import { getMenuCategoryToneClass } from "../lib/menuCategoryColor";
 import { useUrlState } from "../lib/useUrlState";
 import type {
   Ingredient,
+  IngredientInventoryItem,
   IngredientRankItem,
   IngredientStockStatus,
+  MenuItem,
   PurchaseUnitType,
   Store,
 } from "../types";
@@ -50,6 +55,84 @@ const unitLabel = (u: string) => (u === "ea" ? "개" : u);
 const fmt = (v: string | number) => Number(v).toLocaleString("ko-KR");
 
 type Row = Ingredient & { no: number } & Record<string, unknown>;
+
+const PAGE_SIZE = 20;
+
+export function getIngredientPage(ingredients: Ingredient[], requestedPage: number) {
+  const pageCount = Math.max(1, Math.ceil(ingredients.length / PAGE_SIZE));
+  const page = Math.max(
+    1,
+    Math.min(pageCount, Number.isFinite(requestedPage) ? Math.trunc(requestedPage) : 1),
+  );
+  const offset = (page - 1) * PAGE_SIZE;
+  const rows: Row[] = ingredients.slice(offset, offset + PAGE_SIZE).map((ing, index) => ({
+    ...ing,
+    no: offset + index + 1,
+  }));
+  return { page, pageCount, offset, rows };
+}
+
+export interface RestockUrgentItem {
+  ingredient_id: string;
+  name: string;
+  unit: string;
+  safety_stock: number;
+  estimated_quantity: number;
+  shortage_amount: number;
+  shortage_ratio: number;
+}
+
+export function getTopRestockIngredients(
+  ingredients: Ingredient[],
+  inventorySummary: IngredientInventoryItem[] = [],
+  recentUsage: IngredientRankItem[] = [],
+): RestockUrgentItem[] {
+  const summaryById = new Map(inventorySummary.map((item) => [item.ingredient_id, item]));
+  const usageById = new Map(recentUsage.map((item) => [item.ingredient_id, Number(item.value)]));
+  const candidates = ingredients.filter((item) => item.stock_status === "NEEDS_RESTOCK");
+
+  // 정렬 기준: 안전재고 대비 부족 비율((안전재고 - 추정재고) / 안전재고) 내림차순, 동률이면 부족량·안전재고·7일 사용량·연결 메뉴 수 내림차순
+  return candidates
+    .map((item) => {
+      const inv = summaryById.get(item.id);
+      const safety = Math.max(0, Number(item.safety_stock ?? inv?.safety_stock ?? 0));
+      const estimated = inv !== undefined ? Number(inv.estimated_quantity) : 0;
+      const shortageAmount = safety - estimated;
+      const shortageRatio = safety > 0 ? shortageAmount / safety : shortageAmount > 0 ? 1 : 0;
+      const usage = usageById.get(item.id) ?? 0;
+      return {
+        ingredient_id: item.id,
+        name: item.name,
+        unit: item.base_unit,
+        safety_stock: safety,
+        estimated_quantity: estimated,
+        shortage_amount: shortageAmount,
+        shortage_ratio: shortageRatio,
+        usage,
+        linked_menu_count: item.linked_menu_count,
+      };
+    })
+    .sort((a, b) => {
+      if (b.shortage_ratio !== a.shortage_ratio) return b.shortage_ratio - a.shortage_ratio;
+      if (b.shortage_amount !== a.shortage_amount) return b.shortage_amount - a.shortage_amount;
+      if (b.safety_stock !== a.safety_stock) return b.safety_stock - a.safety_stock;
+      if (b.usage !== a.usage) return b.usage - a.usage;
+      if (b.linked_menu_count !== a.linked_menu_count) {
+        return b.linked_menu_count - a.linked_menu_count;
+      }
+      return a.name.localeCompare(b.name, "ko-KR");
+    })
+    .slice(0, 3)
+    .map((it) => ({
+      ingredient_id: it.ingredient_id,
+      name: it.name,
+      unit: it.unit,
+      safety_stock: it.safety_stock,
+      estimated_quantity: it.estimated_quantity,
+      shortage_amount: it.shortage_amount,
+      shortage_ratio: it.shortage_ratio,
+    }));
+}
 
 type Props = { store: Store };
 
@@ -78,6 +161,9 @@ function IngredientManagement({ store }: Props) {
   const [q, setQ] = useState("");
   const [form, setForm] = useState<FormState | null>(null);
   const [recipeTarget, setRecipeTarget] = useState<{ id: string; name: string } | null>(null);
+  const keyword = q.trim().toLowerCase();
+  const filterKey = JSON.stringify([store.id, filter, keyword]);
+  const [pagination, setPagination] = useState({ filterKey, page: 1 });
 
   const listQuery = useQuery({
     queryKey: ["ingredients", store.id, "all"],
@@ -86,6 +172,14 @@ function IngredientManagement({ store }: Props) {
   const insightsQuery = useQuery({
     queryKey: ["ingredients", store.id, "insights"],
     queryFn: () => fetchIngredientInsights(store.id),
+  });
+  const inventorySummaryQuery = useQuery({
+    queryKey: ["inventory-summary", store.id, "active"],
+    queryFn: () => fetchInventorySummary(store.id, false),
+  });
+  const menusQuery = useQuery({
+    queryKey: ["menus", store.id, "all-for-category"],
+    queryFn: () => fetchMenus(store.id, { status: "all" }),
   });
 
   const refresh = () => {
@@ -123,20 +217,27 @@ function IngredientManagement({ store }: Props) {
     onError: (err) => fail(err, "변경하지 못했습니다"),
   });
 
-  const keyword = q.trim().toLowerCase();
-  const rows: Row[] = (listQuery.data ?? [])
+  const all = listQuery.data ?? [];
+  const filteredIngredients = all
     .filter((i) => filter === "all" || i.stock_status === filter)
-    .filter((i) => !keyword || i.name.toLowerCase().includes(keyword))
-    .map((i, idx) => ({ ...i, no: idx + 1 }));
+    .filter((i) => !keyword || i.name.toLowerCase().includes(keyword));
+  const { page, pageCount, offset, rows } = getIngredientPage(
+    filteredIngredients,
+    pagination.filterKey === filterKey ? pagination.page : 1,
+  );
+  if (pagination.filterKey !== filterKey || pagination.page !== page) {
+    setPagination({ filterKey, page });
+  }
 
   const dim = (r: Row) => (r.stock_status === "INACTIVE" ? "secondary" : "primary");
 
   const columns: TableColumn<Row>[] = [
-    { key: "no", header: "no", width: pixel(56) },
+    { key: "no", header: "no", width: pixel(48), align: "start" },
     {
       key: "name",
       header: "식자재명",
-      width: proportional(2, { minWidth: 140 }),
+      width: proportional(1.4, { minWidth: 140 }),
+      align: "start",
       renderCell: (r) => <Text color={dim(r)}>{r.name}</Text>,
     },
     {
@@ -153,15 +254,32 @@ function IngredientManagement({ store }: Props) {
     {
       key: "linked_menu_count",
       header: "연결 메뉴 수",
-      width: pixel(110),
+      width: proportional(0.9, { minWidth: 96 }),
       align: "center",
       renderCell: (r) => <Text color={dim(r)}>{r.linked_menu_count}</Text>,
     },
     {
       key: "stock_status",
       header: "상태",
-      width: pixel(100),
+      width: proportional(0.9, { minWidth: 96 }),
+      align: "center",
       renderCell: (r) => <Badge {...STATUS[r.stock_status]} />,
+    },
+    {
+      key: "is_active",
+      header: "활성화",
+      width: proportional(0.8, { minWidth: 84 }),
+      align: "center",
+      renderCell: (r) => (
+        <Switch
+          size="sm"
+          label={`${r.name} 활성화`}
+          isLabelHidden
+          value={r.is_active}
+          isDisabled={toggleMutation.isPending}
+          onChange={(on) => toggleMutation.mutate({ id: r.id, on })}
+        />
+      ),
     },
     {
       key: "actions",
@@ -188,117 +306,139 @@ function IngredientManagement({ store }: Props) {
         />
       ),
     },
-    {
-      key: "is_active",
-      header: "활성화",
-      width: pixel(80),
-      align: "center",
-      renderCell: (r) => (
-        <Switch
-          size="sm"
-          label={`${r.name} 활성화`}
-          isLabelHidden
-          value={r.is_active}
-          isDisabled={toggleMutation.isPending}
-          onChange={(on) => toggleMutation.mutate({ id: r.id, on })}
-        />
-      ),
-    },
   ];
 
   const insights = insightsQuery.data;
-  const all = listQuery.data ?? [];
   const restock = all.filter((i) => i.stock_status === "NEEDS_RESTOCK");
+  const topRestock = getTopRestockIngredients(
+    all,
+    inventorySummaryQuery.data ?? [],
+    insights?.recent_usage ?? [],
+  );
   const inUseCount = all.filter((i) => i.stock_status === "IN_USE").length;
   const unregMenus = insights?.menus_without_recipe ?? [];
+  const menuCategoryById = new Map<string, string | null>(
+    (menusQuery.data ?? []).map((m: MenuItem) => [m.id, m.category]),
+  );
+
+  const selectRestockTab = () => setFilter("NEEDS_RESTOCK");
 
   return (
-    <div>
-      <div className="page-heading">
+    <div className="ingredient-management">
+      <div className="page-heading shrink-0">
         <div className="page-title">
           <h1>식자재 관리</h1>
           <span className="title-divider" />
           <span className="title-meta">{all.length}개</span>
         </div>
-        <div className="page-actions">
-          <button type="button" className="pill pill-primary" onClick={() => setForm(EMPTY_FORM)}>
-            + 식자재 추가
-          </button>
-        </div>
       </div>
 
-      <div className="grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-5">
-        <section className="card flex min-w-0 flex-col gap-4" aria-label="식자재 목록">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <SegmentedControl
-              label="상태"
-              value={filter}
-              onChange={(v) => setFilter(v as Filter)}
-            >
-              <SegmentedControlItem value="all" label="전체" />
-              <SegmentedControlItem value="IN_USE" label="사용중" />
-              <SegmentedControlItem value="IDLE" label="대기" />
-              <SegmentedControlItem value="NEEDS_RESTOCK" label="입고필요" />
-            </SegmentedControl>
-            <TextInput
-              type="search"
-              label="식자재 검색"
-              isLabelHidden
-              placeholder="식자재 검색"
-              value={q}
-              onChange={setQ}
-              size="sm"
-            />
+      <div className="ingredient-layout grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-5">
+        <section className="card menu-list flex min-w-0 flex-col gap-4" aria-label="식자재 목록">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-3">
+              <SegmentedControl
+                label="상태"
+                value={filter}
+                onChange={(v) => setFilter(v as Filter)}
+              >
+                <SegmentedControlItem value="all" label="전체" />
+                <SegmentedControlItem value="IN_USE" label="사용중" />
+                <SegmentedControlItem value="IDLE" label="대기" />
+                <SegmentedControlItem value="NEEDS_RESTOCK" label="입고필요" />
+              </SegmentedControl>
+              <div className="w-full sm:w-56">
+                <TextInput
+                  type="search"
+                  label="식자재 검색"
+                  isLabelHidden
+                  placeholder="식자재 검색"
+                  value={q}
+                  onChange={setQ}
+                  size="sm"
+                />
+              </div>
+            </div>
+            <div className="page-actions">
+              <button
+                type="button"
+                className="pill pill-primary"
+                onClick={() => setForm(EMPTY_FORM)}
+              >
+                + 식자재 추가
+              </button>
+            </div>
           </div>
 
-          {listQuery.isLoading ? (
-            <Text color="secondary">불러오는 중...</Text>
-          ) : listQuery.isError ? (
-            <EmptyState
-              title="불러오지 못했습니다"
-              actions={<Button label="다시 시도" onClick={() => void listQuery.refetch()} />}
-            />
-          ) : rows.length === 0 ? (
-            <EmptyState
-              title="식자재가 없습니다"
-              actions={
-                <Button variant="primary" label="식자재 추가" onClick={() => setForm(EMPTY_FORM)} />
-              }
-            />
-          ) : (
-            <div className="overflow-x-auto">
-              <Table<Row> data={rows} columns={columns} idKey="id" hasHover />
-            </div>
-          )}
+          <div className="menu-table-region">
+            {listQuery.isLoading ? (
+              <Text color="secondary">불러오는 중...</Text>
+            ) : listQuery.isError ? (
+              <EmptyState
+                title="불러오지 못했습니다"
+                actions={<Button label="다시 시도" onClick={() => void listQuery.refetch()} />}
+              />
+            ) : rows.length === 0 ? (
+              <EmptyState
+                title="식자재가 없습니다"
+                actions={
+                  <Button
+                    variant="primary"
+                    label="식자재 추가"
+                    onClick={() => setForm(EMPTY_FORM)}
+                  />
+                }
+              />
+            ) : (
+              <Table<Row>
+                key={`${filterKey}:${page}`}
+                data={rows}
+                columns={columns}
+                idKey="id"
+                rowIndexStart={offset + 1}
+                rowCount={filteredIngredients.length}
+                hasHover
+              />
+            )}
+          </div>
 
-          {all.length > 0 && (
-            <footer className="flex flex-wrap justify-between gap-2 border-t border-rule pt-4 text-xs text-muted tabular-nums">
+          <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-rule pt-3 text-xs text-muted tabular-nums">
+            <div className="flex flex-wrap gap-x-4 gap-y-1" aria-live="polite" role="status">
               <span>
-                전체 식자재 <strong className="font-semibold text-ink">{all.length}</strong>개
+                {filteredIngredients.length > 0
+                  ? `${offset + 1}–${offset + rows.length}`
+                  : "0"}{" "}
+                / {filteredIngredients.length}개 · 페이지당 {PAGE_SIZE}개
               </span>
               <span>
-                사용중 {inUseCount} · 입고필요 {restock.length}
+                전체 식자재 {all.length}개 · 사용중 {inUseCount} · 입고필요 {restock.length}
               </span>
-            </footer>
-          )}
+            </div>
+            <Pagination
+              label="식자재 목록 페이지"
+              page={page}
+              totalPages={pageCount}
+              size="sm"
+              variant="compact"
+              isDisabled={
+                listQuery.isLoading || listQuery.isError || filteredIngredients.length === 0
+              }
+              onChange={(next) => setPagination({ filterKey, page: next })}
+            />
+          </footer>
         </section>
 
-        <div className="flex min-w-0 flex-col gap-4">
-          <HeroKpi
-            label="입고 필요"
-            value={restock.length}
-            unit="종"
-            tone={restock.length > 0 ? "alert" : "normal"}
-          >
-            {restock.length > 0
-              ? restock.slice(0, 3).map((i) => i.name).join(", ") +
-                (restock.length > 3 ? ` 외 ${restock.length - 3}종` : "")
-              : `활성 ${all.filter((i) => i.is_active).length}종 모두 충분`}
-          </HeroKpi>
+        <div className="ingredient-side flex min-w-0 flex-col gap-4">
+          <RestockHeroCard
+            totalCount={restock.length}
+            activeCount={all.filter((i) => i.is_active).length}
+            topItems={topRestock}
+            onSelect={selectRestockTab}
+          />
 
           <div className="card flex flex-col gap-6">
-            <RankBlock title="최근 7일 사용량" items={insights?.recent_usage} showBar />
-            <RankBlock title="연결 메뉴 많은 순" items={insights?.linked_menus} />
+            <RankBlock title="최근 7일 식자재 사용량 순" items={insights?.recent_usage} showBar />
+            <RankBlock title="연결된 메뉴 많은 식자재 순" items={insights?.linked_menus} />
           </div>
 
           <section className="flex flex-col gap-3 rounded-2xl bg-accent-50 p-5">
@@ -312,17 +452,22 @@ function IngredientManagement({ store }: Props) {
             {insights && unregMenus.length === 0 ? (
               <p className="text-xs text-muted">모두 등록됨</p>
             ) : (
-              <div className="flex flex-wrap gap-1.5">
-                {unregMenus.slice(0, 6).map((m) => (
-                  <button
-                    key={m.menu_id}
-                    type="button"
-                    className="pill pill-sm pill-dark"
-                    onClick={() => setRecipeTarget({ id: m.menu_id, name: m.name })}
-                  >
-                    {m.name}
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-1.5">
+                {unregMenus.slice(0, 6).map((m) => {
+                  const category = menuCategoryById.get(m.menu_id) ?? null;
+                  const toneClass = getMenuCategoryToneClass(category);
+                  return (
+                    <button
+                      key={m.menu_id}
+                      type="button"
+                      title={m.name}
+                      className={`pill pill-sm w-full min-w-0 justify-center !px-2.5 ${toneClass}`}
+                      onClick={() => setRecipeTarget({ id: m.menu_id, name: m.name })}
+                    >
+                      <span className="truncate">{m.name}</span>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </section>
@@ -396,6 +541,73 @@ function IngredientManagement({ store }: Props) {
         onSaved={refresh}
       />
     </div>
+  );
+}
+
+export function RestockHeroCard({
+  totalCount,
+  activeCount,
+  topItems,
+  onSelect,
+}: {
+  totalCount: number;
+  activeCount: number;
+  topItems: RestockUrgentItem[];
+  onSelect: () => void;
+}) {
+  return (
+    <section
+      role="button"
+      tabIndex={0}
+      aria-label={`입고 필요 ${totalCount}종 보기`}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      className="card restock-hero-card flex cursor-pointer flex-col justify-between gap-3 text-left !bg-accent-600 text-white"
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <div className="kpi-label flex items-center gap-2 !text-white/80">
+          {totalCount > 0 && (
+            <span aria-hidden className="h-2 w-2 shrink-0 rounded-full bg-amber-300" />
+          )}
+          입고 필요
+        </div>
+        <div className="text-xl leading-none font-semibold tracking-tight !text-white tabular-nums">
+          {totalCount}
+          <small className="ml-0.5 text-xs font-normal !text-white/90">종</small>
+        </div>
+      </div>
+
+      {topItems.length === 0 ? (
+        <p className="text-xs text-white/80">활성 {activeCount}종 모두 충분</p>
+      ) : (
+        <ol className="flex flex-col gap-2">
+          {topItems.map((it, idx) => (
+            <li
+              key={it.ingredient_id}
+              className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-x-2.5"
+            >
+              <span className="text-xs text-white/75 tabular-nums">
+                {String(idx + 1).padStart(2, "0")}
+              </span>
+              <span className="truncate text-xs font-medium text-white" title={it.name}>
+                {it.name}
+              </span>
+              <span className="text-xs font-semibold text-white tabular-nums">
+                {it.shortage_amount > 0 ? `-${fmt(it.shortage_amount)}` : fmt(it.safety_stock)}
+                <small className="ml-0.5 text-[11px] font-normal text-white/80">
+                  {unitLabel(it.unit)}
+                </small>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
   );
 }
 
