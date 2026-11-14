@@ -210,7 +210,7 @@ export function MenuFormModal({
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="선택 입력: 비워두어도 저장 및 판매 수집이 가능합니다."
+              placeholder="메모"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600"
             />
             {fieldErrors.description && (
@@ -219,12 +219,7 @@ export function MenuFormModal({
           </div>
 
           <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-            <div>
-              <span className="text-sm font-medium text-gray-800">판매 활성 상태</span>
-              <p className="text-xs text-gray-500">
-                비활성화해도 과거 판매·원가 이력은 삭제되지 않습니다.
-              </p>
-            </div>
+            <span className="text-sm font-medium text-gray-800">판매 활성 상태</span>
             <label className="inline-flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
@@ -236,11 +231,6 @@ export function MenuFormModal({
                 {isActive ? "판매중(활성)" : "비활성(보관)"}
               </span>
             </label>
-          </div>
-
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            <strong>안내 (PROVISIONAL):</strong> POS 외부 상품 매핑 및 1인분 레시피 식자재 연결은
-            후속 단계에서 활성화됩니다. 현재는 메뉴 마스터만 먼저 등록됩니다.
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

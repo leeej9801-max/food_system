@@ -46,12 +46,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">분석</h1>
-          <p className="text-sm text-gray-600">
-            메뉴별 원가·원가율, 단가 변동 시나리오, 시간대별·메뉴별 판매량. 원가는 최근 입고 단가 기준입니다 (PROVISIONAL P-12).
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-900">분석</h1>
 
         <div className="flex items-center gap-2">
           <Link
@@ -103,10 +98,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
             원가 산정 단가 기준
           </div>
           <div className="mt-1 text-sm font-bold text-gray-900">
-            최근 입고 단가 (PROVISIONAL P-12)
-          </div>
-          <div className="mt-1 text-xs text-gray-500">
-            시뮬레이션은 DB 원본 단가를 변경하지 않습니다
+            최근 입고 단가
           </div>
         </div>
 
@@ -137,14 +129,9 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
       {/* 섹션 1: 메뉴별 원가·원가율 및 비파괴 단가 변동 시나리오 (REQ-010) */}
       <div className="rounded-lg border border-gray-200 bg-white p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-3">
-          <div>
-            <h2 className="text-base font-bold text-gray-900">
-              메뉴별 레시피 원가 · 원가율 및 단가 변동 시나리오 시뮬레이터
-            </h2>
-            <p className="text-xs text-gray-500">
-              식자재 구매단가가 상승/하락할 때 메뉴별 원가율과 마진 변화를 즉시 시뮬레이션합니다. 각 메뉴의 <strong>[구성 식자재 ▼]</strong>를 열면 특정 식자재만 개별 변동률을 지정할 수도 있습니다.
-            </p>
-          </div>
+          <h2 className="text-base font-bold text-gray-900">
+            메뉴별 레시피 원가 · 원가율 및 단가 변동 시나리오 시뮬레이터
+          </h2>
 
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-xs font-semibold text-gray-700 mr-1">
@@ -178,7 +165,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
 
         {(costing?.menus ?? []).length === 0 ? (
           <p className="text-xs text-gray-500">
-            등록된 활성 메뉴가 없습니다. 메뉴 관리에서 메뉴와 레시피를 등록해 주세요.
+            등록된 활성 메뉴가 없습니다.
           </p>
         ) : (
           <div className="overflow-x-auto">

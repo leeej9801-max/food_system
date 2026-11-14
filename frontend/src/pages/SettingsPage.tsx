@@ -31,22 +31,19 @@ interface SettingsPageProps {
 
 const MODE_DESCRIPTIONS: Record<
   PosModeType,
-  { title: string; badge: string; desc: string }
+  { title: string; badge: string }
 > = {
   CSV_UPLOAD: {
-    title: "모드 C · CSV/Excel 파일 업로드 (기본 보장)",
-    badge: "READY_CSV · 즉시 사용 가능",
-    desc: "POS 매출 내보내기 파일(CSV)을 업로드하여 미리보기·컬럼 매핑·중복 검사 후 안전하게 판매량을 반영합니다. (실시간 아님)",
+    title: "모드 C · CSV/Excel 파일 업로드",
+    badge: "즉시 사용 가능",
   },
   TOSS_OPEN_API: {
     title: "모드 A · 토스플레이스 Open API",
-    badge: "UNVERIFIED · 실제 자격증명 미검증",
-    desc: "토스플레이스 파트너 API 키 기반 수집 모드입니다. 현재 실제 파트너 자격증명 미검증 상태이므로 완료로 표시하지 않습니다.",
+    badge: "미검증",
   },
   TOSS_PLUGIN: {
     title: "모드 B · 토스 프론트 플러그인 SDK",
-    badge: "UNVERIFIED · 실제 단말 미검증",
-    desc: "매장 토스 프론트 단말 내부 플러그인 브리지 모드입니다. 실제 장비 검증 전까지 모드 C(CSV)를 함께 제공합니다.",
+    badge: "미검증",
   },
 };
 
@@ -287,12 +284,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">설정</h1>
-          <p className="text-sm text-gray-600">
-            POS 연동 모드, 판매 CSV 반영, 상품명 연결, 매장 정보와 테이블 구성.
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-900">설정</h1>
 
         <button
           type="button"
@@ -340,8 +332,8 @@ export function SettingsPage({ store }: SettingsPageProps) {
                 현재 상태:{" "}
                 <strong className="text-gray-900">
                   {integration.connection_status === "READY_CSV"
-                    ? "CSV 파일 수집 준비됨 (비실시간)"
-                    : "미검증 (UNVERIFIED)"}
+                    ? "CSV 파일 수집 준비됨"
+                    : "미검증"}
                 </strong>
               </div>
               <div>
@@ -386,7 +378,6 @@ export function SettingsPage({ store }: SettingsPageProps) {
                     >
                       {info.badge}
                     </span>
-                    <p className="mt-2 text-xs text-gray-600">{info.desc}</p>
                   </div>
                   <div className="mt-3 text-xs font-semibold text-accent-700">
                     {selected ? "● 현재 선택된 모드" : "이 모드로 전환 →"}
@@ -400,14 +391,9 @@ export function SettingsPage({ store }: SettingsPageProps) {
         {/* CSV 업로드 및 컬럼 매핑 영역 */}
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-bold text-gray-900">
-                판매 데이터 CSV 업로드 · 미리보기 · 확정 반영
-              </h3>
-              <p className="text-xs text-gray-600">
-                취소/환불(`CANCELLED`) 행은 순매출 및 예상 재고 차감에서 자동 제외됩니다. 동일 파일 재업로드 시 중복 경고를 표시하며 주문번호 기준으로 멱등 반영됩니다.
-              </p>
-            </div>
+            <h3 className="text-sm font-bold text-gray-900">
+              판매 데이터 CSV 업로드 · 미리보기 · 확정 반영
+            </h3>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -509,7 +495,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                 setCsvText(e.target.value);
                 setPreviewResult(null);
               }}
-              placeholder="order_id,ordered_at,menu_name,quantity,unit_price,status 형식의 CSV 내용을 붙여넣거나 파일을 선택하세요."
+              placeholder="CSV 내용"
               className="w-full rounded-lg border border-gray-300 bg-white p-2.5 font-mono text-xs"
             />
           </div>
@@ -545,7 +531,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
             <div className="rounded-lg border border-gray-300 bg-white p-4 space-y-3">
               {previewResult.duplicate_file_warning && (
                 <div className="rounded border border-amber-400 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
-                  이전에 이미 반영(COMMITTED)된 적이 있는 동일한 CSV 파일 해시입니다. 다시 반영하더라도 주문번호 기준으로 덮어쓰므로 매출이 중복 합산되지 않습니다.
+                  이전에 이미 반영된 동일한 CSV 파일입니다. 다시 반영하더라도 주문번호 기준으로 덮어쓰므로 매출이 중복 합산되지 않습니다.
                 </div>
               )}
 
@@ -641,14 +627,9 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
         {/* 미매핑 외부 상품명 → 내부 메뉴 매핑 도구 */}
         <div className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
-          <div>
-            <h3 className="text-sm font-bold text-gray-900">
-              POS/CSV 외부 상품명 ↔ 내부 메뉴 연결 관리
-            </h3>
-            <p className="text-xs text-gray-600">
-              CSV 또는 POS의 상품명이 메뉴 관리의 이름과 다를 경우 연결해 주세요. 연결 즉시 기존에 수집된 미매핑 판매 항목도 소급 갱신됩니다.
-            </p>
-          </div>
+          <h3 className="text-sm font-bold text-gray-900">
+            POS/CSV 외부 상품명 ↔ 내부 메뉴 연결 관리
+          </h3>
 
           {allUnmapped.length === 0 ? (
             <p className="text-xs text-emerald-700 font-medium">
@@ -735,14 +716,9 @@ export function SettingsPage({ store }: SettingsPageProps) {
       {/* 매장 기본정보 수정 (터치 요일·시간 선택) */}
       <div className="rounded-lg border border-gray-200 bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base font-bold text-gray-900">
-              매장 기본정보 · 영업일/시간 설정
-            </h2>
-            <p className="text-xs text-gray-500">
-              요일과 시간을 터치하여 변경한 뒤 저장을 누르면 상단 상태바에 즉시 반영됩니다.
-            </p>
-          </div>
+          <h2 className="text-base font-bold text-gray-900">
+            매장 기본정보 · 영업일/시간 설정
+          </h2>
           <button
             type="button"
             onClick={() => updateStoreMutation.mutate()}
@@ -861,14 +837,9 @@ export function SettingsPage({ store }: SettingsPageProps) {
       {/* 테이블 구성 관리 */}
       <div className="rounded-lg border border-gray-200 bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base font-bold text-gray-900">
-              테이블 · 좌석 구성
-            </h2>
-            <p className="text-xs text-gray-500">
-              테이블을 비활성화해도 과거 방문 기록은 삭제되지 않습니다.
-            </p>
-          </div>
+          <h2 className="text-base font-bold text-gray-900">
+            테이블 · 좌석 구성
+          </h2>
           <div className="flex items-center gap-2">
             <input
               aria-label="새 테이블명"
