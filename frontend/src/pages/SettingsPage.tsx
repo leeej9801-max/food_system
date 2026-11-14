@@ -64,7 +64,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
     text: string;
   } | null>(null);
 
-  // S01 CSV Upload & Mapping state
+  // CSV Upload & Mapping state
   const [csvFileName, setCsvFileName] = useState("sales_export.csv");
   const [csvText, setCsvText] = useState("");
   const [orderIdCol, setOrderIdCol] = useState("order_id");
@@ -283,65 +283,70 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">설정</h1>
+      <div className="page-heading">
+        <div className="page-title">
+          <h1>설정</h1>
+          <span className="title-divider" />
+          <span className="title-meta">
+            {store.name} · {integration?.mode === "CSV_UPLOAD" ? "CSV 수집 모드" : "POS 연동 모드"}
+          </span>
+        </div>
 
-        <button
-          type="button"
-          onClick={() => seedDemoMutation.mutate()}
-          disabled={seedDemoMutation.isPending}
-          className="rounded-lg border border-accent-300 bg-accent-50 px-3.5 py-2 text-xs font-bold text-accent-900 hover:bg-accent-100 disabled:opacity-50"
-        >
-          {seedDemoMutation.isPending
-            ? "프로토타입 데이터 준비 중..."
-            : "양식당 프로토타입 마스터(식자재·메뉴·레시피·단가) 원클릭 세팅"}
-        </button>
+        <div className="page-actions">
+          <button
+            type="button"
+            onClick={() => seedDemoMutation.mutate()}
+            disabled={seedDemoMutation.isPending}
+            className="pill pill-secondary disabled:opacity-50"
+          >
+            {seedDemoMutation.isPending
+              ? "프로토타입 데이터 준비 중..."
+              : "양식당 프로토타입 마스터(식자재·메뉴·레시피·단가) 원클릭 세팅"}
+          </button>
+        </div>
       </div>
 
       {banner && (
         <div
           role="status"
-          className={`flex items-center justify-between rounded-lg border px-4 py-2.5 text-sm ${
+          className={`flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium ${
             banner.type === "success"
-              ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-              : "border-red-300 bg-red-50 text-red-900"
+              ? "bg-emerald-50 text-emerald-900"
+              : "bg-red-50 text-red-900"
           }`}
         >
           <span>{banner.text}</span>
           <button
             type="button"
             onClick={() => setBanner(null)}
-            className="text-xs underline"
+            className="pill pill-sm pill-soft"
           >
             닫기
           </button>
         </div>
       )}
 
-      {/* 화면 S01: POS 연결 모드 선택 및 CSV 파일 수집 */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5 space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-3">
-          <div>
-            <h2 className="text-base font-bold text-gray-900">
-              데이터 수집 어댑터 모드 (A / B / C)
-            </h2>
-          </div>
+      {/* POS 연결 모드 선택 및 CSV 파일 수집 */}
+      <section className="card space-y-5">
+        <div className="card-head flex-wrap gap-2">
+          <h2>데이터 수집 어댑터 모드 (A / B / C)</h2>
           {integration && (
-            <div className="text-right text-xs text-gray-600">
-              <div>
-                현재 상태:{" "}
-                <strong className="text-gray-900">
-                  {integration.connection_status === "READY_CSV"
-                    ? "CSV 파일 수집 준비됨"
-                    : "미검증"}
-                </strong>
-              </div>
-              <div>
-                누적 완료 주문: <strong>{integration.total_orders_count}건</strong> · 순매출:{" "}
-                <strong>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+              <span
+                className={`chip ${
+                  integration.connection_status === "READY_CSV" ? "chip-ok" : "chip-warn"
+                }`}
+              >
+                {integration.connection_status === "READY_CSV"
+                  ? "CSV 파일 수집 준비됨"
+                  : "미검증"}
+              </span>
+              <span className="card-meta tabular-nums">
+                누적 완료 주문 <strong className="text-ink">{integration.total_orders_count}건</strong> · 순매출{" "}
+                <strong className="text-ink">
                   {Number(integration.net_sales_amount).toLocaleString("ko-KR")}원
                 </strong>
-              </div>
+              </span>
             </div>
           )}
         </div>
@@ -356,31 +361,30 @@ export function SettingsPage({ store }: SettingsPageProps) {
                 <button
                   key={m}
                   type="button"
+                  aria-pressed={selected}
                   onClick={() => updateModeMutation.mutate(m)}
-                  className={`flex flex-col justify-between rounded-lg border-2 p-4 text-left transition ${
+                  className={`flex flex-col justify-between rounded-2xl p-4 text-left transition ${
                     selected
-                      ? "border-accent-600 bg-accent-50/60"
-                      : "border-gray-200 bg-white hover:border-gray-300"
+                      ? "bg-accent-50 ring-2 ring-accent-600"
+                      : "bg-ground hover:bg-accent-50/50"
                   }`}
                 >
                   <div>
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="text-xs font-bold text-gray-900">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-ink">
                         {info.title}
                       </span>
+                      <span
+                        className={`chip ${
+                          m === "CSV_UPLOAD" ? "chip-ok" : "chip-warn"
+                        }`}
+                      >
+                        {info.badge}
+                      </span>
                     </div>
-                    <span
-                      className={`mt-1.5 inline-block rounded px-2 py-0.5 text-[12px] font-semibold ${
-                        m === "CSV_UPLOAD"
-                          ? "bg-emerald-100 text-emerald-900"
-                          : "bg-amber-100 text-amber-900"
-                      }`}
-                    >
-                      {info.badge}
-                    </span>
                   </div>
-                  <div className="mt-3 text-xs font-semibold text-accent-700">
-                    {selected ? "● 현재 선택된 모드" : "이 모드로 전환 →"}
+                  <div className="mt-3 text-xs font-semibold text-accent-600">
+                    {selected ? "현재 선택된 모드" : "이 모드로 전환"}
                   </div>
                 </button>
               );
@@ -389,20 +393,20 @@ export function SettingsPage({ store }: SettingsPageProps) {
         </div>
 
         {/* CSV 업로드 및 컬럼 매핑 영역 */}
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-4">
+        <div className="rounded-2xl bg-ground p-5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-bold text-gray-900">
+            <h3 className="text-sm font-extrabold text-ink">
               판매 데이터 CSV 업로드 · 미리보기 · 확정 반영
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => loadSampleCsvMutation.mutate()}
-                className="rounded-lg border border-accent-300 bg-accent-50 px-3 py-1.5 text-xs font-semibold text-accent-800 hover:bg-accent-100"
+                className="pill pill-sm pill-secondary"
               >
                 양식당 샘플 CSV 불러오기
               </button>
-              <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100">
+              <label className="pill pill-sm pill-soft !bg-white cursor-pointer">
                 로컬 CSV 파일 선택
                 <input
                   type="file"
@@ -415,80 +419,87 @@ export function SettingsPage({ store }: SettingsPageProps) {
           </div>
 
           {/* 컬럼 매핑 설정 */}
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
+          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-6">
             <div>
-              <label htmlFor="settings-f1" className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f1" className="block text-[12px] font-semibold text-muted">
                 주문번호 컬럼
               </label>
-              <input id="settings-f1"
+              <input
+                id="settings-f1"
                 type="text"
                 value={orderIdCol}
                 onChange={(e) => setOrderIdCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
+                className="mt-1 w-full rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-accent-300"
               />
             </div>
             <div>
-              <label htmlFor="settings-f2" className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f2" className="block text-[12px] font-semibold text-muted">
                 주문시각 컬럼
               </label>
-              <input id="settings-f2"
+              <input
+                id="settings-f2"
                 type="text"
                 value={orderedAtCol}
                 onChange={(e) => setOrderedAtCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
+                className="mt-1 w-full rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-accent-300"
               />
             </div>
             <div>
-              <label htmlFor="settings-f3" className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f3" className="block text-[12px] font-semibold text-muted">
                 상품명 컬럼
               </label>
-              <input id="settings-f3"
+              <input
+                id="settings-f3"
                 type="text"
                 value={productNameCol}
                 onChange={(e) => setProductNameCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
+                className="mt-1 w-full rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-accent-300"
               />
             </div>
             <div>
-              <label htmlFor="settings-f4" className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f4" className="block text-[12px] font-semibold text-muted">
                 수량 컬럼
               </label>
-              <input id="settings-f4"
+              <input
+                id="settings-f4"
                 type="text"
                 value={quantityCol}
                 onChange={(e) => setQuantityCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
+                className="mt-1 w-full rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-accent-300"
               />
             </div>
             <div>
-              <label htmlFor="settings-f5" className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f5" className="block text-[12px] font-semibold text-muted">
                 단가 컬럼
               </label>
-              <input id="settings-f5"
+              <input
+                id="settings-f5"
                 type="text"
                 value={unitPriceCol}
                 onChange={(e) => setUnitPriceCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
+                className="mt-1 w-full rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-accent-300"
               />
             </div>
             <div>
-              <label htmlFor="settings-f6" className="block text-[12px] font-semibold text-gray-600">
+              <label htmlFor="settings-f6" className="block text-[12px] font-semibold text-muted">
                 상태 컬럼
               </label>
-              <input id="settings-f6"
+              <input
+                id="settings-f6"
                 type="text"
                 value={statusCol}
                 onChange={(e) => setStatusCol(e.target.value)}
-                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
+                className="mt-1 w-full rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-accent-300"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="settings-f7" className="mb-1 block text-xs font-semibold text-gray-700">
+            <label htmlFor="settings-f7" className="mb-1.5 block text-xs font-semibold text-ink">
               CSV 원문 ({csvFileName})
             </label>
-            <textarea id="settings-f7"
+            <textarea
+              id="settings-f7"
               rows={5}
               value={csvText}
               onChange={(e) => {
@@ -496,7 +507,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                 setPreviewResult(null);
               }}
               placeholder="CSV 내용"
-              className="w-full rounded-lg border border-gray-300 bg-white p-2.5 font-mono text-xs"
+              className="w-full rounded-xl bg-white p-3 font-mono text-xs text-ink focus:outline-none focus:ring-2 focus:ring-accent-300"
             />
           </div>
 
@@ -505,7 +516,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
               type="button"
               disabled={!csvText.trim() || previewCsvMutation.isPending}
               onClick={() => previewCsvMutation.mutate()}
-              className="rounded-lg bg-gray-800 px-4 py-2 text-xs font-semibold text-white hover:bg-gray-900 disabled:opacity-50"
+              className="pill pill-dark disabled:opacity-50"
             >
               {previewCsvMutation.isPending
                 ? "검증 중..."
@@ -517,7 +528,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                 type="button"
                 disabled={commitCsvMutation.isPending}
                 onClick={() => commitCsvMutation.mutate(previewResult.batch_id)}
-                className="rounded-lg bg-accent-600 px-4 py-2 text-xs font-bold text-white hover:bg-accent-700 disabled:opacity-50"
+                className="pill pill-primary disabled:opacity-50"
               >
                 {commitCsvMutation.isPending
                   ? "반영 중..."
@@ -528,30 +539,30 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
           {/* 미리보기 결과 요약 및 상세 */}
           {previewResult && (
-            <div className="rounded-lg border border-gray-300 bg-white p-4 space-y-3">
+            <div className="rounded-2xl bg-white p-4 space-y-3">
               {previewResult.duplicate_file_warning && (
-                <div className="rounded border border-amber-400 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+                <div className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
                   이전에 이미 반영된 동일한 CSV 파일입니다. 다시 반영하더라도 주문번호 기준으로 덮어쓰므로 매출이 중복 합산되지 않습니다.
                 </div>
               )}
 
-              <div className="flex flex-wrap gap-4 text-xs">
-                <span>
-                  총 행수: <strong>{previewResult.rows_total}</strong>
+              <div className="flex flex-wrap gap-3 text-xs tabular-nums">
+                <span className="chip chip-idle">
+                  총 행수 <strong>{previewResult.rows_total}</strong>
                 </span>
-                <span className="text-emerald-700">
-                  유효 행: <strong>{previewResult.rows_valid}</strong>
+                <span className="chip chip-ok">
+                  유효 행 <strong>{previewResult.rows_valid}</strong>
                 </span>
-                <span className="text-red-700">
-                  오류 행: <strong>{previewResult.rows_error}</strong>
+                <span className="chip chip-danger">
+                  오류 행 <strong>{previewResult.rows_error}</strong>
                 </span>
-                <span className="text-amber-700">
-                  미매핑 행: <strong>{previewResult.rows_unmapped}</strong>
+                <span className="chip chip-warn">
+                  미매핑 행 <strong>{previewResult.rows_unmapped}</strong>
                 </span>
               </div>
 
               {previewResult.errors.length > 0 && (
-                <div className="rounded border border-red-200 bg-red-50 p-2.5 text-xs text-red-900">
+                <div className="rounded-xl bg-red-50 p-3 text-xs text-red-900">
                   <div className="font-bold">오류 행 사유 (반영에서 제외됨):</div>
                   <ul className="mt-1 list-disc pl-4">
                     {previewResult.errors.map((err) => (
@@ -565,54 +576,50 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
               {previewResult.sample_valid_rows.length > 0 && (
                 <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-left text-xs">
-                    <thead className="border-b border-gray-200 text-gray-600">
+                  <table className="data-table">
+                    <thead>
                       <tr>
-                        <th className="px-2 py-1.5">행</th>
-                        <th className="px-2 py-1.5">주문번호</th>
-                        <th className="px-2 py-1.5">주문시각</th>
-                        <th className="px-2 py-1.5">상품명 (POS/CSV)</th>
-                        <th className="px-2 py-1.5">매핑 상태</th>
-                        <th className="px-2 py-1.5">수량</th>
-                        <th className="px-2 py-1.5">단가</th>
-                        <th className="px-2 py-1.5">주문상태</th>
+                        <th className="!text-right">행</th>
+                        <th>주문번호</th>
+                        <th>주문시각</th>
+                        <th>상품명 (POS/CSV)</th>
+                        <th>매핑 상태</th>
+                        <th className="!text-right">수량</th>
+                        <th className="!text-right">단가</th>
+                        <th>주문상태</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody>
                       {previewResult.sample_valid_rows.map((r) => (
                         <tr key={r.row_number}>
-                          <td className="px-2 py-1.5 tabular-nums">{r.row_number}</td>
-                          <td className="px-2 py-1.5 font-mono">{r.external_order_id}</td>
-                          <td className="px-2 py-1.5 tabular-nums">
+                          <td className="!text-right tabular-nums">{r.row_number}</td>
+                          <td className="font-mono text-xs">{r.external_order_id}</td>
+                          <td className="tabular-nums text-muted">
                             {r.ordered_at
                               ? new Date(r.ordered_at).toLocaleString("ko-KR")
                               : "-"}
                           </td>
-                          <td className="px-2 py-1.5 font-semibold">
+                          <td className="font-semibold text-ink">
                             {r.raw_product_name}
                           </td>
-                          <td className="px-2 py-1.5">
+                          <td>
                             {r.mapping_status === "MAPPED" ? (
-                              <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[12px] font-semibold text-emerald-900">
-                                연결됨
-                              </span>
+                              <span className="chip chip-ok">연결됨</span>
                             ) : (
-                              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[12px] font-semibold text-amber-900">
-                                미매핑
-                              </span>
+                              <span className="chip chip-warn">미매핑</span>
                             )}
                           </td>
-                          <td className="px-2 py-1.5">{r.quantity}</td>
-                          <td className="px-2 py-1.5">
+                          <td className="!text-right tabular-nums">{r.quantity}</td>
+                          <td className="!text-right tabular-nums">
                             {Number(r.unit_price).toLocaleString("ko-KR")}원
                           </td>
-                          <td className="px-2 py-1.5">
+                          <td>
                             {r.status === "CANCELLED" ? (
-                              <span className="text-red-600 font-semibold">
+                              <span className="chip chip-danger">
                                 취소/환불 (집계제외)
                               </span>
                             ) : (
-                              "정상완료"
+                              <span className="chip chip-ok">정상완료</span>
                             )}
                           </td>
                         </tr>
@@ -626,13 +633,13 @@ export function SettingsPage({ store }: SettingsPageProps) {
         </div>
 
         {/* 미매핑 외부 상품명 → 내부 메뉴 매핑 도구 */}
-        <div className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
-          <h3 className="text-sm font-bold text-gray-900">
+        <div className="rounded-2xl bg-ground p-5 space-y-3">
+          <h3 className="text-sm font-extrabold text-ink">
             POS/CSV 외부 상품명 ↔ 내부 메뉴 연결 관리
           </h3>
 
           {allUnmapped.length === 0 ? (
-            <p className="text-xs text-emerald-700 font-medium">
+            <p className="text-xs font-medium text-muted">
               현재 미매핑된 외부 상품명이 없습니다.
             </p>
           ) : (
@@ -643,13 +650,11 @@ export function SettingsPage({ store }: SettingsPageProps) {
                 return (
                   <div
                     key={extName}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-300 bg-amber-50/60 px-3 py-2 text-xs"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-amber-50 px-3.5 py-2.5 text-xs"
                   >
-                    <div>
-                      <span className="font-semibold text-amber-900">
-                        미매핑 외부 상품명:
-                      </span>{" "}
-                      <strong className="text-gray-900">{extName}</strong>
+                    <div className="flex items-center gap-2">
+                      <span className="chip chip-warn">미매핑 외부 상품명</span>
+                      <strong className="text-ink">{extName}</strong>
                     </div>
                     <div className="flex items-center gap-2">
                       <select
@@ -661,7 +666,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                             [extName]: e.target.value,
                           }))
                         }
-                        className="rounded border border-gray-300 bg-white px-2.5 py-1 text-xs"
+                        className="rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-ink"
                       >
                         {activeMenus.length === 0 ? (
                           <option value="">먼저 메뉴를 등록하세요</option>
@@ -682,7 +687,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                             menuItemId: selectedMenuId,
                           })
                         }
-                        className="rounded bg-accent-600 px-3 py-1 font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
+                        className="pill pill-sm pill-primary disabled:opacity-50"
                       >
                         이 메뉴에 연결
                       </button>
@@ -695,70 +700,69 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
           {(mappingsQuery.data ?? []).length > 0 && (
             <div className="pt-2">
-              <div className="text-xs font-semibold text-gray-600 mb-1">
+              <div className="mb-1.5 text-xs font-semibold text-muted">
                 등록된 상품명 매핑 규칙 ({mappingsQuery.data?.length}건)
               </div>
               <div className="flex flex-wrap gap-2">
                 {(mappingsQuery.data ?? []).map((mp) => (
                   <span
                     key={mp.id}
-                    className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-700"
+                    className="chip chip-idle"
                   >
-                    <strong>{mp.external_product_name}</strong> → {mp.menu_name}
+                    <strong className="text-ink">{mp.external_product_name}</strong> → {mp.menu_name}
                   </span>
                 ))}
               </div>
             </div>
           )}
         </div>
-      </div>
+      </section>
 
       {/* 매장 기본정보 수정 (터치 요일·시간 선택) */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-bold text-gray-900">
-            매장 기본정보 · 영업일/시간 설정
-          </h2>
+      <section className="card">
+        <div className="card-head flex-wrap gap-2">
+          <h2>매장 기본정보 · 영업일/시간 설정</h2>
           <button
             type="button"
             onClick={() => updateStoreMutation.mutate()}
             disabled={updateStoreMutation.isPending}
-            className="rounded-lg bg-accent-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-accent-700"
+            className="pill pill-primary disabled:opacity-50"
           >
             {updateStoreMutation.isPending ? "저장 중..." : "매장 정보 저장"}
           </button>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div>
-            <label htmlFor="settings-f8" className="mb-1.5 block text-xs font-bold text-gray-700">
+            <label htmlFor="settings-f8" className="mb-1.5 block text-xs font-bold text-muted">
               매장명
             </label>
-            <input id="settings-f8"
+            <input
+              id="settings-f8"
               type="text"
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm font-semibold"
+              className="w-full rounded-xl bg-ground px-3.5 py-2.5 text-sm font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-accent-300"
             />
           </div>
 
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <p className="text-xs font-bold text-gray-700">
+              <p className="text-xs font-bold text-muted">
                 영업일 (터치 토글)
               </p>
               <div className="flex gap-1">
                 <button
                   type="button"
                   onClick={() => setBusinessDays("화,수,목,금,토,일")}
-                  className="rounded border border-gray-300 px-2 py-0.5 text-[12px] font-semibold text-gray-600 hover:bg-gray-100"
+                  className="pill pill-sm pill-soft"
                 >
                   월휴무
                 </button>
                 <button
                   type="button"
                   onClick={() => setBusinessDays("월,화,수,목,금,토,일")}
-                  className="rounded border border-gray-300 px-2 py-0.5 text-[12px] font-semibold text-gray-600 hover:bg-gray-100"
+                  className="pill pill-sm pill-soft"
                 >
                   매일
                 </button>
@@ -775,6 +779,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                   <button
                     key={day}
                     type="button"
+                    aria-pressed={active}
                     onClick={() => {
                       const next = active
                         ? currentDays.filter((d) => d !== day)
@@ -782,11 +787,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                       const ordered = ALL_DAYS.filter((d) => next.includes(d));
                       setBusinessDays(ordered.join(","));
                     }}
-                    className={`h-10 rounded-lg border text-xs font-bold transition ${
-                      active
-                        ? "border-accent-600 bg-accent-50 text-accent-800"
-                        : "border-gray-300 bg-gray-50 text-gray-500 hover:bg-gray-100"
-                    }`}
+                    className="pill pill-sm pill-soft h-10 !px-0 justify-center"
                   >
                     {day}
                   </button>
@@ -796,17 +797,18 @@ export function SettingsPage({ store }: SettingsPageProps) {
           </div>
 
           <div>
-            <label htmlFor="settings-f9" className="mb-1.5 block text-xs font-bold text-gray-700">
+            <label htmlFor="settings-f9" className="mb-1.5 block text-xs font-bold text-muted">
               운영시간 ({openingHours})
             </label>
             <div className="grid grid-cols-2 gap-2">
-              <select id="settings-f9"
+              <select
+                id="settings-f9"
                 value={openingHours.split("-")[0] || "11:30"}
                 onChange={(e) => {
                   const closePart = openingHours.split("-")[1] || "22:00";
                   setOpeningHours(`${e.target.value}-${closePart}`);
                 }}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-xs font-bold text-gray-800"
+                className="rounded-xl bg-ground px-3 py-2.5 text-xs font-bold text-ink focus:outline-none focus:ring-2 focus:ring-accent-300"
               >
                 {OPEN_TIME_OPTIONS.map((t) => (
                   <option key={t} value={t}>
@@ -821,7 +823,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                   const openPart = openingHours.split("-")[0] || "11:30";
                   setOpeningHours(`${openPart}-${e.target.value}`);
                 }}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-xs font-bold text-gray-800"
+                className="rounded-xl bg-ground px-3 py-2.5 text-xs font-bold text-ink focus:outline-none focus:ring-2 focus:ring-accent-300"
               >
                 {CLOSE_TIME_OPTIONS.map((t) => (
                   <option key={t} value={t}>
@@ -832,22 +834,20 @@ export function SettingsPage({ store }: SettingsPageProps) {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* 테이블 구성 관리 */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-bold text-gray-900">
-            테이블 · 좌석 구성
-          </h2>
-          <div className="flex items-center gap-2">
+      <section className="card">
+        <div className="card-head flex-wrap gap-2">
+          <h2>테이블 · 좌석 구성</h2>
+          <div className="flex flex-wrap items-center gap-2">
             <input
               aria-label="새 테이블명"
               type="text"
               value={newTableName}
               onChange={(e) => setNewTableName(e.target.value)}
               placeholder="새 테이블명 (비우면 자동)"
-              className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs"
+              className="rounded-xl bg-ground px-3 py-2 text-xs font-semibold text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-300"
             />
             <input
               aria-label="새 테이블 좌석 수"
@@ -856,41 +856,41 @@ export function SettingsPage({ store }: SettingsPageProps) {
               max={20}
               value={newTableSeats}
               onChange={(e) => setNewTableSeats(e.target.value)}
-              className="w-16 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs"
+              className="w-16 rounded-xl bg-ground px-2.5 py-2 text-xs font-semibold tabular-nums text-ink focus:outline-none focus:ring-2 focus:ring-accent-300"
             />
-            <span className="text-xs text-gray-600">석</span>
+            <span className="text-xs font-medium text-muted">석</span>
             <button
               type="button"
               onClick={() => addTableMutation.mutate()}
-              className="rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-accent-700"
+              className="pill pill-sm pill-primary"
             >
               + 테이블 추가
             </button>
           </div>
         </div>
 
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full border-collapse text-left text-xs">
-            <thead className="border-b border-gray-200 text-gray-600">
+        <div className="overflow-x-auto">
+          <table className="data-table">
+            <thead>
               <tr>
-                <th className="px-3 py-2">테이블명</th>
-                <th className="px-3 py-2">좌석 수</th>
-                <th className="px-3 py-2">배치 좌표 (열, 행)</th>
-                <th className="px-3 py-2">상태</th>
-                <th className="px-3 py-2 text-right">관리</th>
+                <th>테이블명</th>
+                <th>좌석 수</th>
+                <th className="!text-right">배치 좌표 (열, 행)</th>
+                <th>상태</th>
+                <th className="!text-right">관리</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody>
               {(tablesQuery.data ?? []).map((t) => (
                 <tr
                   key={t.id}
-                  className={t.is_active ? "" : "bg-gray-50 text-gray-500"}
+                  className={t.is_active ? "" : "opacity-60"}
                 >
-                  <td className="px-3 py-2 font-semibold text-gray-900">
+                  <td className="font-semibold text-ink">
                     {t.name}
                   </td>
-                  <td className="px-3 py-2">
-                    <div className="inline-flex items-center gap-1">
+                  <td>
+                    <div className="inline-flex items-center gap-1.5">
                       <button
                         type="button"
                         onClick={() =>
@@ -899,11 +899,11 @@ export function SettingsPage({ store }: SettingsPageProps) {
                             payload: { seats: Math.max(1, t.seats - 1) },
                           })
                         }
-                        className="rounded border border-gray-300 px-1.5 py-0.5"
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-ground font-bold text-ink hover:bg-accent-50"
                       >
                         -
                       </button>
-                      <span className="w-8 text-center tabular-nums">{t.seats}석</span>
+                      <span className="w-8 text-center font-semibold tabular-nums text-ink">{t.seats}석</span>
                       <button
                         type="button"
                         onClick={() =>
@@ -912,19 +912,21 @@ export function SettingsPage({ store }: SettingsPageProps) {
                             payload: { seats: Math.min(20, t.seats + 1) },
                           })
                         }
-                        className="rounded border border-gray-300 px-1.5 py-0.5"
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-ground font-bold text-ink hover:bg-accent-50"
                       >
                         +
                       </button>
                     </div>
                   </td>
-                  <td className="px-3 py-2 tabular-nums">
+                  <td className="!text-right tabular-nums text-muted">
                     ({t.grid_x}, {t.grid_y})
                   </td>
-                  <td className="px-3 py-2">
-                    {t.is_active ? "● 활성" : "○ 비활성"}
+                  <td>
+                    <span className={`chip ${t.is_active ? "chip-ok" : "chip-idle"}`}>
+                      {t.is_active ? "활성" : "비활성"}
+                    </span>
                   </td>
-                  <td className="px-3 py-2 text-right">
+                  <td className="!text-right">
                     <button
                       type="button"
                       onClick={() =>
@@ -933,7 +935,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                           payload: { is_active: !t.is_active },
                         })
                       }
-                      className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-100"
+                      className="pill pill-sm pill-soft"
                     >
                       {t.is_active ? "비활성화" : "재활성화"}
                     </button>
@@ -943,7 +945,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

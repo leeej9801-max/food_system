@@ -108,61 +108,60 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
   }
 
   return (
-    <div className="mx-auto mt-8 max-w-xl rounded-lg border border-gray-200 bg-white p-6">
-      <h1 className="text-2xl font-bold text-gray-900">새 매장 시작하기</h1>
-      <p className="mt-1 text-sm font-medium text-gray-700">
-        {step === 1 ? "1단계 · 매장명과 영업 시간" : "2단계 · 테이블 구성"} ({step}/2)
-      </p>
-      <p className="mt-1 text-sm text-gray-600">
-        요일과 운영시간, 테이블 수를 터치로 간편하게 선택하세요. 생성 후 설정 화면에서도 언제든
-        변경할 수 있습니다.
-      </p>
+    <div className="card mx-auto mt-8 max-w-xl">
+      <div className="card-head">
+        <h1 className="text-xl font-extrabold text-ink">새 매장 시작하기</h1>
+        <span className="chip chip-idle">
+          {step === 1 ? "1단계 · 매장명과 영업 시간" : "2단계 · 테이블 구성"} ({step}/2)
+        </span>
+      </div>
 
       {error && (
-        <div className="mt-3 rounded-lg border border-red-300 bg-red-50 px-3.5 py-2.5 text-xs font-medium text-red-800">
+        <div className="mt-3 rounded-2xl bg-red-50 px-3.5 py-2.5 text-xs font-medium text-red-900">
           {error}
         </div>
       )}
 
       {step === 1 ? (
-        <form onSubmit={handleNextStep} className="mt-5 space-y-5">
+        <form onSubmit={handleNextStep} className="mt-4 space-y-5">
           <div>
-            <label htmlFor="app-f1" className="mb-1.5 block text-xs font-bold text-gray-700">
+            <label htmlFor="app-f1" className="mb-1.5 block text-xs font-bold text-muted">
               매장명 <span className="text-red-600">*</span>
             </label>
-            <input id="app-f1"
+            <input
+              id="app-f1"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="예: 비스트로 서울"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base font-medium focus:border-accent-600"
+              className="w-full rounded-xl bg-ground px-4 py-3 text-base font-semibold text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-300"
             />
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <div className="rounded-2xl bg-ground p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-bold text-gray-800">
+              <p className="text-xs font-bold text-ink">
                 영업 요일 선택 (터치 토글)
               </p>
               <div className="flex gap-1.5">
                 <button
                   type="button"
                   onClick={() => setSelectedDays(["화", "수", "목", "금", "토", "일"])}
-                  className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-[12px] font-semibold text-gray-700 hover:bg-gray-100"
+                  className="pill pill-sm pill-soft !bg-white"
                 >
                   월요일 휴무
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedDays([...ALL_DAYS])}
-                  className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-[12px] font-semibold text-gray-700 hover:bg-gray-100"
+                  className="pill pill-sm pill-soft !bg-white"
                 >
                   매일 영업
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedDays(["월", "화", "수", "목", "금"])}
-                  className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-[12px] font-semibold text-gray-700 hover:bg-gray-100"
+                  className="pill pill-sm pill-soft !bg-white"
                 >
                   평일만
                 </button>
@@ -176,11 +175,10 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                   <button
                     key={day}
                     type="button"
+                    aria-pressed={active}
                     onClick={() => toggleDay(day)}
-                    className={`flex h-12 items-center justify-center rounded-lg border text-base font-bold transition ${
-                      active
-                        ? "border-accent-600 bg-accent-50 text-accent-800"
-                        : "border-gray-300 bg-white text-gray-500 hover:bg-gray-100"
+                    className={`pill pill-soft flex h-12 items-center justify-center !px-0 text-base ${
+                      active ? "" : "!bg-white"
                     }`}
                   >
                     {day}
@@ -188,31 +186,30 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                 );
               })}
             </div>
-            <div className="mt-2 text-xs text-gray-600">
+            <div className="mt-2 text-xs text-muted">
               선택됨:{" "}
-              <span className="font-bold text-gray-900">
+              <span className="font-bold text-ink">
                 {businessDaysStr || "선택 안 됨"}
               </span>
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <p className="block text-xs font-bold text-gray-800">
+          <div className="rounded-2xl bg-ground p-4">
+            <p className="block text-xs font-bold text-ink">
               운영 시간 (터치 선택)
             </p>
-            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <div className="mb-1.5 text-xs font-semibold text-gray-600">오픈 시간</div>
+                <div className="mb-1.5 text-xs font-semibold text-muted">오픈 시간</div>
                 <div className="grid grid-cols-4 gap-1.5">
                   {OPEN_TIME_OPTIONS.map((t) => (
                     <button
                       key={t}
                       type="button"
+                      aria-pressed={openTime === t}
                       onClick={() => setOpenTime(t)}
-                      className={`rounded-lg border py-2 text-xs font-bold ${
-                        openTime === t
-                          ? "border-accent-600 bg-accent-50 text-accent-800"
-                          : "border-gray-300 bg-white text-gray-700"
+                      className={`pill pill-sm pill-soft justify-center !px-1 tabular-nums ${
+                        openTime === t ? "" : "!bg-white"
                       }`}
                     >
                       {t}
@@ -222,17 +219,16 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
               </div>
 
               <div>
-                <div className="mb-1.5 text-xs font-semibold text-gray-600">마감 시간</div>
+                <div className="mb-1.5 text-xs font-semibold text-muted">마감 시간</div>
                 <div className="grid grid-cols-4 gap-1.5">
                   {CLOSE_TIME_OPTIONS.map((t) => (
                     <button
                       key={t}
                       type="button"
+                      aria-pressed={closeTime === t}
                       onClick={() => setCloseTime(t)}
-                      className={`rounded-lg border py-2 text-xs font-bold ${
-                        closeTime === t
-                          ? "border-accent-600 bg-accent-50 text-accent-800"
-                          : "border-gray-300 bg-white text-gray-700"
+                      className={`pill pill-sm pill-soft justify-center !px-1 tabular-nums ${
+                        closeTime === t ? "" : "!bg-white"
                       }`}
                     >
                       {t}
@@ -241,40 +237,40 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                 </div>
               </div>
             </div>
-            <div className="mt-2.5 text-xs text-gray-600">
+            <div className="mt-2.5 text-xs text-muted">
               설정된 운영시간:{" "}
-              <span className="font-bold text-gray-900">{openingHoursStr}</span>
+              <span className="font-bold tabular-nums text-ink">{openingHoursStr}</span>
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-accent-600 py-3.5 text-base font-bold text-white hover:bg-accent-700"
+            className="pill pill-primary w-full justify-center py-3.5 text-base"
           >
             다음 단계 (테이블 구성) →
           </button>
         </form>
       ) : (
-        <form onSubmit={handleCreateStore} className="mt-5 space-y-5">
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
-            <p className="block text-sm font-bold text-gray-800">
+        <form onSubmit={handleCreateStore} className="mt-4 space-y-5">
+          <div className="rounded-2xl bg-ground p-5">
+            <p className="block text-sm font-bold text-ink">
               매장 홀 테이블 수 (터치 조절)
             </p>
             <div className="mt-3 flex items-center gap-4">
               <button
                 type="button"
                 onClick={() => setTableCount((c) => Math.max(1, c - 1))}
-                className="flex h-12 w-14 items-center justify-center rounded-lg border border-gray-300 bg-white text-xl font-bold text-gray-800 active:bg-gray-100"
+                className="flex h-12 w-14 items-center justify-center rounded-full bg-white text-xl font-bold text-ink hover:bg-accent-50"
               >
                 -
               </button>
-              <span className="min-w-[110px] text-center text-2xl font-bold text-gray-900">
+              <span className="min-w-[110px] text-center text-2xl font-bold tabular-nums text-ink">
                 {tableCount}개 테이블
               </span>
               <button
                 type="button"
                 onClick={() => setTableCount((c) => Math.min(30, c + 1))}
-                className="flex h-12 w-14 items-center justify-center rounded-lg border border-gray-300 bg-white text-xl font-bold text-gray-800 active:bg-gray-100"
+                className="flex h-12 w-14 items-center justify-center rounded-full bg-white text-xl font-bold text-ink hover:bg-accent-50"
               >
                 +
               </button>
@@ -284,11 +280,10 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                 <button
                   key={cnt}
                   type="button"
+                  aria-pressed={tableCount === cnt}
                   onClick={() => setTableCount(cnt)}
-                  className={`rounded-lg border px-3 py-1.5 text-xs font-bold ${
-                    tableCount === cnt
-                      ? "border-accent-600 bg-accent-50 text-accent-800"
-                      : "border-gray-300 bg-white text-gray-700"
+                  className={`pill pill-sm pill-soft tabular-nums ${
+                    tableCount === cnt ? "" : "!bg-white"
                   }`}
                 >
                   {cnt}개
@@ -296,7 +291,7 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
               ))}
             </div>
 
-            <p className="mt-5 block text-sm font-bold text-gray-800">
+            <p className="mt-5 block text-sm font-bold text-ink">
               테이블당 기본 좌석 수 (생성 후 개별 변경 가능)
             </p>
             <div className="mt-2.5 grid grid-cols-3 gap-2.5">
@@ -304,11 +299,10 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
                 <button
                   key={s}
                   type="button"
+                  aria-pressed={defaultSeats === s}
                   onClick={() => setDefaultSeats(s)}
-                  className={`rounded-lg border py-3 text-sm font-bold ${
-                    defaultSeats === s
-                      ? "border-accent-600 bg-accent-50 text-accent-800"
-                      : "border-gray-300 bg-white text-gray-700"
+                  className={`pill pill-soft justify-center py-3 text-sm tabular-nums ${
+                    defaultSeats === s ? "" : "!bg-white"
                   }`}
                 >
                   기본 {s}인석
@@ -321,14 +315,14 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="w-1/3 rounded-lg border border-gray-300 py-3.5 text-sm font-bold text-gray-700 hover:bg-gray-100"
+              className="pill pill-soft w-1/3 justify-center py-3.5 text-sm"
             >
               ← 이전
             </button>
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="w-2/3 rounded-lg bg-accent-600 py-3.5 text-base font-bold text-white hover:bg-accent-700 disabled:opacity-50"
+              className="pill pill-primary w-2/3 justify-center py-3.5 text-base disabled:opacity-50"
             >
               {mutation.isPending ? "생성 중..." : "매장 및 테이블 생성 완료"}
             </button>
@@ -612,7 +606,7 @@ function StoreApp() {
 
   if (storesQuery.isLoading) {
     return (
-      <div className="p-10 text-center text-sm text-gray-600">
+      <div className="p-10 text-center text-sm text-muted">
         매장 정보를 확인하는 중입니다...
       </div>
     );
@@ -620,7 +614,7 @@ function StoreApp() {
 
   if (storesQuery.isError) {
     return (
-      <div className="mx-auto mt-12 max-w-lg rounded-lg border border-red-300 bg-red-50 p-6 text-sm text-red-900">
+      <div className="mx-auto mt-12 max-w-lg rounded-2xl bg-red-50 p-6 text-sm text-red-900">
         <h1 className="text-base font-bold">백엔드 API 서버에 연결할 수 없습니다</h1>
         <p className="mt-2">
           잠시 후 새로고침해 주세요. 문제가 계속되면 서비스 관리자에게 문의해 주세요.
