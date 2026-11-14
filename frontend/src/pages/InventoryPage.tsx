@@ -294,7 +294,7 @@ export function InventoryPage({ store }: InventoryPageProps) {
         <HeroKpi label="부족 · 점검" value={alerts} unit="종" tone={alerts > 0 ? "alert" : "normal"}>
           활성 식자재 {items.length}종
         </HeroKpi>
-        <div className="rounded-[26px] bg-white p-5 sm:col-span-2">
+        <div className="rounded-2xl bg-white p-5 sm:col-span-2">
           <div className="text-xs font-semibold text-gray-500">단가 변동 (최근 입고 대 평균)</div>
           {changes.length === 0 ? (
             <div className="mt-2 text-sm text-gray-400">입고 2건 이상부터</div>

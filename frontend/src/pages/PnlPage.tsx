@@ -7,6 +7,16 @@ import type { PnlLine, PnlResponse, Store } from "../types";
 const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
 const pct = (p: string | null) => (p === null ? "-" : `${p}%`);
 
+// 지난달 대비 영업이익 증감 (trend 끝 두 달). 지난달 값이 0이면 표시하지 않는다.
+function profitDelta(trend: { operating_profit: number }[]): string | undefined {
+  if (trend.length < 2) return undefined;
+  const prev = trend[trend.length - 2].operating_profit;
+  const cur = trend[trend.length - 1].operating_profit;
+  if (prev === 0) return undefined;
+  const d = ((cur - prev) / Math.abs(prev)) * 100;
+  return `${d >= 0 ? "▲" : "▼"} ${Math.abs(d).toFixed(1)}%`;
+}
+
 function thisMonth(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -179,23 +189,25 @@ export function PnlPage({ store }: { store: Store }) {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <HeroKpi
               label="영업이익"
-              value={won(pnl.operating_profit)}
+              value={pnl.operating_profit.toLocaleString("ko-KR")}
+              unit="원"
               tone={pnl.operating_profit < 0 ? "alert" : "normal"}
+              delta={profitDelta(pnl.trend)}
             >
-              영업이익률 {pct(pnl.operating_margin_percent)}
+              {profitDelta(pnl.trend) ? "지난달 대비 · " : ""}영업이익률 {pct(pnl.operating_margin_percent)}
             </HeroKpi>
-            <div className="rounded-[26px] bg-white p-5">
+            <div className="rounded-2xl bg-white p-5">
               <div className="text-xs font-semibold text-gray-500">총매출</div>
               <div className="mt-1 text-2xl font-bold text-gray-900">{won(pnl.revenue.amount)}</div>
             </div>
-            <div className="rounded-[26px] bg-white p-5">
+            <div className="rounded-2xl bg-white p-5">
               <div className="text-xs font-semibold text-gray-500">총지출</div>
               <div className="mt-1 text-2xl font-bold text-gray-900">{won(pnl.total_expenses)}</div>
-              <div className="mt-1 text-xs text-gray-500">
+              <div className="mt-1 truncate text-xs text-gray-500">
                 매출 대비 {pct(pnl.revenue.amount ? ((pnl.total_expenses * 100) / pnl.revenue.amount).toFixed(1) : null)}
               </div>
             </div>
-            <div className="rounded-[26px] bg-white p-5">
+            <div className="rounded-2xl bg-white p-5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-gray-500">최근 6개월</span>
                 <span className="flex gap-2 text-gray-500">

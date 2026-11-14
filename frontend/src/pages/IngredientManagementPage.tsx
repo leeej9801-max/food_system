@@ -256,7 +256,7 @@ function IngredientManagement({ store }: Props) {
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-[26px] bg-white">
+        <div className="overflow-hidden rounded-2xl bg-white">
           <Table<Row> data={rows} columns={columns} idKey="id" hasHover />
         </div>
       )}
@@ -275,7 +275,7 @@ function IngredientManagement({ store }: Props) {
         </HeroKpi>
         <RankCard title="최근 7일 사용량" items={insights?.recent_usage} />
         <RankCard title="연결 메뉴 많은 순" items={insights?.linked_menus} />
-        <div className="rounded-[26px] bg-white p-5">
+        <div className="rounded-2xl bg-white p-5">
           <div className="flex flex-col gap-2">
             <div className="flex items-baseline justify-between">
               <Text type="label" weight="semibold">
@@ -378,7 +378,7 @@ function IngredientManagement({ store }: Props) {
 
 function RankCard({ title, items }: { title: string; items?: IngredientRankItem[] }) {
   return (
-    <div className="rounded-[26px] bg-white p-5">
+    <div className="rounded-2xl bg-white p-5">
       <div className="flex flex-col gap-2">
         <Text type="label" weight="semibold">
           {title}

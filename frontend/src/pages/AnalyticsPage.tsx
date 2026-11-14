@@ -77,20 +77,20 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
             ` · 객단가 ${Math.round(Number(sales.total_net_sales) / sales.total_completed_orders).toLocaleString("ko-KR")}원`}
         </HeroKpi>
 
-        <div className="rounded-[26px] bg-white p-5">
+        <div className="rounded-2xl bg-white p-5">
           <div className="text-xs font-semibold text-gray-500">
             누적 판매 수량
           </div>
           <div className="mt-1 text-2xl font-bold text-gray-900">
             {sales?.total_quantity ?? 0}개
           </div>
-          <div className="mt-1 text-xs text-gray-500">
+          <div className="mt-1 truncate text-xs text-gray-500">
             시각 확인 {sales?.known_hour_quantity ?? 0}개 / 시각 미상{" "}
             {sales?.unknown_hour_quantity ?? 0}개
           </div>
         </div>
 
-        <div className="rounded-[26px] bg-white p-5">
+        <div className="rounded-2xl bg-white p-5">
           <div className="text-xs font-semibold text-gray-500">
             원가 산정 단가 기준
           </div>
@@ -99,9 +99,9 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
           </div>
         </div>
 
-        <div className="rounded-[26px] bg-white p-5">
-          <div className="text-xs font-semibold text-gray-500">
-            고원가율 주의 메뉴 (≥ 35%)
+        <div className="rounded-2xl bg-white p-5">
+          <div className="truncate text-xs font-semibold text-gray-500">
+            고원가율 메뉴 (≥ 35%)
           </div>
           <div
             className={`mt-1 text-2xl font-bold ${
@@ -110,7 +110,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
           >
             {highCostCount}개
           </div>
-          <div className="mt-1 text-xs text-gray-500">
+          <div className="mt-1 truncate text-xs text-gray-500">
             일괄{" "}
             {globalChangePercent > 0
               ? `+${globalChangePercent}`
