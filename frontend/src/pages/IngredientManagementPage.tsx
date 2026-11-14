@@ -1,598 +1,388 @@
-import { Dialog } from "../components/Dialog";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ApiClientError } from "../api/client";
+import { Badge, type BadgeVariant } from "@astryxdesign/core/Badge";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
+import { Dialog } from "@astryxdesign/core/Dialog";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { Heading } from "@astryxdesign/core/Heading";
+import { MoreMenu } from "@astryxdesign/core/MoreMenu";
+import { NumberInput } from "@astryxdesign/core/NumberInput";
+import { SegmentedControl, SegmentedControlItem } from "@astryxdesign/core/SegmentedControl";
+import { Selector } from "@astryxdesign/core/Selector";
+import { Switch } from "@astryxdesign/core/Switch";
+import { Table, pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
+import { Text } from "@astryxdesign/core/Text";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import { useToast } from "@astryxdesign/core/Toast";
+import { Theme } from "@astryxdesign/core/theme";
+import "@astryxdesign/core/reset.css";
+import "@astryxdesign/core/astryx.css";
+import { defaultThemeSlug, themes } from "../astryx-themes";
 import {
   createIngredient,
+  fetchIngredientInsights,
   fetchIngredients,
-  fetchIngredientUsages,
   updateIngredient,
 } from "../api/ingredients";
-import { fetchMenus } from "../api/menus";
 import { RecipeEditorModal } from "../components/RecipeEditorModal";
 import { useUrlState } from "../lib/useUrlState";
-import type { BaseUnitType, Ingredient, PurchaseUnitType, Store } from "../types";
+import type {
+  Ingredient,
+  IngredientRankItem,
+  IngredientStockStatus,
+  PurchaseUnitType,
+  Store,
+} from "../types";
 
-interface IngredientManagementPageProps {
-  store: Store;
+type Filter = "all" | "IN_USE" | "IDLE" | "NEEDS_RESTOCK";
+const FILTERS: readonly Filter[] = ["all", "IN_USE", "IDLE", "NEEDS_RESTOCK"];
+
+const STATUS: Record<IngredientStockStatus, { label: string; variant: BadgeVariant }> = {
+  IN_USE: { label: "사용중", variant: "info" },
+  IDLE: { label: "대기", variant: "neutral" },
+  NEEDS_RESTOCK: { label: "입고필요", variant: "warning" },
+  INACTIVE: { label: "비활성", variant: "neutral" },
+};
+
+const UNITS: PurchaseUnitType[] = ["kg", "g", "L", "ml", "ea"];
+const unitLabel = (u: string) => (u === "ea" ? "개" : u);
+const fmt = (v: string | number) => Number(v).toLocaleString("ko-KR");
+
+type Row = Ingredient & { no: number } & Record<string, unknown>;
+
+type Props = { store: Store };
+
+export function IngredientManagementPage(props: Props) {
+  return (
+    <Theme theme={themes[defaultThemeSlug]} mode="light">
+      <IngredientManagement {...props} />
+    </Theme>
+  );
 }
 
-export function IngredientManagementPage({ store }: IngredientManagementPageProps) {
+type FormState = {
+  id: string | null;
+  name: string;
+  safety: number | null;
+  unit: PurchaseUnitType;
+  notes: string;
+};
+
+const EMPTY_FORM: FormState = { id: null, name: "", safety: null, unit: "g", notes: "" };
+
+function IngredientManagement({ store }: Props) {
   const queryClient = useQueryClient();
-  const [searchInput, setSearchInput] = useUrlState<string>("q", "");
-  const [statusFilter, setStatusFilter] = useUrlState<"all" | "active" | "inactive">(
-    "status", "all", ["all", "active", "inactive"],
-  );
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingIng, setEditingIng] = useState<Ingredient | null>(null);
+  const toast = useToast();
+  const [filter, setFilter] = useUrlState<Filter>("status", "all", FILTERS);
+  const [q, setQ] = useState("");
+  const [form, setForm] = useState<FormState | null>(null);
+  const [recipeTarget, setRecipeTarget] = useState<{ id: string; name: string } | null>(null);
 
-  // 식자재 폼 상태
-  const [name, setName] = useState("");
-  const [baseUnit, setBaseUnit] = useState<BaseUnitType>("g");
-  const [purchaseUnit, setPurchaseUnit] = useState<PurchaseUnitType>("kg");
-  const [conversionFactor, setConversionFactor] = useState("1000");
-  const [safetyStock, setSafetyStock] = useState("");
-  const [notes, setNotes] = useState("");
-  const [isActive, setIsActive] = useState(true);
-  const [formError, setFormError] = useState<string | null>(null);
-
-  // 연결된 메뉴 패널 및 공통 레시피 모달 상태
-  const [selectedIngredientForUsage, setSelectedIngredientForUsage] = useState<Ingredient | null>(
-    null
-  );
-  const [recipeModalTarget, setRecipeModalTarget] = useState<{
-    menuId: string;
-    menuName: string;
-  } | null>(null);
-  const [banner, setBanner] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
-  const ingredientsQuery = useQuery({
-    queryKey: ["ingredients", store.id, searchInput, statusFilter],
-    queryFn: () => fetchIngredients(store.id, { q: searchInput, status: statusFilter }),
+  const listQuery = useQuery({
+    queryKey: ["ingredients", store.id, "all"],
+    queryFn: () => fetchIngredients(store.id, { status: "all" }),
+  });
+  const insightsQuery = useQuery({
+    queryKey: ["ingredients", store.id, "insights"],
+    queryFn: () => fetchIngredientInsights(store.id),
   });
 
-  const menusQuery = useQuery({
-    queryKey: ["menus", store.id, "all-for-linking"],
-    queryFn: () => fetchMenus(store.id, { status: "all" }),
-  });
-
-  const usagesQuery = useQuery({
-    queryKey: ["ingredient-usages", store.id, selectedIngredientForUsage?.id],
-    queryFn: () => fetchIngredientUsages(store.id, selectedIngredientForUsage!.id),
-    enabled: Boolean(selectedIngredientForUsage),
-  });
+  const refresh = () => {
+    for (const key of ["ingredients", "inventory-summary", "menus"]) {
+      void queryClient.invalidateQueries({ queryKey: [key, store.id] });
+    }
+  };
+  const fail = (err: unknown, fallback: string) =>
+    toast({ body: err instanceof Error && err.message ? err.message : fallback, type: "error" });
 
   const saveMutation = useMutation({
-    mutationFn: async () => {
-      const trimmedName = name.trim();
-      if (!trimmedName) {
-        throw new Error("식자재명을 입력해 주세요.");
-      }
-      const conv = Number(conversionFactor);
-      if (!Number.isFinite(conv) || conv <= 0) {
-        throw new Error("단위 변환 계수는 0보다 큰 숫자로 입력해 주세요.");
-      }
-      const safety =
-        safetyStock.trim() === "" ? null : Number(safetyStock.trim());
-      if (safety !== null && (!Number.isFinite(safety) || safety < 0)) {
-        throw new Error("기준 안전재고는 0 이상으로 입력해 주세요.");
-      }
-
-      const payload = {
-        name: trimmedName,
-        base_unit: baseUnit,
-        purchase_unit: purchaseUnit,
-        conversion_factor: conv,
-        safety_stock: safety,
-        notes: notes.trim() || null,
-        is_active: isActive,
+    mutationFn: (f: FormState) => {
+      const body = {
+        name: f.name.trim(),
+        unit: f.unit,
+        safety_stock: f.safety,
+        notes: f.notes.trim() || null,
       };
-
-      if (editingIng) {
-        return updateIngredient(store.id, editingIng.id, payload);
-      }
-      return createIngredient(store.id, payload);
+      return f.id
+        ? updateIngredient(store.id, f.id, body)
+        : createIngredient(store.id, { ...body, is_active: true });
     },
-    onSuccess: (saved) => {
-      queryClient.invalidateQueries({ queryKey: ["ingredients", store.id] });
-      setBanner({
-        type: "success",
-        text: `식자재 '${saved.name}' 항목이 저장되었습니다.`,
-      });
-      setFormOpen(false);
+    onSuccess: (_, f) => {
+      toast({ body: f.id ? "수정했습니다" : "추가했습니다", type: "info" });
+      setForm(null);
+      refresh();
     },
-    onError: (err: unknown) => {
-      if (err instanceof ApiClientError || err instanceof Error) {
-        setFormError(err.message);
-      } else {
-        setFormError("식자재 저장에 실패했습니다.");
-      }
-    },
+    onError: (err) => fail(err, "저장하지 못했습니다"),
   });
 
-  const toggleActiveMutation = useMutation({
-    mutationFn: (ing: Ingredient) =>
-      updateIngredient(store.id, ing.id, { is_active: !ing.is_active }),
-    onSuccess: (updated) => {
-      queryClient.invalidateQueries({ queryKey: ["ingredients", store.id] });
-      setBanner({
-        type: "success",
-        text: `식자재 '${updated.name}' 상태가 변경되었습니다.`,
-      });
-    },
+  const toggleMutation = useMutation({
+    mutationFn: ({ id, on }: { id: string; on: boolean }) =>
+      updateIngredient(store.id, id, { is_active: on }),
+    onSuccess: refresh,
+    onError: (err) => fail(err, "변경하지 못했습니다"),
   });
 
-  const conversionGuide = useMemo(() => {
-    const conv = Number(conversionFactor);
-    if (!Number.isFinite(conv) || conv <= 0) return "유효한 변환값을 입력하세요";
-    return `구매 1 ${purchaseUnit} = 레시피/재고 기준 ${conv.toLocaleString("ko-KR")} ${baseUnit}`;
-  }, [purchaseUnit, baseUnit, conversionFactor]);
+  const keyword = q.trim().toLowerCase();
+  const rows: Row[] = (listQuery.data ?? [])
+    .filter((i) => filter === "all" || i.stock_status === filter)
+    .filter((i) => !keyword || i.name.toLowerCase().includes(keyword))
+    .map((i, idx) => ({ ...i, no: idx + 1 }));
 
-  function openCreateModal() {
-    setEditingIng(null);
-    setName("");
-    setBaseUnit("g");
-    setPurchaseUnit("kg");
-    setConversionFactor("1000");
-    setSafetyStock("");
-    setNotes("");
-    setIsActive(true);
-    setFormError(null);
-    setFormOpen(true);
-  }
+  const dim = (r: Row) => (r.stock_status === "INACTIVE" ? "secondary" : "primary");
 
-  function openEditModal(ing: Ingredient) {
-    setEditingIng(ing);
-    setName(ing.name);
-    setBaseUnit(ing.base_unit);
-    setPurchaseUnit(ing.purchase_unit);
-    setConversionFactor(String(Number(ing.conversion_factor)));
-    setSafetyStock(ing.safety_stock !== null ? String(Number(ing.safety_stock)) : "");
-    setNotes(ing.notes ?? "");
-    setIsActive(ing.is_active);
-    setFormError(null);
-    setFormOpen(true);
-  }
+  const columns: TableColumn<Row>[] = [
+    { key: "no", header: "no", width: pixel(56) },
+    {
+      key: "name",
+      header: "식자재명",
+      width: proportional(2, { minWidth: 140 }),
+      renderCell: (r) => <Text color={dim(r)}>{r.name}</Text>,
+    },
+    {
+      key: "safety_stock",
+      header: "안전재고",
+      width: proportional(1, { minWidth: 100 }),
+      align: "end",
+      renderCell: (r) => (
+        <Text color={dim(r)}>
+          {r.safety_stock === null ? "-" : `${fmt(r.safety_stock)} ${unitLabel(r.base_unit)}`}
+        </Text>
+      ),
+    },
+    {
+      key: "linked_menu_count",
+      header: "연결 메뉴 수",
+      width: pixel(110),
+      align: "center",
+      renderCell: (r) => <Text color={dim(r)}>{r.linked_menu_count}</Text>,
+    },
+    {
+      key: "stock_status",
+      header: "상태",
+      width: pixel(100),
+      renderCell: (r) => <Badge {...STATUS[r.stock_status]} />,
+    },
+    {
+      key: "actions",
+      header: "",
+      width: pixel(56),
+      align: "end",
+      renderCell: (r) => (
+        <MoreMenu
+          label={`${r.name} 메뉴`}
+          alignment="end"
+          items={[
+            {
+              label: "수정",
+              onClick: () =>
+                setForm({
+                  id: r.id,
+                  name: r.name,
+                  safety: r.safety_stock === null ? null : Number(r.safety_stock),
+                  unit: r.base_unit,
+                  notes: r.notes ?? "",
+                }),
+            },
+          ]}
+        />
+      ),
+    },
+    {
+      key: "is_active",
+      header: "활성화",
+      width: pixel(80),
+      align: "center",
+      renderCell: (r) => (
+        <Switch
+          size="sm"
+          label={`${r.name} 활성화`}
+          isLabelHidden
+          value={r.is_active}
+          isDisabled={toggleMutation.isPending}
+          onChange={(on) => toggleMutation.mutate({ id: r.id, on })}
+        />
+      ),
+    },
+  ];
 
-  function handlePresetUnit(pUnit: PurchaseUnitType, bUnit: BaseUnitType, factor: string) {
-    setPurchaseUnit(pUnit);
-    setBaseUnit(bUnit);
-    setConversionFactor(factor);
-  }
+  const insights = insightsQuery.data;
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto flex max-w-6xl flex-col gap-5 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">식자재 · 레시피 관리</h1>
-          <p className="text-sm text-gray-600">
-            식자재 마스터와 단위 변환 규칙(예: 구매 kg → 레시피 g)을 정의하고, 메뉴별 1인분 사용
-            레시피를 양방향으로 연결합니다.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={openCreateModal}
-          className="rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-700"
-        >
-          + 식자재 추가
-        </button>
+        <Heading level={1}>식자재 관리</Heading>
+        <Button variant="primary" label="식자재 추가" onClick={() => setForm(EMPTY_FORM)} />
       </div>
 
-      {banner && (
-        <div
-          role="status"
-          className={`flex items-center justify-between rounded-lg border px-4 py-2.5 text-sm ${
-            banner.type === "success"
-              ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-              : "border-red-300 bg-red-50 text-red-900"
-          }`}
-        >
-          <span>{banner.text}</span>
-          <button type="button" onClick={() => setBanner(null)} className="text-xs underline">
-            닫기
-          </button>
-        </div>
-      )}
-
-      {/* 검색 및 필터 */}
-      <div className="grid grid-cols-1 gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="ingredientmanagement-f1" className="mb-1 block text-xs font-semibold text-gray-600">식자재명 검색</label>
-          <input id="ingredientmanagement-f1"
-            type="search"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="예: 스파게티면, 올리브오일, 생크림, 베이컨..."
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label htmlFor="ingredientmanagement-f2" className="mb-1 block text-xs font-semibold text-gray-600">등록 상태</label>
-          <select id="ingredientmanagement-f2"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="all">전체 (사용중 + 비활성)</option>
-            <option value="active">사용중(활성)만</option>
-            <option value="inactive">비활성(보관)만</option>
-          </select>
-        </div>
-      </div>
-
-      {/* 식자재 목록 테이블 */}
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-        {ingredientsQuery.isLoading ? (
-          <div className="p-8 text-center text-sm text-gray-500">
-            식자재 목록을 불러오는 중입니다...
-          </div>
-        ) : (ingredientsQuery.data ?? []).length === 0 ? (
-          <div className="p-10 text-center">
-            <p className="text-base font-semibold text-gray-800">아직 등록된 식자재가 없습니다.</p>
-            <p className="mt-1 text-sm text-gray-500">
-              양식당 기본 식자재(예: 스파게티면, 올리브오일, 관찰레/베이컨, 파르미지아노 치즈 등)를
-              먼저 등록해 보세요.
-            </p>
-            <button
-              type="button"
-              onClick={openCreateModal}
-              className="mt-4 rounded-lg bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700"
-            >
-              + 첫 식자재 추가하기
-            </button>
-          </div>
-        ) : (
-          <table className="w-full border-collapse text-left text-sm">
-            <thead className="border-b border-gray-200 text-xs font-medium text-gray-600">
-              <tr>
-                <th className="px-4 py-3">식자재명</th>
-                <th className="px-4 py-3">구매단위 → 기본단위 (변환비)</th>
-                <th className="px-4 py-3">기준 안전재고</th>
-                <th className="px-4 py-3">연결 메뉴 수</th>
-                <th className="px-4 py-3">상태</th>
-                <th className="px-4 py-3 text-right">관리</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {(ingredientsQuery.data ?? []).map((ing) => (
-                <tr
-                  key={ing.id}
-                  className={ing.is_active ? "bg-white" : "bg-gray-50 text-gray-500"}
-                >
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    <div>{ing.name}</div>
-                    {ing.notes && <div className="text-xs text-gray-500">{ing.notes}</div>}
-                  </td>
-                  <td className="px-4 py-3 tabular-nums text-xs text-gray-700">
-                    1 {ing.purchase_unit} = {Number(ing.conversion_factor).toLocaleString("ko-KR")}{" "}
-                    {ing.base_unit}
-                  </td>
-                  <td className="px-4 py-3 tabular-nums text-xs">
-                    {ing.safety_stock !== null ? (
-                      `${Number(ing.safety_stock).toLocaleString("ko-KR")} ${ing.base_unit}`
-                    ) : (
-                      <span className="font-sans text-gray-500">미설정</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedIngredientForUsage(ing)}
-                      className="rounded-full bg-accent-50 px-2.5 py-0.5 text-xs font-semibold text-accent-700 hover:bg-accent-100"
-                    >
-                      {ing.linked_menu_count}개 메뉴 보기
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">
-                    {ing.is_active ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-                        ● 사용중
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-700">
-                        ○ 비활성
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="inline-flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(ing)}
-                        className="rounded border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
-                      >
-                        수정
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => toggleActiveMutation.mutate(ing)}
-                        className="rounded border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
-                      >
-                        {ing.is_active ? "비활성화" : "재활성화"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* 식자재별 연결 메뉴 & 빠른 레시피 편집 섹션 */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base font-bold text-gray-900">
-              메뉴 ↔ 식자재 레시피 빠른 연결
-            </h2>
-            <p className="text-xs text-gray-500">
-              메뉴 화면과 식자재 화면 어느 쪽에서 수정해도 동일한 레시피 데이터가
-              갱신됩니다.
-            </p>
-          </div>
-          {selectedIngredientForUsage && (
-            <span className="rounded bg-accent-50 px-2.5 py-1 text-xs font-semibold text-accent-800">
-              선택 식자재: {selectedIngredientForUsage.name} (사용 메뉴{" "}
-              {(usagesQuery.data ?? []).length}개)
-            </span>
-          )}
-        </div>
-
-        {selectedIngredientForUsage && (
-          <div className="mt-3 rounded-lg border border-accent-100 bg-accent-50/50 p-3 text-xs">
-            <div className="mb-2 flex items-center justify-between">
-              <strong className="text-gray-800">
-                ‘{selectedIngredientForUsage.name}’ 식자재를 사용하는 메뉴 목록:
-              </strong>
-              <button
-                type="button"
-                onClick={() => setSelectedIngredientForUsage(null)}
-                className="text-gray-500 underline"
-              >
-                선택 해제
-              </button>
+      <div className="grid gap-3 md:grid-cols-3">
+        <RankCard title="최근 7일 사용량" items={insights?.recent_usage} />
+        <RankCard title="연결 메뉴 많은 순" items={insights?.linked_menus} />
+        <Card padding={3}>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between">
+              <Text type="label" weight="semibold">
+                레시피 미등록 메뉴
+              </Text>
+              <Text type="supporting" color="secondary">
+                {insights?.menus_without_recipe.length ?? 0}개
+              </Text>
             </div>
-            {(usagesQuery.data ?? []).length === 0 ? (
-              <p className="text-gray-500">아직 이 식자재를 사용하는 메뉴가 없습니다.</p>
+            {insights && insights.menus_without_recipe.length === 0 ? (
+              <Text color="secondary">모두 등록됨</Text>
             ) : (
-              <ul className="space-y-1">
-                {(usagesQuery.data ?? []).map((u) => (
-                  <li key={u.menu_item_id} className="flex items-center justify-between">
-                    <span>
-                      • <strong>{u.menu_name}</strong> — 1인분당{" "}
-                      <code>
-                        {Number(u.quantity)} {u.unit}
-                      </code>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setRecipeModalTarget({ menuId: u.menu_item_id, menuName: u.menu_name })
-                      }
-                      className="rounded border border-accent-300 bg-white px-2 py-0.5 text-xs font-semibold text-accent-700 hover:bg-accent-50"
-                    >
-                      레시피 편집
-                    </button>
-                  </li>
+              <div className="flex flex-wrap gap-2">
+                {insights?.menus_without_recipe.slice(0, 6).map((m) => (
+                  <Button
+                    key={m.menu_id}
+                    size="sm"
+                    variant="secondary"
+                    label={m.name}
+                    onClick={() => setRecipeTarget({ id: m.menu_id, name: m.name })}
+                  />
                 ))}
-              </ul>
+              </div>
             )}
           </div>
-        )}
-
-        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
-          {(menusQuery.data ?? []).map((m) => (
-            <div
-              key={m.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-xs"
-            >
-              <div>
-                <div className="font-semibold text-gray-800">{m.name}</div>
-                <div className="text-gray-500">
-                  {m.recipe_status === "COMPLETE"
-                    ? `완성 (${m.recipe_item_count}종)`
-                    : m.recipe_status === "PARTIAL"
-                    ? `일부 미입력 (${m.recipe_item_count}종)`
-                    : "레시피 미등록"}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setRecipeModalTarget({ menuId: m.id, menuName: m.name })}
-                className="rounded bg-gray-100 px-2.5 py-1 font-semibold text-gray-700 hover:bg-gray-200"
-              >
-                레시피 편집
-              </button>
-            </div>
-          ))}
-        </div>
+        </Card>
       </div>
 
-      {/* 식자재 추가/수정 모달 */}
-      {formOpen && (
-        <Dialog label={editingIng ? "식자재 수정" : "새 식자재 추가"} onClose={() => setFormOpen(false)}>
-          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
-            <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
-              <h2 className="text-lg font-bold text-gray-900">
-                {editingIng ? "식자재 수정" : "새 식자재 추가"}
-              </h2>
-              <button
-                type="button"
-                onClick={() => setFormOpen(false)}
-                className="rounded px-2 py-1 text-sm text-gray-500 hover:bg-gray-100"
-              >
-                닫기
-              </button>
-            </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SegmentedControl
+          label="상태"
+          value={filter}
+          onChange={(v) => setFilter(v as Filter)}
+        >
+          <SegmentedControlItem value="all" label="전체" />
+          <SegmentedControlItem value="IN_USE" label="사용중" />
+          <SegmentedControlItem value="IDLE" label="대기" />
+          <SegmentedControlItem value="NEEDS_RESTOCK" label="입고필요" />
+        </SegmentedControl>
+        <TextInput
+          type="search"
+          label="식자재 검색"
+          isLabelHidden
+          placeholder="식자재 검색"
+          value={q}
+          onChange={setQ}
+          size="sm"
+        />
+      </div>
 
-            {formError && (
-              <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">
-                {formError}
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="ingredientmanagement-f3" className="mb-1 block text-sm font-medium text-gray-800">
-                  식자재명 <span className="text-red-600">*</span>
-                </label>
-                <input id="ingredientmanagement-f3"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="예: 스파게티면, 엑스트라버진 올리브오일, 관찰레"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                />
-              </div>
-
-              <div>
-                <span className="mb-1 block text-xs font-semibold text-gray-600">
-                  자주 쓰는 단위 조합 빠른 선택:
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handlePresetUnit("kg", "g", "1000")}
-                    className="rounded border border-gray-300 bg-gray-50 px-2 py-1 text-xs hover:bg-gray-100"
-                  >
-                    구매 kg → 사용 g (×1,000)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePresetUnit("L", "ml", "1000")}
-                    className="rounded border border-gray-300 bg-gray-50 px-2 py-1 text-xs hover:bg-gray-100"
-                  >
-                    구매 L → 사용 ml (×1,000)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePresetUnit("ea", "ea", "1")}
-                    className="rounded border border-gray-300 bg-gray-50 px-2 py-1 text-xs hover:bg-gray-100"
-                  >
-                    개(ea) 단위 동일 (×1)
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div>
-                  <label htmlFor="ingredientmanagement-f4" className="mb-1 block text-xs font-medium text-gray-700">
-                    구매 단위
-                  </label>
-                  <select id="ingredientmanagement-f4"
-                    value={purchaseUnit}
-                    onChange={(e) => setPurchaseUnit(e.target.value as PurchaseUnitType)}
-                    className="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm"
-                  >
-                    <option value="kg">kg</option>
-                    <option value="g">g</option>
-                    <option value="L">L</option>
-                    <option value="ml">ml</option>
-                    <option value="ea">ea (개)</option>
-                    <option value="pack">pack (팩/박스)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="ingredientmanagement-f5" className="mb-1 block text-xs font-medium text-gray-700">
-                    레시피 기본 단위
-                  </label>
-                  <select id="ingredientmanagement-f5"
-                    value={baseUnit}
-                    onChange={(e) => setBaseUnit(e.target.value as BaseUnitType)}
-                    className="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm"
-                  >
-                    <option value="g">g (그램)</option>
-                    <option value="ml">ml (밀리리터)</option>
-                    <option value="ea">ea (개)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="ingredientmanagement-f6" className="mb-1 block text-xs font-medium text-gray-700">
-                    변환 계수
-                  </label>
-                  <input id="ingredientmanagement-f6"
-                    type="number"
-                    min={0.0001}
-                    step="any"
-                    value={conversionFactor}
-                    onChange={(e) => setConversionFactor(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-sm tabular-nums"
-                  />
-                </div>
-              </div>
-
-              <div className="rounded bg-accent-50 px-3 py-1.5 text-xs text-accent-800">
-                단위 변환 미리보기: <strong>{conversionGuide}</strong>
-              </div>
-
-              <div>
-                <label htmlFor="ingredientmanagement-f7" className="mb-1 block text-xs font-medium text-gray-700">
-                  기준 안전재고 (선택, {baseUnit} 기준 — 미달 시 재고 알림)
-                </label>
-                <input id="ingredientmanagement-f7"
-                  type="number"
-                  min={0}
-                  step="any"
-                  value={safetyStock}
-                  onChange={(e) => setSafetyStock(e.target.value)}
-                  placeholder={`예: 2000 (${baseUnit})`}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="ingredientmanagement-f8" className="mb-1 block text-xs font-medium text-gray-700">
-                  보관/공급처 메모 (선택)
-                </label>
-                <input id="ingredientmanagement-f8"
-                  type="text"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="예: 냉장 보관, 주요 공급처 OO식자재"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setFormOpen(false)}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                >
-                  취소
-                </button>
-                <button
-                  type="button"
-                  onClick={() => saveMutation.mutate()}
-                  disabled={saveMutation.isPending}
-                  className="rounded-lg bg-accent-600 px-5 py-2 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
-                >
-                  {saveMutation.isPending ? "저장 중..." : "저장"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </Dialog>
+      {listQuery.isLoading ? (
+        <Text color="secondary">불러오는 중...</Text>
+      ) : listQuery.isError ? (
+        <EmptyState
+          title="불러오지 못했습니다"
+          actions={<Button label="다시 시도" onClick={() => void listQuery.refetch()} />}
+        />
+      ) : rows.length === 0 ? (
+        <EmptyState
+          title="식자재가 없습니다"
+          actions={
+            <Button variant="primary" label="식자재 추가" onClick={() => setForm(EMPTY_FORM)} />
+          }
+        />
+      ) : (
+        <Card padding={0}>
+          <Table<Row> data={rows} columns={columns} idKey="id" hasHover />
+        </Card>
       )}
+
+      <Dialog
+        isOpen={form !== null}
+        onOpenChange={(open) => !open && setForm(null)}
+        purpose="form"
+        width={420}
+      >
+        {form && (
+          <form
+            className="flex flex-col gap-4 p-5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!form.name.trim()) return fail(null, "이름을 입력하세요");
+              saveMutation.mutate(form);
+            }}
+          >
+            <Heading level={2}>{form.id ? "식자재 수정" : "식자재 추가"}</Heading>
+            <TextInput
+              label="식자재명"
+              value={form.name}
+              onChange={(name) => setForm({ ...form, name })}
+              hasAutoFocus
+            />
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <NumberInput
+                  label="안전재고"
+                  value={form.safety}
+                  hasClear
+                  onChange={(safety) => setForm({ ...form, safety })}
+                />
+              </div>
+              <Selector
+                label="단위"
+                isLabelHidden
+                width={88}
+                options={UNITS.map((u) => ({ value: u, label: unitLabel(u) }))}
+                value={form.unit}
+                onChange={(unit) => setForm({ ...form, unit: unit as PurchaseUnitType })}
+              />
+            </div>
+            <TextInput
+              label="메모"
+              value={form.notes}
+              onChange={(notes) => setForm({ ...form, notes })}
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" label="취소" onClick={() => setForm(null)} />
+              <Button
+                variant="primary"
+                type="submit"
+                label="저장"
+                isLoading={saveMutation.isPending}
+              />
+            </div>
+          </form>
+        )}
+      </Dialog>
 
       <RecipeEditorModal
-        open={Boolean(recipeModalTarget)}
+        open={recipeTarget !== null}
         storeId={store.id}
-        menuId={recipeModalTarget?.menuId ?? null}
-        menuName={recipeModalTarget?.menuName ?? ""}
-        onClose={() => setRecipeModalTarget(null)}
-        onSaved={() =>
-          setBanner({
-            type: "success",
-            text: `메뉴 '${recipeModalTarget?.menuName}' 레시피가 갱신되었습니다.`,
-          })
-        }
+        menuId={recipeTarget?.id ?? null}
+        menuName={recipeTarget?.name ?? ""}
+        onClose={() => setRecipeTarget(null)}
+        onSaved={refresh}
       />
     </div>
+  );
+}
+
+function RankCard({ title, items }: { title: string; items?: IngredientRankItem[] }) {
+  return (
+    <Card padding={3}>
+      <div className="flex flex-col gap-2">
+        <Text type="label" weight="semibold">
+          {title}
+        </Text>
+        {items && items.length === 0 ? (
+          <Text color="secondary">기록 없음</Text>
+        ) : (
+          <ol className="flex flex-col gap-1">
+            {items?.map((it, idx) => (
+              <li key={it.ingredient_id} className="flex items-baseline justify-between gap-2">
+                <Text>
+                  {idx + 1}. {it.name}
+                </Text>
+                <Text weight="semibold">
+                  {fmt(it.value)} {unitLabel(it.unit)}
+                </Text>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </Card>
   );
 }

@@ -8,12 +8,16 @@ import { fetchIntegrationStatus } from "../api/imports";
 import { AnalyticsPage } from "../pages/AnalyticsPage";
 import { PnlPage } from "../pages/PnlPage";
 import { HomePage } from "../pages/HomePage";
-import { IngredientManagementPage } from "../pages/IngredientManagementPage";
 import { InventoryPage } from "../pages/InventoryPage";
 import { SettingsPage } from "../pages/SettingsPage";
 import type { Store } from "../types";
 
 // astryx 시험 화면이라 따로 불러온다: 다른 화면 번들에 astryx가 섞이지 않게
+const IngredientManagementPage = lazy(() =>
+  import("../pages/IngredientManagementPage").then((m) => ({
+    default: m.IngredientManagementPage,
+  })),
+);
 const MenuManagementPage = lazy(() =>
   import("../pages/MenuManagementPage").then((m) => ({ default: m.MenuManagementPage })),
 );
@@ -566,7 +570,14 @@ function ShellLayout({ store }: { store: Store }) {
                   </Suspense>
                 }
               />
-              <Route path="/ingredients" element={<IngredientManagementPage store={store} />} />
+              <Route
+                path="/ingredients"
+                element={
+                  <Suspense fallback={null}>
+                    <IngredientManagementPage store={store} />
+                  </Suspense>
+                }
+              />
               <Route path="/inventory" element={<InventoryPage store={store} />} />
               <Route path="/pnl" element={<PnlPage store={store} />} />
               <Route path="/analytics" element={<AnalyticsPage store={store} />} />
