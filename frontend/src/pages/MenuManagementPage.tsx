@@ -2,10 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Button } from "@astryxdesign/core/Button";
-import { ClickableCard } from "@astryxdesign/core/ClickableCard";
-import { Card } from "@astryxdesign/core/Card";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
-import { Heading } from "@astryxdesign/core/Heading";
 import { HeroKpi } from "../components/HeroKpi";
 import { MoreMenu } from "@astryxdesign/core/MoreMenu";
 import { SegmentedControl, SegmentedControlItem } from "@astryxdesign/core/SegmentedControl";
@@ -149,29 +146,6 @@ function MenuManagement({ store }: MenuManagementPageProps) {
     if (name) categoryMutation.mutate(name);
   }
 
-  function categoryCard(key: string, name: string, count: number, value: string, toggle: boolean) {
-    const on = categoryFilter === value;
-    return (
-      <ClickableCard
-        key={key}
-        label={`${name} ${count}개${on ? ", 선택됨" : ""}`}
-        variant={on ? "default" : "muted"}
-        elevation={on ? "low" : "none"}
-        padding={3}
-        onClick={() => setCategoryFilter(on && toggle ? "" : value)}
-      >
-        <div className="flex flex-col gap-1">
-          <Text type="label" weight="semibold" color={on ? "accent" : "primary"}>
-            {name}
-          </Text>
-          <Text type="supporting" color="secondary">
-            {count}개
-          </Text>
-        </div>
-      </ClickableCard>
-    );
-  }
-
   const columns: TableColumn<Row>[] = [
     { key: "no", header: "no", width: pixel(56), align: "end" },
     { key: "category", header: "종류", width: proportional(1, { minWidth: 80 }), renderCell: (m) => m.category ?? "-" },
@@ -243,30 +217,94 @@ function MenuManagement({ store }: MenuManagementPageProps) {
 
   const rows: Row[] = (menusQuery.data ?? []).map((m, i) => ({ ...m, no: i + 1 }));
   const filtered = Boolean(categoryFilter || searchInput || statusFilter !== "all");
+  const allSelected = categoryFilter === "";
+  const standbyCount = Math.max(totalMenus - activeCount, 0);
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Heading level={1}>메뉴 관리</Heading>
-        <Button variant="primary" label="메뉴 추가" onClick={() => openForm(null)} />
+    <div>
+      <div className="page-heading">
+        <div className="page-title">
+          <h1>메뉴 관리</h1>
+          <span className="title-divider" />
+          <span className="title-meta">{totalMenus}개</span>
+        </div>
+        <div className="page-actions">
+          <button type="button" className="pill pill-primary" onClick={() => openForm(null)}>
+            + 메뉴 추가
+          </button>
+        </div>
       </div>
 
       {/* 메뉴 유형 카드: 누르면 아래 표를 그 유형으로 거른다 */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" data-testid="menu-category-cards">
-        <HeroKpi label="운영 중 메뉴" value={activeCount} unit="개" className="col-span-2">
-          출시 대기 {Math.max(totalMenus - activeCount, 0)}개
+      <section
+        aria-label="메뉴 유형"
+        data-testid="menu-category-cards"
+        className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-[200px_165px_minmax(0,1fr)_auto] xl:mb-5 xl:grid-cols-[220px_190px_minmax(0,1fr)_150px] xl:gap-5"
+      >
+        <HeroKpi label="운영 중 메뉴" value={activeCount} unit="개">
+          출시 대기 {standbyCount}개
         </HeroKpi>
-        {categoryCard("all", "전체", totalMenus, "", false)}
-        {categories.map((c) => categoryCard(c.id, c.name, c.menu_count, c.name, true))}
+
+        <button
+          type="button"
+          aria-pressed={allSelected}
+          aria-label={`전체 ${totalMenus}개${allSelected ? ", 선택됨" : ""}`}
+          onClick={() => setCategoryFilter("")}
+          className={`flex min-h-[96px] items-center justify-between gap-3 rounded-2xl px-5 py-4 text-left transition ${
+            allSelected ? "bg-accent-50 text-ink" : "bg-white text-ink hover:bg-accent-50"
+          }`}
+        >
+          <span className="text-base font-semibold">전체</span>
+          <strong className="text-[30px] font-semibold tracking-tight tabular-nums">
+            {totalMenus}
+            <small className="ml-1 text-xs font-normal text-muted">개</small>
+          </strong>
+        </button>
+
+        <div className="grid grid-cols-2 gap-1 rounded-2xl bg-white p-3 sm:grid-cols-3 lg:grid-cols-4">
+          {categories.length === 0 ? (
+            <div className="col-span-full flex items-center px-3 py-2 text-xs text-muted">
+              등록된 유형이 없습니다
+            </div>
+          ) : (
+            categories.map((c) => {
+              const on = categoryFilter === c.name;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  aria-pressed={on}
+                  aria-label={`${c.name} ${c.menu_count}개${on ? ", 선택됨" : ""}`}
+                  onClick={() => setCategoryFilter(on ? "" : c.name)}
+                  className={`flex min-w-0 flex-col justify-center gap-2 rounded-xl px-4 py-2.5 text-left transition ${
+                    on ? "bg-accent-50 text-accent-700" : "hover:bg-ground"
+                  }`}
+                >
+                  <span className={`truncate text-xs ${on ? "font-semibold text-accent-700" : "text-muted"}`}>
+                    {c.name}
+                  </span>
+                  <strong className="text-xl font-semibold tracking-tight text-ink tabular-nums">
+                    {c.menu_count}
+                    <small className="ml-1 text-xs font-normal text-muted">개</small>
+                  </strong>
+                </button>
+              );
+            })
+          )}
+        </div>
+
         {newCategory === null ? (
-          <ClickableCard label="유형 추가" variant="transparent" padding={3} onClick={() => setNewCategory("")}>
-            <Text type="label" color="secondary">
-              + 유형 추가
-            </Text>
-          </ClickableCard>
+          <button
+            type="button"
+            aria-label="유형 추가"
+            onClick={() => setNewCategory("")}
+            className="flex min-h-[52px] items-center justify-center gap-1.5 rounded-2xl bg-accent-50 px-5 text-[13px] font-medium whitespace-nowrap text-ink transition hover:bg-accent-100"
+          >
+            + 유형 추가
+          </button>
         ) : (
-          <Card padding={3}>
-            <form onSubmit={submitCategory} className="space-y-2">
+          <div className="card !p-3">
+            <form onSubmit={submitCategory} className="flex flex-col gap-2">
               <TextInput
                 label="새 메뉴 유형"
                 isLabelHidden
@@ -282,42 +320,56 @@ function MenuManagement({ store }: MenuManagementPageProps) {
                 <Button size="sm" variant="ghost" label="취소" onClick={() => setNewCategory(null)} />
               </div>
             </form>
-          </Card>
+          </div>
         )}
-      </div>
+      </section>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <SegmentedControl label="판매 상태" value={statusFilter} onChange={(v) => setStatusFilter(v as Status)}>
-          <SegmentedControlItem value="all" label="전체" />
-          <SegmentedControlItem value="active" label="운영중" />
-          <SegmentedControlItem value="inactive" label="출시대기" />
-        </SegmentedControl>
-        <div className="min-w-48 flex-1">
-          <TextInput
-            type="search"
-            label="메뉴 이름 검색"
-            isLabelHidden
-            placeholder="메뉴 이름 검색"
-            value={searchInput}
-            onChange={setSearchInput}
-          />
+      <section className="card flex flex-col gap-4" aria-label="메뉴 목록">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SegmentedControl label="판매 상태" value={statusFilter} onChange={(v) => setStatusFilter(v as Status)}>
+            <SegmentedControlItem value="all" label="전체" />
+            <SegmentedControlItem value="active" label="운영중" />
+            <SegmentedControlItem value="inactive" label="출시대기" />
+          </SegmentedControl>
+          <div className="w-full sm:w-64">
+            <TextInput
+              type="search"
+              label="메뉴 이름 검색"
+              isLabelHidden
+              placeholder="메뉴 이름 검색"
+              value={searchInput}
+              onChange={setSearchInput}
+              size="sm"
+            />
+          </div>
         </div>
-      </div>
 
-      {menusQuery.isLoading ? (
-        <Text color="secondary">메뉴 목록을 불러오는 중입니다...</Text>
-      ) : menusQuery.isError ? (
-        <EmptyState title="메뉴 목록 조회에 실패했습니다." description="잠시 뒤 다시 시도해 주세요." />
-      ) : rows.length === 0 ? (
-        <EmptyState
-          title={filtered ? "조건에 맞는 메뉴가 없습니다." : "아직 등록된 메뉴가 없습니다."}
-          actions={<Button variant="primary" label="메뉴 추가" onClick={() => openForm(null)} />}
-        />
-      ) : (
-        <Card padding={0}>
-          <Table<Row> data={rows} columns={columns} idKey="id" hasHover />
-        </Card>
-      )}
+        {menusQuery.isLoading ? (
+          <Text color="secondary">메뉴 목록을 불러오는 중입니다...</Text>
+        ) : menusQuery.isError ? (
+          <EmptyState title="메뉴 목록 조회에 실패했습니다." description="잠시 뒤 다시 시도해 주세요." />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            title={filtered ? "조건에 맞는 메뉴가 없습니다." : "아직 등록된 메뉴가 없습니다."}
+            actions={<Button variant="primary" label="메뉴 추가" onClick={() => openForm(null)} />}
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <Table<Row> data={rows} columns={columns} idKey="id" hasHover />
+          </div>
+        )}
+
+        {totalMenus > 0 && (
+          <footer className="flex flex-wrap justify-between gap-2 border-t border-rule pt-4 text-xs text-muted tabular-nums">
+            <span>
+              전체 메뉴 <strong className="font-semibold text-ink">{totalMenus}</strong>개
+            </span>
+            <span>
+              운영중 {activeCount} · 출시대기 {standbyCount}
+            </span>
+          </footer>
+        )}
+      </section>
 
       <AlertDialog
         isOpen={deleteTarget !== null}
