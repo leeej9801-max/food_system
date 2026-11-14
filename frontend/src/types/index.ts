@@ -76,7 +76,8 @@ export interface MenuDeleteResult {
 }
 
 export type BaseUnitType = "g" | "ml" | "ea";
-export type PurchaseUnitType = "kg" | "g" | "L" | "ml" | "ea" | "pack";
+export type PurchaseUnitType = "kg" | "g" | "L" | "ml" | "ea";
+export type IngredientStockStatus = "IN_USE" | "IDLE" | "NEEDS_RESTOCK" | "INACTIVE";
 
 export interface Ingredient {
   id: string;
@@ -89,8 +90,22 @@ export interface Ingredient {
   notes: string | null;
   is_active: boolean;
   linked_menu_count: number;
+  stock_status: IngredientStockStatus;
   created_at: string;
   updated_at: string;
+}
+
+export interface IngredientRankItem {
+  ingredient_id: string;
+  name: string;
+  value: string;
+  unit: string;
+}
+
+export interface IngredientInsights {
+  recent_usage: IngredientRankItem[];
+  linked_menus: IngredientRankItem[];
+  menus_without_recipe: { menu_id: string; name: string }[];
 }
 
 export interface RecipeItemDetail {

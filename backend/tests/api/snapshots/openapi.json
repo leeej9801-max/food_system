@@ -826,8 +826,7 @@
               "g",
               "L",
               "ml",
-              "ea",
-              "pack"
+              "ea"
             ],
             "title": "Purchase Unit",
             "type": "string"
@@ -847,12 +846,62 @@
               }
             ],
             "title": "Safety Stock"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "kg",
+                  "g",
+                  "L",
+                  "ml",
+                  "ea"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
           }
         },
         "required": [
           "name"
         ],
         "title": "IngredientCreate",
+        "type": "object"
+      },
+      "IngredientInsights": {
+        "properties": {
+          "linked_menus": {
+            "items": {
+              "$ref": "#/components/schemas/IngredientRankItem"
+            },
+            "title": "Linked Menus",
+            "type": "array"
+          },
+          "menus_without_recipe": {
+            "items": {
+              "$ref": "#/components/schemas/MenuWithoutRecipe"
+            },
+            "title": "Menus Without Recipe",
+            "type": "array"
+          },
+          "recent_usage": {
+            "items": {
+              "$ref": "#/components/schemas/IngredientRankItem"
+            },
+            "title": "Recent Usage",
+            "type": "array"
+          }
+        },
+        "required": [
+          "recent_usage",
+          "linked_menus",
+          "menus_without_recipe"
+        ],
+        "title": "IngredientInsights",
         "type": "object"
       },
       "IngredientInventoryItem": {
@@ -990,6 +1039,35 @@
         "title": "IngredientInventoryItem",
         "type": "object"
       },
+      "IngredientRankItem": {
+        "properties": {
+          "ingredient_id": {
+            "format": "uuid",
+            "title": "Ingredient Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ingredient_id",
+          "name",
+          "value",
+          "unit"
+        ],
+        "title": "IngredientRankItem",
+        "type": "object"
+      },
       "IngredientResponse": {
         "properties": {
           "base_unit": {
@@ -1048,6 +1126,17 @@
               }
             ],
             "title": "Safety Stock"
+          },
+          "stock_status": {
+            "default": "IN_USE",
+            "enum": [
+              "IN_USE",
+              "IDLE",
+              "NEEDS_RESTOCK",
+              "INACTIVE"
+            ],
+            "title": "Stock Status",
+            "type": "string"
           },
           "store_id": {
             "format": "uuid",
@@ -1154,8 +1243,7 @@
                   "g",
                   "L",
                   "ml",
-                  "ea",
-                  "pack"
+                  "ea"
                 ],
                 "type": "string"
               },
@@ -1180,6 +1268,24 @@
               }
             ],
             "title": "Safety Stock"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "kg",
+                  "g",
+                  "L",
+                  "ml",
+                  "ea"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
           }
         },
         "title": "IngredientUpdate",
@@ -1558,6 +1664,24 @@
               }
             ],
             "title": "Purchase Quantity"
+          },
+          "purchase_unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "kg",
+                  "g",
+                  "L",
+                  "ml",
+                  "ea"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purchase Unit"
           },
           "supplier_name": {
             "anyOf": [
@@ -2244,6 +2368,25 @@
           }
         },
         "title": "MenuUpdate",
+        "type": "object"
+      },
+      "MenuWithoutRecipe": {
+        "properties": {
+          "menu_id": {
+            "format": "uuid",
+            "title": "Menu Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "menu_id",
+          "name"
+        ],
+        "title": "MenuWithoutRecipe",
         "type": "object"
       },
       "PnlExpenseInput": {
@@ -5197,6 +5340,49 @@
           }
         },
         "summary": "Post Ingredient",
+        "tags": [
+          "ingredients"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/ingredients/insights": {
+      "get": {
+        "operationId": "get_ingredient_insights_api_v1_stores__store_id__ingredients_insights_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngredientInsights"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Ingredient Insights",
         "tags": [
           "ingredients"
         ]

@@ -69,6 +69,7 @@ def test_collect_frontend_response_samples(client: TestClient) -> None:
     menu_id, ingredient_id = menus[0]["id"], ingredients[0]["id"]
     call("recipeDetailSchema", "GET", f"{s}/menus/{menu_id}/recipe")
     call("ingredientUsageSchema", "GET", f"{s}/ingredients/{ingredient_id}/usages", unwrap=True)
+    call("ingredientInsightsSchema", "GET", f"{s}/ingredients/insights")
 
     call("integrationStatusSchema", "GET", f"{s}/integrations/status")
     call("sampleCsvSchema", "GET", f"{s}/imports/sales-csv/sample")

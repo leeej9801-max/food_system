@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.schemas import (
     IngredientCreate,
+    IngredientInsights,
     IngredientResponse,
     IngredientUpdate,
     IngredientUsageItem,
@@ -35,6 +36,15 @@ def post_ingredient(
     db: Annotated[Session, Depends(get_db)],
 ) -> IngredientResponse:
     return ingredient_service.create_ingredient(db, store_id=store_id, payload=payload)
+
+
+# "/{ingredient_id}"보다 먼저 둬야 insights가 id로 잡히지 않는다
+@router.get("/insights")
+def get_ingredient_insights(
+    store_id: UUID,
+    db: Annotated[Session, Depends(get_db)],
+) -> IngredientInsights:
+    return ingredient_service.get_ingredient_insights(db, store_id=store_id)
 
 
 @router.get("/{ingredient_id}")

@@ -1,9 +1,14 @@
 import { z } from "zod";
 import { apiRequest } from "./client";
-import { ingredientSchema, ingredientUsageSchema, recipeDetailSchema } from "./schemas";
+import {
+  ingredientInsightsSchema,
+  ingredientSchema,
+  ingredientUsageSchema,
+  recipeDetailSchema,
+} from "./schemas";
 import type {
-  BaseUnitType,
   Ingredient,
+  IngredientInsights,
   IngredientUsage,
   PurchaseUnitType,
   RecipeDetail,
@@ -33,9 +38,7 @@ export function createIngredient(
   storeId: string,
   payload: {
     name: string;
-    base_unit: BaseUnitType;
-    purchase_unit: PurchaseUnitType;
-    conversion_factor: number;
+    unit: PurchaseUnitType;
     safety_stock: number | null;
     notes: string | null;
     is_active: boolean;
@@ -52,9 +55,7 @@ export function updateIngredient(
   ingredientId: string,
   payload: Partial<{
     name: string;
-    base_unit: BaseUnitType;
-    purchase_unit: PurchaseUnitType;
-    conversion_factor: number;
+    unit: PurchaseUnitType;
     safety_stock: number | null;
     notes: string | null;
     is_active: boolean;
@@ -94,4 +95,8 @@ export function upsertMenuRecipe(
     method: "PUT",
     body: JSON.stringify(payload),
   });
+}
+
+export function fetchIngredientInsights(storeId: string): Promise<IngredientInsights> {
+  return apiRequest(ingredientInsightsSchema, `/stores/${storeId}/ingredients/insights`);
 }

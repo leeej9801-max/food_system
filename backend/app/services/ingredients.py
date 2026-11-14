@@ -1,17 +1,25 @@
+from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
+from app.core.units import base_of, factor_to
 from app.db.models import Ingredient, Recipe, RecipeItem, utcnow
 from app.repositories import ingredients as ingredient_repo
 from app.repositories import menus as menu_repo
+from app.repositories import sales_orders as sales_order_repo
 from app.schemas import (
     IngredientCreate,
+    IngredientInsights,
+    IngredientRankItem,
     IngredientResponse,
+    IngredientStockStatusType,
     IngredientUpdate,
     IngredientUsageItem,
+    MenuWithoutRecipe,
     RecipeItemResponse,
     RecipeResponse,
     RecipeUpsertRequest,
@@ -37,7 +45,29 @@ def _ensure_no_duplicate_active_ingredient_name(
         )
 
 
-def _to_ingredient_response(item: Ingredient) -> IngredientResponse:
+def _low_stock_ids(db: Session, store_id: UUID) -> set[UUID]:
+    """재고 화면과 같은 기준(예상 재고 <= 안전재고, 또는 음수)으로 입고가 필요한 식자재."""
+    from app.services.inventory import get_inventory_summary  # 순환 import 회피
+
+    return {
+        row.ingredient_id
+        for row in get_inventory_summary(db, store_id=store_id, include_inactive=True)
+        if row.stock_status != "OK"
+    }
+
+
+def _stock_status(item: Ingredient, low_stock: set[UUID]) -> IngredientStockStatusType:
+    if not item.is_active:
+        return "INACTIVE"
+    # 안전재고가 없으면 예상 재고가 음수여도 입고필요로 보지 않는다 (U-51)
+    if item.safety_stock is not None and item.id in low_stock:
+        return "NEEDS_RESTOCK"
+    if not item.recipe_items:
+        return "IDLE"
+    return "IN_USE"
+
+
+def _to_ingredient_response(item: Ingredient, low_stock: set[UUID]) -> IngredientResponse:
     return IngredientResponse(
         id=item.id,
         store_id=item.store_id,
@@ -49,6 +79,7 @@ def _to_ingredient_response(item: Ingredient) -> IngredientResponse:
         notes=item.notes,
         is_active=item.is_active,
         linked_menu_count=len(item.recipe_items),
+        stock_status=_stock_status(item, low_stock),
         created_at=item.created_at,
         updated_at=item.updated_at,
     )
@@ -63,7 +94,8 @@ def list_ingredients(
 ) -> list[IngredientResponse]:
     get_store_or_404(db, store_id)
     items = ingredient_repo.search(db, store_id, q=q, status=status)
-    return [_to_ingredient_response(item) for item in items]
+    low_stock = _low_stock_ids(db, store_id)
+    return [_to_ingredient_response(item, low_stock) for item in items]
 
 
 def get_ingredient_or_404(db: Session, *, store_id: UUID, ingredient_id: UUID) -> Ingredient:
@@ -82,7 +114,7 @@ def get_ingredient_response(
     db: Session, *, store_id: UUID, ingredient_id: UUID
 ) -> IngredientResponse:
     item = get_ingredient_or_404(db, store_id=store_id, ingredient_id=ingredient_id)
-    return _to_ingredient_response(item)
+    return _to_ingredient_response(item, _low_stock_ids(db, store_id))
 
 
 def create_ingredient(
@@ -92,13 +124,24 @@ def create_ingredient(
     if payload.is_active:
         _ensure_no_duplicate_active_ingredient_name(db, store_id=store_id, name=payload.name)
 
+    base_unit, purchase_unit, factor = (
+        payload.base_unit,
+        payload.purchase_unit,
+        payload.conversion_factor,
+    )
+    safety = payload.safety_stock
+    if payload.unit is not None:
+        base_unit, factor = base_of(payload.unit)
+        purchase_unit = payload.unit
+        if safety is not None:
+            safety = safety * factor
     item = Ingredient(
         store_id=store_id,
         name=payload.name,
-        base_unit=payload.base_unit,
-        purchase_unit=payload.purchase_unit,
-        conversion_factor=payload.conversion_factor,
-        safety_stock=payload.safety_stock,
+        base_unit=base_unit,
+        purchase_unit=purchase_unit,
+        conversion_factor=factor,
+        safety_stock=safety,
         notes=payload.notes,
         is_active=payload.is_active,
     )
@@ -129,7 +172,7 @@ def update_ingredient(
     item = get_ingredient_or_404(db, store_id=store_id, ingredient_id=ingredient_id)
     update_data = payload.model_dump(exclude_unset=True)
     if not update_data:
-        return _to_ingredient_response(item)
+        return _to_ingredient_response(item, _low_stock_ids(db, store_id))
 
     next_name = update_data.get("name", item.name)
     if next_name is None:
@@ -160,6 +203,15 @@ def update_ingredient(
         "notes": item.notes,
         "is_active": item.is_active,
     }
+
+    unit = update_data.pop("unit", None)
+    if unit is not None:
+        # shortcut: 기본 단위(g/ml/ea) 종류는 못 바꾼다(422). 바꿔야 하면 레시피 단위 변환까지 같이 설계
+        factor = factor_to(unit, item.base_unit)
+        update_data["purchase_unit"] = unit
+        update_data["conversion_factor"] = factor
+        if update_data.get("safety_stock") is not None:
+            update_data["safety_stock"] = update_data["safety_stock"] * factor
 
     for field, value in update_data.items():
         if (
@@ -350,3 +402,53 @@ def list_ingredient_usages(
         )
         for row in rows
     ]
+
+
+def get_ingredient_insights(db: Session, *, store_id: UUID) -> IngredientInsights:
+    """식자재 화면 카드: 최근 7일 사용량 상위 3, 연결 메뉴 수 상위 3, 레시피 없는 활성 메뉴."""
+    get_store_or_404(db, store_id)
+    ingredients = ingredient_repo.search(db, store_id, status="active")
+    by_id = {ing.id: ing for ing in ingredients}
+
+    recipe_qty: dict[UUID, list[tuple[UUID, Decimal]]] = {}  # menu_id -> [(ingredient_id, qty)]
+    for rec in menu_repo.list_recipes_with_items(db, store_id):
+        for ri in rec.items:
+            recipe_qty.setdefault(rec.menu_item_id, []).append(
+                (ri.ingredient_id, Decimal(str(ri.quantity)))
+            )
+
+    since = datetime.now(UTC) - timedelta(days=7)
+    usage: dict[UUID, Decimal] = {}
+    for order in sales_order_repo.list_completed_with_items(db, store_id):
+        for line in order.items:
+            when = line.ordered_at or order.ordered_at or order.received_at
+            if line.status != "COMPLETED" or line.menu_item_id is None or when is None:
+                continue
+            if (when if when.tzinfo else when.replace(tzinfo=UTC)) < since:
+                continue
+            for ing_id, qty in recipe_qty.get(line.menu_item_id, []):
+                usage[ing_id] = usage.get(ing_id, Decimal(0)) + qty * line.quantity
+
+    def rank(values: dict[UUID, Decimal], unit: str | None = None) -> list[IngredientRankItem]:
+        top = sorted(
+            ((v, by_id[k]) for k, v in values.items() if k in by_id and v > 0),
+            key=lambda pair: (-pair[0], pair[1].name),
+        )[:3]
+        return [
+            IngredientRankItem(
+                ingredient_id=ing.id, name=ing.name, value=v, unit=unit or ing.base_unit
+            )
+            for v, ing in top
+        ]
+
+    linked = {ing.id: Decimal(len(ing.recipe_items)) for ing in ingredients}
+    no_recipe = [
+        MenuWithoutRecipe(menu_id=m.id, name=m.name)
+        for m in menu_repo.search(db, store_id, status="active")
+        if m.recipe is None or not m.recipe.items
+    ]
+    return IngredientInsights(
+        recent_usage=rank(usage),
+        linked_menus=rank(linked, unit="개"),
+        menus_without_recipe=no_recipe,
+    )

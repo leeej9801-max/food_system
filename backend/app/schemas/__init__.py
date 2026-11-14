@@ -6,6 +6,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.units import UnitType
+
 
 class StoreCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
@@ -174,7 +176,8 @@ class MenuDeleteResponse(BaseModel):
 
 
 BaseUnitType = Literal["g", "ml", "ea"]
-PurchaseUnitType = Literal["kg", "g", "L", "ml", "ea", "pack"]
+PurchaseUnitType = UnitType
+IngredientStockStatusType = Literal["IN_USE", "IDLE", "NEEDS_RESTOCK", "INACTIVE"]
 
 
 class IngredientCreate(BaseModel):
@@ -183,6 +186,8 @@ class IngredientCreate(BaseModel):
     purchase_unit: PurchaseUnitType = Field(default="kg")
     conversion_factor: Decimal = Field(default=Decimal(1000), gt=Decimal(0), le=Decimal(1000000))
     safety_stock: Decimal | None = Field(default=None, ge=Decimal(0), le=Decimal(100000000))
+    # 주면 base_unit·purchase_unit·conversion_factor를 이것으로 정하고 safety_stock을 이 단위로 읽는다
+    unit: UnitType | None = Field(default=None)
     notes: str | None = Field(default=None, max_length=500)
     is_active: bool = Field(default=True)
 
@@ -209,6 +214,8 @@ class IngredientUpdate(BaseModel):
     purchase_unit: PurchaseUnitType | None = Field(default=None)
     conversion_factor: Decimal | None = Field(default=None, gt=Decimal(0), le=Decimal(1000000))
     safety_stock: Decimal | None = Field(default=None, ge=Decimal(0), le=Decimal(100000000))
+    # 주면 safety_stock을 이 단위로 읽고 구매 단위로 쓴다. 기본 단위와 종류가 다르면 422
+    unit: UnitType | None = Field(default=None)
     notes: str | None = Field(default=None, max_length=500)
     is_active: bool | None = Field(default=None)
 
@@ -244,8 +251,28 @@ class IngredientResponse(BaseModel):
     notes: str | None
     is_active: bool
     linked_menu_count: int = 0
+    # 우선순위 입고필요 > 대기(연결 메뉴 0) > 사용중. 비활성은 따로 (U-51)
+    stock_status: IngredientStockStatusType = "IN_USE"
     created_at: datetime
     updated_at: datetime
+
+
+class IngredientRankItem(BaseModel):
+    ingredient_id: UUID
+    name: str
+    value: Decimal
+    unit: str
+
+
+class MenuWithoutRecipe(BaseModel):
+    menu_id: UUID
+    name: str
+
+
+class IngredientInsights(BaseModel):
+    recent_usage: list[IngredientRankItem]
+    linked_menus: list[IngredientRankItem]
+    menus_without_recipe: list[MenuWithoutRecipe]
 
 
 class RecipeItemInput(BaseModel):
@@ -544,6 +571,8 @@ StockAlertStatusType = Literal["OK", "LOW_STOCK", "NEGATIVE_WARNING"]
 class InventoryReceiptCreate(BaseModel):
     ingredient_id: UUID
     purchase_quantity: Decimal = Field(..., gt=0)
+    # 없으면 식자재의 구매 단위로 본다
+    purchase_unit: UnitType | None = Field(default=None)
     total_cost: Decimal = Field(..., ge=0)
     supplier_name: str | None = Field(default=None, max_length=100)
     notes: str | None = Field(default=None, max_length=200)

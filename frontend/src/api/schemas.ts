@@ -145,14 +145,23 @@ export const ingredientSchema: z.ZodType<T.Ingredient> = z.object({
   store_id: str,
   name: str,
   base_unit: z.enum(["g", "ml", "ea"]),
-  purchase_unit: z.enum(["kg", "g", "L", "ml", "ea", "pack"]),
+  purchase_unit: z.enum(["kg", "g", "L", "ml", "ea"]),
   conversion_factor: str,
   safety_stock: nstr,
   notes: nstr,
   is_active: bool,
   linked_menu_count: num,
+  stock_status: z.enum(["IN_USE", "IDLE", "NEEDS_RESTOCK", "INACTIVE"]),
   created_at: str,
   updated_at: str,
+});
+
+const ingredientRankSchema = z.object({ ingredient_id: str, name: str, value: str, unit: str });
+
+export const ingredientInsightsSchema: z.ZodType<T.IngredientInsights> = z.object({
+  recent_usage: z.array(ingredientRankSchema),
+  linked_menus: z.array(ingredientRankSchema),
+  menus_without_recipe: z.array(z.object({ menu_id: str, name: str })),
 });
 
 export const ingredientUsageSchema: z.ZodType<T.IngredientUsage> = z.object({

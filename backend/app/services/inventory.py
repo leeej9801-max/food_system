@@ -6,6 +6,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
+from app.core.units import factor_to
 from app.db.models import (
     InventoryAdjustment,
     InventoryCount,
@@ -43,7 +44,12 @@ def create_receipt(
     db: Session, *, store_id: UUID, payload: InventoryReceiptCreate
 ) -> InventoryReceiptResponse:
     ingredient = get_ingredient_or_404(db, store_id=store_id, ingredient_id=payload.ingredient_id)
-    conv = Decimal(str(ingredient.conversion_factor))
+    unit = payload.purchase_unit or ingredient.purchase_unit
+    conv = (
+        factor_to(payload.purchase_unit, ingredient.base_unit)
+        if payload.purchase_unit
+        else Decimal(str(ingredient.conversion_factor))
+    )
     p_qty = Decimal(str(payload.purchase_quantity)).quantize(Decimal("0.001"))
     b_qty = (p_qty * conv).quantize(Decimal("0.001"))
     t_cost = Decimal(str(payload.total_cost)).quantize(Decimal("0.01"))
@@ -62,7 +68,7 @@ def create_receipt(
         store_id=store_id,
         ingredient_id=ingredient.id,
         purchase_quantity=p_qty,
-        purchase_unit=ingredient.purchase_unit,
+        purchase_unit=unit,
         base_quantity=b_qty,
         base_unit=ingredient.base_unit,
         total_cost=t_cost,
@@ -82,7 +88,7 @@ def create_receipt(
         summary={
             "ingredient_name": ingredient.name,
             "purchase_quantity": str(p_qty),
-            "purchase_unit": ingredient.purchase_unit,
+            "purchase_unit": unit,
             "base_quantity": str(b_qty),
             "base_unit": ingredient.base_unit,
             "total_cost": str(t_cost),
