@@ -209,102 +209,125 @@ function IngredientManagement({ store }: Props) {
   const insights = insightsQuery.data;
   const all = listQuery.data ?? [];
   const restock = all.filter((i) => i.stock_status === "NEEDS_RESTOCK");
+  const inUseCount = all.filter((i) => i.stock_status === "IN_USE").length;
+  const unregMenus = insights?.menus_without_recipe ?? [];
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Heading level={1}>식자재 관리</Heading>
-        <Button variant="primary" label="식자재 추가" onClick={() => setForm(EMPTY_FORM)} />
-      </div>
-
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <SegmentedControl
-          label="상태"
-          value={filter}
-          onChange={(v) => setFilter(v as Filter)}
-        >
-          <SegmentedControlItem value="all" label="전체" />
-          <SegmentedControlItem value="IN_USE" label="사용중" />
-          <SegmentedControlItem value="IDLE" label="대기" />
-          <SegmentedControlItem value="NEEDS_RESTOCK" label="입고필요" />
-        </SegmentedControl>
-        <TextInput
-          type="search"
-          label="식자재 검색"
-          isLabelHidden
-          placeholder="식자재 검색"
-          value={q}
-          onChange={setQ}
-          size="sm"
-        />
-      </div>
-
-      {listQuery.isLoading ? (
-        <Text color="secondary">불러오는 중...</Text>
-      ) : listQuery.isError ? (
-        <EmptyState
-          title="불러오지 못했습니다"
-          actions={<Button label="다시 시도" onClick={() => void listQuery.refetch()} />}
-        />
-      ) : rows.length === 0 ? (
-        <EmptyState
-          title="식자재가 없습니다"
-          actions={
-            <Button variant="primary" label="식자재 추가" onClick={() => setForm(EMPTY_FORM)} />
-          }
-        />
-      ) : (
-        <div className="overflow-hidden rounded-2xl bg-white">
-          <Table<Row> data={rows} columns={columns} idKey="id" hasHover />
+    <div>
+      <div className="page-heading">
+        <div className="page-title">
+          <h1>식자재 관리</h1>
+          <span className="title-divider" />
+          <span className="title-meta">{all.length}개</span>
         </div>
-      )}
+        <div className="page-actions">
+          <button type="button" className="pill pill-primary" onClick={() => setForm(EMPTY_FORM)}>
+            + 식자재 추가
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <HeroKpi
-          label="입고 필요"
-          value={restock.length}
-          unit="종"
-          tone={restock.length > 0 ? "alert" : "normal"}
-        >
-          {restock.length > 0
-            ? restock.slice(0, 3).map((i) => i.name).join(", ") + (restock.length > 3 ? ` 외 ${restock.length - 3}종` : "")
-            : `활성 ${all.filter((i) => i.is_active).length}종 모두 충분`}
-        </HeroKpi>
-        <RankCard title="최근 7일 사용량" items={insights?.recent_usage} />
-        <RankCard title="연결 메뉴 많은 순" items={insights?.linked_menus} />
-        <div className="rounded-2xl bg-white p-5">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-baseline justify-between">
-              <Text type="label" weight="semibold">
-                레시피 미등록 메뉴
-              </Text>
-              <Text type="supporting" color="secondary">
-                {insights?.menus_without_recipe.length ?? 0}개
-              </Text>
+      <div className="grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-5">
+        <section className="card flex min-w-0 flex-col gap-4" aria-label="식자재 목록">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <SegmentedControl
+              label="상태"
+              value={filter}
+              onChange={(v) => setFilter(v as Filter)}
+            >
+              <SegmentedControlItem value="all" label="전체" />
+              <SegmentedControlItem value="IN_USE" label="사용중" />
+              <SegmentedControlItem value="IDLE" label="대기" />
+              <SegmentedControlItem value="NEEDS_RESTOCK" label="입고필요" />
+            </SegmentedControl>
+            <TextInput
+              type="search"
+              label="식자재 검색"
+              isLabelHidden
+              placeholder="식자재 검색"
+              value={q}
+              onChange={setQ}
+              size="sm"
+            />
+          </div>
+
+          {listQuery.isLoading ? (
+            <Text color="secondary">불러오는 중...</Text>
+          ) : listQuery.isError ? (
+            <EmptyState
+              title="불러오지 못했습니다"
+              actions={<Button label="다시 시도" onClick={() => void listQuery.refetch()} />}
+            />
+          ) : rows.length === 0 ? (
+            <EmptyState
+              title="식자재가 없습니다"
+              actions={
+                <Button variant="primary" label="식자재 추가" onClick={() => setForm(EMPTY_FORM)} />
+              }
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <Table<Row> data={rows} columns={columns} idKey="id" hasHover />
             </div>
-            {insights && insights.menus_without_recipe.length === 0 ? (
-              <Text color="secondary">모두 등록됨</Text>
+          )}
+
+          {all.length > 0 && (
+            <footer className="flex flex-wrap justify-between gap-2 border-t border-rule pt-4 text-xs text-muted tabular-nums">
+              <span>
+                전체 식자재 <strong className="font-semibold text-ink">{all.length}</strong>개
+              </span>
+              <span>
+                사용중 {inUseCount} · 입고필요 {restock.length}
+              </span>
+            </footer>
+          )}
+        </section>
+
+        <div className="flex min-w-0 flex-col gap-4">
+          <HeroKpi
+            label="입고 필요"
+            value={restock.length}
+            unit="종"
+            tone={restock.length > 0 ? "alert" : "normal"}
+          >
+            {restock.length > 0
+              ? restock.slice(0, 3).map((i) => i.name).join(", ") +
+                (restock.length > 3 ? ` 외 ${restock.length - 3}종` : "")
+              : `활성 ${all.filter((i) => i.is_active).length}종 모두 충분`}
+          </HeroKpi>
+
+          <div className="card flex flex-col gap-6">
+            <RankBlock title="최근 7일 사용량" items={insights?.recent_usage} showBar />
+            <RankBlock title="연결 메뉴 많은 순" items={insights?.linked_menus} />
+          </div>
+
+          <section className="flex flex-col gap-3 rounded-2xl bg-accent-50 p-5">
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="text-sm font-semibold text-ink">레시피 미등록 메뉴</h2>
+              <span className="text-2xl leading-none font-semibold tracking-tight text-ink tabular-nums">
+                {unregMenus.length}
+                <small className="ml-0.5 text-xs font-normal text-muted">개</small>
+              </span>
+            </div>
+            {insights && unregMenus.length === 0 ? (
+              <p className="text-xs text-muted">모두 등록됨</p>
             ) : (
-              <div className="flex flex-wrap gap-2">
-                {insights?.menus_without_recipe.slice(0, 6).map((m) => (
-                  <Button
+              <div className="flex flex-wrap gap-1.5">
+                {unregMenus.slice(0, 6).map((m) => (
+                  <button
                     key={m.menu_id}
-                    size="sm"
-                    variant="secondary"
-                    label={m.name}
+                    type="button"
+                    className="pill pill-sm pill-dark"
                     onClick={() => setRecipeTarget({ id: m.menu_id, name: m.name })}
-                  />
+                  >
+                    {m.name}
+                  </button>
                 ))}
               </div>
             )}
-          </div>
+          </section>
         </div>
       </div>
-      </div>
-
 
       <Dialog
         isOpen={form !== null}
@@ -376,30 +399,52 @@ function IngredientManagement({ store }: Props) {
   );
 }
 
-function RankCard({ title, items }: { title: string; items?: IngredientRankItem[] }) {
+function RankBlock({
+  title,
+  items,
+  showBar = false,
+}: {
+  title: string;
+  items?: IngredientRankItem[];
+  showBar?: boolean;
+}) {
+  const maxVal = Math.max(1, ...(items ?? []).map((it) => Number(it.value)));
   return (
-    <div className="rounded-2xl bg-white p-5">
-      <div className="flex flex-col gap-2">
-        <Text type="label" weight="semibold">
-          {title}
-        </Text>
-        {items && items.length === 0 ? (
-          <Text color="secondary">기록 없음</Text>
-        ) : (
-          <ol className="flex flex-col gap-1">
-            {items?.map((it, idx) => (
-              <li key={it.ingredient_id} className="flex items-baseline justify-between gap-2">
-                <Text>
-                  {idx + 1}. {it.name}
-                </Text>
-                <Text weight="semibold">
-                  {fmt(it.value)} {unitLabel(it.unit)}
-                </Text>
-              </li>
-            ))}
-          </ol>
-        )}
+    <section className="min-w-0">
+      <div className="card-head !mb-3">
+        <h2>{title}</h2>
       </div>
-    </div>
+      {items && items.length === 0 ? (
+        <p className="text-xs text-muted">기록 없음</p>
+      ) : (
+        <ol className="flex flex-col gap-3">
+          {items?.map((it, idx) => (
+            <li
+              key={it.ingredient_id}
+              className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1"
+            >
+              <span className="text-xs text-muted tabular-nums">
+                {String(idx + 1).padStart(2, "0")}
+              </span>
+              <span className="truncate text-xs font-medium text-ink">{it.name}</span>
+              <span className="text-sm font-semibold text-ink tabular-nums">
+                {fmt(it.value)}
+                <small className="ml-0.5 text-[11px] font-normal text-muted">
+                  {unitLabel(it.unit)}
+                </small>
+              </span>
+              {showBar && (
+                <span className="col-start-2 h-[5px] overflow-hidden rounded-full bg-ground">
+                  <span
+                    className="block h-full rounded-full bg-accent-300"
+                    style={{ width: `${Math.round((Number(it.value) / maxVal) * 100)}%` }}
+                  />
+                </span>
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
   );
 }
