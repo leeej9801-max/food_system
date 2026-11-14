@@ -545,3 +545,184 @@ table {
     transition: none !important;
   }
 }
+
+/* 재고·입고: 상단 기록 도구와 표가 화면 높이를 나눠 쓴다. */
+.inventory-management {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+.inventory-management .page-heading {
+  margin-bottom: 0;
+}
+.inventory-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  flex-shrink: 0;
+}
+.inventory-alert-card,
+.inventory-quick-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+.inventory-alert-card {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.inventory-alert-card:hover {
+  filter: brightness(0.97);
+}
+.inventory-quick-card {
+  justify-content: space-between;
+  gap: 12px;
+}
+.inventory-quick-action {
+  min-height: 44px;
+  padding-inline: 8px;
+}
+.inventory-receipt-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.inventory-receipt-summary dt {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+.inventory-receipt-summary dd {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.inventory-list {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+.inventory-toolbar {
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.inventory-toolbar > .astryx-segmented-control {
+  min-width: max-content;
+}
+.inventory-table-region,
+.inventory-history-scroll {
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.inventory-table-region {
+  height: 360px;
+}
+.inventory-table th,
+.inventory-history-scroll th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: white;
+}
+.inventory-table th:first-child,
+.inventory-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 120px;
+  background: white;
+}
+.inventory-table th:first-child {
+  z-index: 3;
+}
+.inventory-count-value {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  white-space: nowrap;
+}
+.inventory-info-button,
+.inventory-info-placeholder {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+.inventory-info-button {
+  border-radius: 50%;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+.inventory-info-button:hover {
+  background: var(--color-accent-50);
+}
+.inventory-alert-card:focus-visible,
+.inventory-info-button:focus-visible,
+.inventory-table-region:focus-visible,
+.inventory-history-scroll:focus-visible,
+.inventory-select:focus-visible {
+  outline: 2px solid var(--color-accent-600);
+  outline-offset: 2px;
+}
+.inventory-select {
+  min-height: 44px;
+  max-width: 100%;
+  border-radius: 12px;
+  padding-inline: 12px;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-size: 14px;
+}
+.inventory-action-dialog {
+  max-height: calc(var(--app-viewport-height) - 2rem);
+  overflow-y: auto;
+}
+.inventory-history-dialog {
+  display: flex;
+  width: 100%;
+  max-width: 1100px;
+  height: min(720px, calc(var(--app-viewport-height) - 2rem));
+  min-height: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+.inventory-history-scroll {
+  min-height: 0;
+  flex: 1;
+}
+@media (min-width: 768px) {
+  .inventory-overview {
+    grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr);
+  }
+}
+@media (min-width: 768px) and (min-height: 600px) {
+  .inventory-management {
+    height: calc(var(--app-viewport-height) - var(--app-header-height, 56px) - 3rem);
+    min-height: 0;
+  }
+  .inventory-list {
+    min-height: 0;
+    flex: 1;
+  }
+  .inventory-table-region {
+    height: auto;
+    min-height: 0;
+    flex: 1;
+  }
+}
+@media (pointer: coarse) {
+  .inventory-info-button,
+  .inventory-info-placeholder {
+    width: 44px;
+    height: 44px;
+  }
+}
