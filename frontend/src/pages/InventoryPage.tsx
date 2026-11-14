@@ -35,11 +35,11 @@ const REASON_LABELS: Record<AdjustmentReasonType, string> = {
   OTHER: "기타",
 };
 
-// 상태는 한 단어. 정상 초록 / 부족 노랑 / 점검(예상 재고 음수) 빨강
+// 상태는 한 단어. 정상 파랑 / 부족 노랑 / 점검(예상 재고 음수) 빨강
 const STATUS: Record<StockAlertStatusType, { label: string; className: string }> = {
-  OK: { label: "정상", className: "bg-emerald-50 text-emerald-700" },
-  LOW_STOCK: { label: "부족", className: "bg-amber-50 text-amber-700" },
-  NEGATIVE_WARNING: { label: "점검", className: "bg-red-50 text-red-700" },
+  OK: { label: "정상", className: "chip-ok" },
+  LOW_STOCK: { label: "부족", className: "chip-warn" },
+  NEGATIVE_WARNING: { label: "점검", className: "chip-danger" },
 };
 
 const SAME_DIMENSION: Record<string, PurchaseUnitType[]> = {
@@ -144,15 +144,17 @@ function ActionDialog({
     mutation.mutate();
   }
 
-  const input = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm";
+  const input = "h-10 w-full rounded-xl bg-ground px-3 text-sm text-ink";
   const signed = action === "ADJUST" && (reason === "CORRECTION" || reason === "OTHER");
 
   return (
     <Dialog label={`${item.ingredient_name} ${ACTION_LABELS[action]}`} onClose={onClose}>
-      <form onSubmit={submit} className="w-full max-w-sm space-y-3 rounded-xl bg-white p-5 shadow-xl">
-        <h2 className="text-base font-bold text-gray-900">
-          {item.ingredient_name} {ACTION_LABELS[action]}
-        </h2>
+      <form onSubmit={submit} className="card w-full max-w-sm space-y-3 shadow-xl">
+        <div className="card-head !mb-2">
+          <h2>
+            {item.ingredient_name} {ACTION_LABELS[action]}
+          </h2>
+        </div>
 
         {action === "ADJUST" && (
           <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="사유">
@@ -162,10 +164,9 @@ function ActionDialog({
                 type="button"
                 role="radio"
                 aria-checked={reason === r}
+                aria-pressed={reason === r}
                 onClick={() => setReason(r)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                  reason === r ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
-                }`}
+                className="pill pill-sm pill-soft"
               >
                 {REASON_LABELS[r]}
               </button>
@@ -173,7 +174,7 @@ function ActionDialog({
           </div>
         )}
 
-        <label className="block text-xs font-semibold text-gray-600">
+        <label className="block text-xs font-medium text-muted">
           {action === "COUNT" ? "실재고" : signed ? "수량 (빼려면 -)" : "수량"}
           <div className="mt-1 flex gap-2">
             <input
@@ -181,14 +182,14 @@ function ActionDialog({
               inputMode="decimal"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              className={input}
+              className={`${input} tabular-nums`}
             />
             {action === "RECEIPT" && units.length > 1 ? (
               <select
                 aria-label="단위"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value as PurchaseUnitType)}
-                className="rounded-lg border border-gray-300 px-2 text-sm"
+                className="h-10 rounded-xl bg-ground px-3 text-sm text-ink"
               >
                 {units.map((u) => (
                   <option key={u} value={u}>
@@ -197,7 +198,7 @@ function ActionDialog({
                 ))}
               </select>
             ) : (
-              <span className="self-center text-sm text-gray-500">
+              <span className="self-center text-sm text-muted">
                 {unitLabel(action === "RECEIPT" ? unit : item.base_unit)}
               </span>
             )}
@@ -206,37 +207,37 @@ function ActionDialog({
 
         {action === "RECEIPT" && (
           <>
-            <label className="block text-xs font-semibold text-gray-600">
+            <label className="block text-xs font-medium text-muted">
               총 금액 (원)
               <input
                 inputMode="numeric"
                 value={totalCost}
                 onChange={(e) => setTotalCost(e.target.value)}
-                className={`mt-1 ${input}`}
+                className={`mt-1 ${input} tabular-nums`}
               />
             </label>
-            <label className="block text-xs font-semibold text-gray-600">
+            <label className="block text-xs font-medium text-muted">
               공급처
               <input value={supplier} onChange={(e) => setSupplier(e.target.value)} className={`mt-1 ${input}`} />
             </label>
           </>
         )}
 
-        <label className="block text-xs font-semibold text-gray-600">
+        <label className="block text-xs font-medium text-muted">
           메모
           <input value={notes} onChange={(e) => setNotes(e.target.value)} className={`mt-1 ${input}`} />
         </label>
 
-        {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
+        {error && <p className="text-xs font-semibold text-[#b42318]">{error}</p>}
 
-        <div className="flex justify-end gap-2 pt-1">
-          <button type="button" onClick={onClose} className="rounded-full px-4 py-2 text-sm font-semibold text-gray-600">
+        <div className="flex justify-end gap-2 pt-2">
+          <button type="button" onClick={onClose} className="pill pill-sm pill-soft">
             취소
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="pill pill-sm pill-primary"
           >
             {mutation.isPending ? "저장 중..." : "저장"}
           </button>
@@ -272,196 +273,231 @@ export function InventoryPage({ store }: InventoryPageProps) {
     void queryClient.invalidateQueries({ queryKey: ["inventory-receipts", store.id] });
   }
 
-  const th = "px-3 py-2.5 font-semibold";
-  const num = "px-3 py-3 text-right tabular-nums";
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-gray-900">입고 · 재고</h1>
-        <Link to="/ingredients" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
-          식자재 관리 →
-        </Link>
-      </div>
-
-      {banner && (
-        <div role="status" className="rounded-lg bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800">
-          {banner}
+    <div>
+      <div className="page-heading">
+        <div className="page-title">
+          <h1>입고 · 재고</h1>
+          <span className="title-divider" />
+          <span className="title-meta">{items.length}종</span>
         </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <HeroKpi label="부족 · 점검" value={alerts} unit="종" tone={alerts > 0 ? "alert" : "normal"}>
-          활성 식자재 {items.length}종
-        </HeroKpi>
-        <div className="rounded-2xl bg-white p-5 sm:col-span-2">
-          <div className="text-xs font-semibold text-gray-500">단가 변동 (최근 입고 대 평균)</div>
-          {changes.length === 0 ? (
-            <div className="mt-2 text-sm text-gray-400">입고 2건 이상부터</div>
-          ) : (
-            <ol className="mt-2 space-y-1 text-sm">
-              {changes.map((c) => (
-                <li key={c.name} className="flex justify-between">
-                  <span className="truncate text-gray-800">{c.name}</span>
-                  <span className={`font-semibold tabular-nums ${c.percent > 0 ? "text-red-600" : "text-blue-600"}`}>
-                    {c.percent > 0 ? "▲" : "▼"} {Math.abs(c.percent).toFixed(1)}%
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
-      </div>
-
-      {summaryQuery.isError && (
-        <p className="text-sm text-red-600">{errorText(summaryQuery.error, "재고를 불러오지 못했습니다.")}</p>
-      )}
-
-      {!summaryQuery.isLoading && items.length === 0 ? (
-        <div className="rounded-lg bg-white p-8 text-center">
-          <p className="text-sm text-gray-600">등록된 식자재가 없습니다</p>
-          <Link
-            to="/ingredients"
-            className="mt-3 inline-block rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white"
-          >
-            식자재 추가
+        <div className="page-actions">
+          <Link to="/ingredients" className="pill pill-secondary">
+            식자재 관리 →
           </Link>
         </div>
-      ) : (
-        <div className="overflow-x-auto rounded-lg bg-white">
-          <table className="w-full min-w-[860px] text-sm">
-            <thead className="text-xs text-gray-500">
-              <tr className="border-b border-gray-100 text-left">
-                <th className={th}>식자재</th>
-                <th className={`${th} text-right`}>최근 입고 단가</th>
-                <th className={`${th} text-right`}>마지막 실사</th>
-                <th className={`${th} text-right`}>실사 후 입고</th>
-                <th className={`${th} text-right`}>실사 후 소모</th>
-                <th className={`${th} text-right`}>실사 후 폐기·보정</th>
-                <th className={`${th} text-right`}>예상 재고</th>
-                <th className={th}>상태</th>
-                <th className={th}>
-                  <span className="sr-only">기록</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((i) => {
-                const u = unitLabel(i.base_unit);
-                const status = STATUS[i.stock_status];
-                return (
-                  <tr key={i.ingredient_id} className="border-b border-gray-100 last:border-0">
-                    <td className="px-3 py-3 font-semibold text-gray-900">{i.ingredient_name}</td>
-                    <td className={num}>
-                      {i.latest_unit_cost_per_purchase === null
-                        ? "-"
-                        : `${fmt(i.latest_unit_cost_per_purchase)}원/${unitLabel(i.purchase_unit)}`}
-                    </td>
-                    <td className={num}>
-                      {i.last_actual_quantity === null ? (
-                        <span className="text-gray-400">없음</span>
-                      ) : (
-                        <>
-                          {fmt(i.last_actual_quantity)}
-                          {u}
-                          {i.last_counted_at && (
-                            <div className="text-xs text-gray-400">
-                              {new Date(i.last_counted_at).toLocaleDateString("ko-KR")}
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </td>
-                    <td className={`${num} text-emerald-700`}>+{fmt(i.receipts_since_count_base)}{u}</td>
-                    <td className={`${num} text-gray-600`}>-{fmt(i.theoretical_consumption_base)}{u}</td>
-                    <td className={`${num} text-gray-600`}>{fmt(i.adjustments_since_count_base)}{u}</td>
-                    <td className={`${num} font-bold text-gray-900`}>{fmt(i.estimated_quantity)}{u}</td>
-                    <td className="px-3 py-3">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${status.className}`}>
-                        {status.label}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex justify-end gap-1">
-                        {(Object.keys(ACTION_LABELS) as Action[]).map((a) => (
-                          <button
-                            key={a}
-                            type="button"
-                            onClick={() => {
-                              setBanner(null);
-                              setActive({ item: i, action: a });
-                            }}
-                            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${
-                              a === "RECEIPT" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            {ACTION_LABELS[a]}
-                          </button>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      </div>
 
-      <details className="group rounded-lg bg-white">
-        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-bold text-gray-900">
-          <span aria-hidden className="text-xs text-gray-400 transition-transform group-open:rotate-90">
-            ▶
-          </span>
-          입고 · 단가 이력
-          <span className="font-normal text-gray-400">{receipts.length}건</span>
-        </summary>
-        {receipts.length === 0 ? (
-          <p className="px-4 pb-4 text-sm text-gray-400">입고 기록이 없습니다</p>
-        ) : (
-          <div className="overflow-x-auto px-1 pb-2">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead className="text-xs text-gray-500">
-                <tr className="border-b border-gray-100 text-left">
-                  <th className={th}>입고 일시</th>
-                  <th className={th}>식자재</th>
-                  <th className={`${th} text-right`}>수량</th>
-                  <th className={`${th} text-right`}>금액</th>
-                  <th className={`${th} text-right`}>단가</th>
-                  <th className={th}>공급처</th>
-                </tr>
-              </thead>
-              <tbody>
-                {receipts.slice(0, 50).map((r) => (
-                  <tr key={r.id} className="border-b border-gray-100 last:border-0">
-                    <td className="px-3 py-2.5 text-gray-600">{new Date(r.received_at).toLocaleString("ko-KR")}</td>
-                    <td className="px-3 py-2.5 font-semibold text-gray-900">{r.ingredient_name}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">
-                      {fmt(r.purchase_quantity)}
-                      {unitLabel(r.purchase_unit)}
-                    </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{fmt(r.total_cost)}원</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">
-                      {fmt(r.unit_cost_per_purchase)}원/{unitLabel(r.purchase_unit)}
-                    </td>
-                    <td className="px-3 py-2.5 text-gray-600">{r.supplier_name ?? "-"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="flex flex-col gap-4 xl:gap-5">
+        {banner && (
+          <div role="status" className="rounded-2xl bg-accent-50 px-4 py-3 text-sm font-semibold text-accent-700">
+            {banner}
           </div>
         )}
-      </details>
 
-      {active && (
-        <ActionDialog
-          store={store}
-          item={active.item}
-          action={active.action}
-          onClose={() => setActive(null)}
-          onDone={done}
-        />
-      )}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:gap-5">
+          <HeroKpi label="부족 · 점검" value={alerts} unit="종" tone={alerts > 0 ? "alert" : "normal"}>
+            활성 식자재 {items.length}종
+          </HeroKpi>
+
+          <section className="card md:col-span-2">
+            <div className="card-head !mb-3">
+              <h2>단가 변동 (최근 입고 대 평균)</h2>
+              <span className="card-meta">최근 입고 {receipts.length}건</span>
+            </div>
+            {changes.length === 0 ? (
+              <p className="text-sm text-muted">입고 2건 이상부터</p>
+            ) : (
+              <ol className="flex flex-col gap-2 text-sm">
+                {changes.map((c) => (
+                  <li key={c.name} className="flex items-center justify-between gap-2">
+                    <span className="truncate font-medium text-ink">{c.name}</span>
+                    <span
+                      className={`font-semibold tabular-nums ${
+                        c.percent > 0 ? "text-[#b42318]" : "text-accent-700"
+                      }`}
+                    >
+                      {c.percent > 0 ? "▲" : "▼"} {Math.abs(c.percent).toFixed(1)}%
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+        </div>
+
+        {summaryQuery.isError && (
+          <p className="text-sm text-[#b42318]">{errorText(summaryQuery.error, "재고를 불러오지 못했습니다.")}</p>
+        )}
+
+        {!summaryQuery.isLoading && items.length === 0 ? (
+          <section className="card py-12 text-center">
+            <p className="text-sm text-muted">등록된 식자재가 없습니다</p>
+            <Link to="/ingredients" className="pill pill-primary mt-4">
+              식자재 추가
+            </Link>
+          </section>
+        ) : (
+          <section className="card">
+            <div className="card-head">
+              <h2>재고 현황</h2>
+              <span className="card-meta">활성 {items.length}종</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>식자재</th>
+                    <th className="!text-right">최근 입고 단가</th>
+                    <th className="!text-right">마지막 실사</th>
+                    <th className="!text-right">실사 후 입고</th>
+                    <th className="!text-right">실사 후 소모</th>
+                    <th className="!text-right">실사 후 폐기·보정</th>
+                    <th className="!text-right">예상 재고</th>
+                    <th>상태</th>
+                    <th className="!text-right">
+                      <span className="sr-only">기록</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((i) => {
+                    const u = unitLabel(i.base_unit);
+                    const status = STATUS[i.stock_status];
+                    return (
+                      <tr key={i.ingredient_id}>
+                        <td className="font-semibold">{i.ingredient_name}</td>
+                        <td className="!text-right tabular-nums">
+                          {i.latest_unit_cost_per_purchase === null
+                            ? "-"
+                            : `${fmt(i.latest_unit_cost_per_purchase)}원/${unitLabel(i.purchase_unit)}`}
+                        </td>
+                        <td className="!text-right tabular-nums">
+                          {i.last_actual_quantity === null ? (
+                            <span className="text-muted">없음</span>
+                          ) : (
+                            <>
+                              {fmt(i.last_actual_quantity)}
+                              {u}
+                              {i.last_counted_at && (
+                                <span className="ml-1.5 text-xs text-muted">
+                                  ({new Date(i.last_counted_at).toLocaleDateString("ko-KR")})
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </td>
+                        <td className="!text-right font-medium text-accent-700 tabular-nums">
+                          +{fmt(i.receipts_since_count_base)}
+                          {u}
+                        </td>
+                        <td className="!text-right text-muted tabular-nums">
+                          -{fmt(i.theoretical_consumption_base)}
+                          {u}
+                        </td>
+                        <td className="!text-right text-muted tabular-nums">
+                          {fmt(i.adjustments_since_count_base)}
+                          {u}
+                        </td>
+                        <td className="!text-right font-semibold tabular-nums">
+                          {fmt(i.estimated_quantity)}
+                          {u}
+                        </td>
+                        <td>
+                          <span className={`chip ${status.className}`}>{status.label}</span>
+                        </td>
+                        <td className="!text-right">
+                          <div className="flex justify-end gap-1.5">
+                            {(Object.keys(ACTION_LABELS) as Action[]).map((a) => (
+                              <button
+                                key={a}
+                                type="button"
+                                onClick={() => {
+                                  setBanner(null);
+                                  setActive({ item: i, action: a });
+                                }}
+                                className={`pill pill-sm ${a === "RECEIPT" ? "pill-dark" : "pill-soft"}`}
+                              >
+                                {ACTION_LABELS[a]}
+                              </button>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        <details className="card group">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-base font-semibold tracking-[-0.4px] text-ink">
+            <span className="flex items-center gap-2">
+              <svg
+                aria-hidden
+                viewBox="0 0 24 24"
+                className="h-4 w-4 -rotate-90 text-muted transition-transform group-open:rotate-0"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+              입고 · 단가 이력
+            </span>
+            <span className="card-meta">{receipts.length}건</span>
+          </summary>
+          {receipts.length === 0 ? (
+            <p className="mt-4 text-sm text-muted">입고 기록이 없습니다</p>
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>입고 일시</th>
+                    <th>식자재</th>
+                    <th className="!text-right">수량</th>
+                    <th className="!text-right">금액</th>
+                    <th className="!text-right">단가</th>
+                    <th>공급처</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {receipts.slice(0, 50).map((r) => (
+                    <tr key={r.id}>
+                      <td className="text-muted tabular-nums">{new Date(r.received_at).toLocaleString("ko-KR")}</td>
+                      <td className="font-semibold">{r.ingredient_name}</td>
+                      <td className="!text-right tabular-nums">
+                        {fmt(r.purchase_quantity)}
+                        {unitLabel(r.purchase_unit)}
+                      </td>
+                      <td className="!text-right tabular-nums">{fmt(r.total_cost)}원</td>
+                      <td className="!text-right tabular-nums">
+                        {fmt(r.unit_cost_per_purchase)}원/{unitLabel(r.purchase_unit)}
+                      </td>
+                      <td className="text-muted">{r.supplier_name ?? "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </details>
+
+        {active && (
+          <ActionDialog
+            store={store}
+            item={active.item}
+            action={active.action}
+            onClose={() => setActive(null)}
+            onDone={done}
+          />
+        )}
+      </div>
     </div>
   );
 }
