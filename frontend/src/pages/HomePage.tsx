@@ -453,17 +453,17 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               ) : (
                 <>
                   <div className="flex min-h-0 flex-1 flex-col">
-                    <div className="mb-1 flex shrink-0 justify-between text-[11px] font-bold text-muted">
+                    <div className="mb-1.5 flex shrink-0 justify-between text-xs font-bold text-muted">
                       <span>인원 (남·여 연령별)</span>
                       <span className="tabular-nums text-ink">총 {slots.length}명</span>
                     </div>
                     <div className="min-h-0 flex-1 overflow-y-auto">
                       <table className="w-full text-xs">
                         <thead>
-                          <tr className="text-[11px] text-muted">
+                          <tr className="text-xs text-muted">
                             <th className="w-12" />
                             {GENDER_OPTIONS.map((g) => (
-                              <th key={g.value} className="pb-1 font-bold">
+                              <th key={g.value} className="pb-1.5 font-bold">
                                 {g.label}
                               </th>
                             ))}
@@ -472,20 +472,20 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                         <tbody>
                           {AGE_OPTIONS.map((a) => (
                             <tr key={a.band}>
-                              <th className="text-left font-bold text-ink">{a.label}</th>
+                              <th className="py-1 text-left font-bold text-ink">{a.label}</th>
                               {GENDER_OPTIONS.map((g) => {
                                 const match = (s: VisitSlot) => s.gender === g.value && s.age_band === a.band;
                                 const n = slots.filter(match).length;
                                 const label = `${a.label} ${g.label}`;
                                 return (
-                                  <td key={g.value} className="py-0.5">
-                                    <div className="flex items-center justify-center gap-1" data-testid="person-counter">
+                                  <td key={g.value} className="py-1">
+                                    <div className="flex items-center justify-center gap-1.5" data-testid="person-counter">
                                       <button
                                         type="button"
                                         aria-label={`${label} 빼기`}
                                         disabled={busy || !slots.some((s) => match(s) && staffOwned(s))}
                                         onClick={() => removeLast(match)}
-                                        className="h-8 w-8 rounded-full bg-ground font-bold text-ink transition hover:bg-accent-50 disabled:opacity-30"
+                                        className="h-9 w-9 rounded-full bg-ground text-sm font-bold text-ink transition hover:bg-accent-50 disabled:opacity-30"
                                       >
                                         −
                                       </button>
@@ -497,7 +497,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                                         aria-label={`${label} 더하기`}
                                         disabled={busy}
                                         onClick={() => addPerson(g.value, a.band)}
-                                        className="h-8 w-8 rounded-full bg-ground font-bold text-ink transition hover:bg-accent-50 disabled:opacity-30"
+                                        className="h-9 w-9 rounded-full bg-ground text-sm font-bold text-ink transition hover:bg-accent-50 disabled:opacity-30"
                                       >
                                         +
                                       </button>
@@ -510,14 +510,14 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                         </tbody>
                       </table>
                       {blankSlots.length > 0 && (
-                        <div className="mt-1 flex items-center justify-between rounded-xl bg-ground px-3 py-1.5 text-xs text-muted">
+                        <div className="mt-1.5 flex items-center justify-between rounded-xl bg-ground px-3 py-1.5 text-xs text-muted">
                           <span className="font-semibold">미입력 {blankSlots.length}명</span>
                           <button
                             type="button"
                             aria-label="미입력 빼기"
                             disabled={busy || !blankSlots.some(staffOwned)}
                             onClick={() => removeLast(isBlank)}
-                            className="h-7 w-7 rounded-full bg-white font-bold text-ink disabled:opacity-30"
+                            className="h-8 w-8 rounded-full bg-white font-bold text-ink disabled:opacity-30"
                           >
                             −
                           </button>
@@ -527,7 +527,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                   </div>
 
                   <div className="shrink-0">
-                    <div className="mb-1.5 text-[11px] font-bold text-muted">
+                    <div className="mb-1.5 text-xs font-bold text-muted">
                       동반 관계{contextByGuest ? " (손님 입력)" : ""}
                     </div>
                     <div className="grid grid-cols-6 gap-1">
@@ -578,7 +578,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                       type="button"
                       disabled={busy}
                       onClick={() => updateVisitMutation.mutate({ status: "LEFT", closed_reason: "NO_ORDER" })}
-                      className="pill pill-sm pill-soft h-9 shrink-0 justify-center disabled:opacity-50"
+                      className="pill pill-sm pill-soft shrink-0 justify-center disabled:opacity-50"
                     >
                       주문 없이 나감
                     </button>
@@ -591,7 +591,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                 <button
                   type="button"
                   onClick={() => setOrderModalOpen(true)}
-                  className="pill pill-sm pill-soft mt-auto h-9 shrink-0 justify-center"
+                  className="pill pill-sm pill-soft mt-auto shrink-0 justify-center"
                 >
                   주문 수정 · 환불 (POS 연동)
                 </button>

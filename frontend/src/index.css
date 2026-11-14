@@ -38,7 +38,29 @@ body {
 }
 
 :root {
+  --app-zoom: 1;
   --app-viewport-height: 100dvh;
+}
+
+/* 고해상도 대형 패드(예: Galaxy Tab S7 FE 2560×1600, 브라우저 뷰포트 ~2400×1500): 유효 폭이 ~1300~1440px이 되도록 배율을 키운다 */
+@media (pointer: coarse) and (min-width: 1600px) {
+  :root {
+    --app-zoom: 1.35;
+    --app-viewport-height: calc(100dvh / 1.35);
+  }
+  body {
+    zoom: 1.35;
+  }
+}
+
+@media (pointer: coarse) and (min-width: 2100px) {
+  :root {
+    --app-zoom: 1.7;
+    --app-viewport-height: calc(100dvh / 1.7);
+  }
+  body {
+    zoom: 1.7;
+  }
 }
 
 
@@ -168,9 +190,9 @@ table {
   .chip {
     display: inline-flex;
     align-items: center;
-    padding: 3px 8px;
+    padding: 4px 9px;
     border-radius: 6px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
   }
@@ -194,10 +216,10 @@ table {
   .data-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 14px;
   }
   .data-table th {
-    height: 39px;
+    height: 42px;
     padding: 0 10px;
     border-bottom: 1px solid var(--color-rule);
     text-align: left;
@@ -207,8 +229,8 @@ table {
     white-space: nowrap;
   }
   .data-table td {
-    height: 49px;
-    padding: 0 10px;
+    height: 52px;
+    padding: 6px 10px;
     border-bottom: 1px solid var(--color-rule);
     color: var(--color-ink);
     white-space: nowrap;
@@ -223,6 +245,14 @@ table {
   .data-table th:last-child,
   .data-table td:last-child {
     padding-right: 0;
+  }
+
+  /* astryx Table도 패드·공통 표와 행 높이를 맞춘다 */
+  .astryx-table-header-cell {
+    height: 42px;
+  }
+  .astryx-table-cell {
+    height: 52px;
   }
 
   .kpi-label {
@@ -270,13 +300,23 @@ table {
   }
 }
 
-/* 손가락 입력 기기: 누르는 영역을 44px 이상으로 */
+/* 손가락 입력 기기: 누르는 영역을 44px 이상, 표 행을 56px 이상으로 */
 @media (pointer: coarse) {
   .pill {
     min-height: 44px;
   }
   .pill-sm {
-    min-height: 40px;
+    min-height: 44px;
+    padding: 0 15px;
+    font-size: 13px;
+  }
+  .data-table th,
+  .astryx-table-header-cell {
+    height: 44px;
+  }
+  .data-table td,
+  .astryx-table-cell {
+    height: 56px;
   }
 }
 

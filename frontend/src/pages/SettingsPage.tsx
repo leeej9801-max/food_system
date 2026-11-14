@@ -899,7 +899,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                             payload: { seats: Math.max(1, t.seats - 1) },
                           })
                         }
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-ground font-bold text-ink hover:bg-accent-50"
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-ground font-bold text-ink hover:bg-accent-50"
                       >
                         -
                       </button>
@@ -912,7 +912,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                             payload: { seats: Math.min(20, t.seats + 1) },
                           })
                         }
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-ground font-bold text-ink hover:bg-accent-50"
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-ground font-bold text-ink hover:bg-accent-50"
                       >
                         +
                       </button>

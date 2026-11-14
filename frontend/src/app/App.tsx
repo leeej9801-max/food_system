@@ -333,10 +333,15 @@ function StoreBootstrapWizard({ onCreated }: { onCreated: (store: Store) => void
   );
 }
 
+function isDesktopLayout(): boolean {
+  const z = Number(getComputedStyle(document.documentElement).getPropertyValue("--app-zoom")) || 1;
+  return window.innerWidth / z >= 1024;
+}
+
 function ShellLayout({ store }: { store: Store }) {
   const location = useLocation();
   // 넓은 화면은 사이드 메뉴를 펼친 채, 태블릿 세로 이하는 접은 채 시작한다
-  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024);
+  const [sidebarOpen, setSidebarOpen] = useState(isDesktopLayout);
   const [metaverseMode, setMetaverseMode] = useState<boolean>(() => {
     try {
       return localStorage.getItem("restaurant_ax_metaverse_mode") !== "false";
@@ -401,6 +406,20 @@ function ShellLayout({ store }: { store: Store }) {
     return () => observer.disconnect();
   }, []);
 
+  // 패드 가로↔세로 회전 시 유효 폭 1024px 기준으로 사이드 메뉴를 펴거나 접는다
+  useEffect(() => {
+    let wasDesktop = isDesktopLayout();
+    const onResize = () => {
+      const nowDesktop = isDesktopLayout();
+      if (nowDesktop !== wasDesktop) {
+        wasDesktop = nowDesktop;
+        setSidebarOpen(nowDesktop);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   return (
     <div className="min-h-[var(--app-viewport-height)] bg-ground text-gray-900">
       {/* 좌측 고정 사이드 메뉴 (시안 A). 좁은 화면에서는 배경을 덮는 서랍으로 연다. */}
@@ -430,7 +449,7 @@ function ShellLayout({ store }: { store: Store }) {
                 to={item.to}
                 aria-current={active ? "page" : undefined}
                 onClick={() => {
-                  if (window.innerWidth < 1024) setSidebarOpen(false);
+                  if (!isDesktopLayout()) setSidebarOpen(false);
                 }}
                 className={`flex min-h-12 items-center gap-3 rounded-full px-4 text-sm transition ${
                   active ? "bg-accent-600 font-semibold text-white" : "text-gray-500 hover:bg-ground"
@@ -456,15 +475,15 @@ function ShellLayout({ store }: { store: Store }) {
       </aside>
 
       <div className={`transition-[padding] duration-200 ${sidebarOpen ? "lg:pl-[184px] xl:pl-[216px]" : ""}`}>
-        <header ref={headerRef} className="sticky top-0 z-20 flex min-h-[68px] items-center bg-ground px-4 py-3 md:px-6 xl:px-9">
-          <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        <header ref={headerRef} className="sticky top-0 z-20 flex min-h-[68px] items-center bg-ground px-4 py-3 md:px-6 xl:px-8">
+          <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-x-6 gap-y-2">
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={() => setSidebarOpen((v) => !v)}
                 aria-label="사이드 메뉴 토글"
                 aria-expanded={sidebarOpen}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink hover:bg-accent-50"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink hover:bg-accent-50"
               >
                 <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
                   <path d="M4 7h16 M4 12h16 M4 17h16" />
@@ -538,7 +557,7 @@ function ShellLayout({ store }: { store: Store }) {
           </div>
         </header>
 
-        <div className="mx-auto max-w-[1600px] px-4 pt-3 pb-9 md:px-6 xl:px-9">
+        <div className="mx-auto max-w-[1800px] px-4 pt-3 pb-9 md:px-6 xl:px-8">
           <main className="min-w-0">
             <Routes>
               <Route path="/" element={<Navigate to={withStore("/home", location.search)} replace />} />

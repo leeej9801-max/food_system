@@ -130,11 +130,18 @@ export function canPlace(placed: PlacedTable[], fixtures: FloorFixture[], target
   );
 }
 
-/** 포인터 위치를 도면 칸 좌표(소수)로 바꾼다. 늘린 배율(sx, sy)을 되돌린다. */
+/** 포인터 위치를 도면 칸 좌표(소수)로 바꾼다. 늘린 배율(sx, sy)과 CSS zoom을 보정한다. */
 function toCell(evt: React.PointerEvent<SVGElement>, sx: number, sy: number) {
-  const m = evt.currentTarget.ownerSVGElement?.getScreenCTM();
-  if (!m) return null;
-  const pt = new DOMPoint(evt.clientX, evt.clientY).matrixTransform(m.inverse());
+  const svg = evt.currentTarget.ownerSVGElement;
+  const m = svg?.getScreenCTM();
+  if (!m || !svg) return null;
+  const z = Number(getComputedStyle(document.documentElement).getPropertyValue("--app-zoom")) || 1;
+  const rect = svg.getBoundingClientRect();
+  // getScreenCTM()이 CSS zoom을 반영하지 않은 좌표계(m.e ≈ rect.left / z)를 돌려주면 포인터 좌표를 z로 나눈다
+  const ctmUnzoomed = z !== 1 && Math.abs(m.e * z - rect.left) < Math.abs(m.e - rect.left);
+  const cx = ctmUnzoomed ? evt.clientX / z : evt.clientX;
+  const cy = ctmUnzoomed ? evt.clientY / z : evt.clientY;
+  const pt = new DOMPoint(cx, cy).matrixTransform(m.inverse());
   return { x: pt.x / sx, y: pt.y / sy };
 }
 

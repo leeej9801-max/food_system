@@ -80,7 +80,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
           완료 주문 {sales?.total_completed_orders ?? 0}건
         </HeroKpi>
 
-        <section className="card">
+        <section className="card flex flex-col justify-between">
           <div className="kpi-label">누적 판매 수량</div>
           <div className="kpi-value">
             {won(sales?.total_quantity ?? 0)}
@@ -89,15 +89,16 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
           <div className="kpi-sub">시각 미상 {sales?.unknown_hour_quantity ?? 0}개</div>
         </section>
 
-        <section className="grid grid-cols-2 gap-4 rounded-2xl bg-accent-50 p-5 sm:col-span-2 md:col-span-1 xl:p-6">
-          <div className="min-w-0">
+        <section className="card grid grid-cols-2 gap-4 !bg-accent-50 sm:col-span-2 md:col-span-1">
+          <div className="flex min-w-0 flex-col justify-between">
             <div className="kpi-label">객단가</div>
             <div className="kpi-value">
               {avgTicket === null ? "-" : won(avgTicket)}
               {avgTicket !== null && <small>원</small>}
             </div>
+            <div className="kpi-sub">완료 주문 기준</div>
           </div>
-          <div className="min-w-0">
+          <div className="flex min-w-0 flex-col justify-between">
             <div className="kpi-label">고원가율 메뉴</div>
             <div className={`kpi-value ${highCostCount > 0 ? "!text-[#965d11]" : ""}`}>
               {highCostCount}
@@ -309,7 +310,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
                               aria-expanded={isExpanded}
                               aria-label={`${m.menu_name} 식자재별 원가`}
                               onClick={() => setExpandedMenuId(isExpanded ? null : m.menu_item_id)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-ground hover:text-ink"
+                              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-muted hover:bg-ground hover:text-ink"
                             >
                               <svg
                                 aria-hidden
