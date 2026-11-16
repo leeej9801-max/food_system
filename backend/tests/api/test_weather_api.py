@@ -1,6 +1,6 @@
 """손익 캘린더 날씨 (U-56). 기상청 호출은 dependency_overrides로 바꾼다."""
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
@@ -8,11 +8,18 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.api.v1.endpoints.weather import get_weather_fetcher
+from app.api.v1.endpoints.weather import get_forecast_fetcher, get_weather_fetcher
 from app.core.config import settings
 from app.db.models import WeatherDaily
 from app.services import weather as weather_service
-from app.services.weather import DailyWeather, parse_aws_minutes, sky_of
+from app.services.weather import (
+    DailyWeather,
+    DayForecast,
+    forecast_base,
+    parse_aws_minutes,
+    sky_of,
+    summarize_forecast,
+)
 
 STATION = "999"
 
@@ -116,3 +123,57 @@ def test_weather_month_without_station(client: TestClient, monkeypatch: pytest.M
     data = client.get("/api/v1/weather", params={"month": "2026-10"}).json()
     assert data == {"station_id": None, "source": None, "days": []}
     assert client.get("/api/v1/weather", params={"month": "2026-13"}).status_code == 422
+
+
+def _fc(d: str, t: str, cat: str, v: str) -> dict[str, str]:
+    return {"fcstDate": d, "fcstTime": t, "category": cat, "fcstValue": v}
+
+
+def test_summarize_forecast_and_base() -> None:
+    items = [
+        _fc("20261117", "0600", "TMN", "3.0"),
+        _fc("20261117", "1500", "TMX", "12.0"),
+        _fc("20261117", "0900", "SKY", "3"),
+        _fc("20261117", "1200", "SKY", "4"),
+        _fc("20261117", "1500", "SKY", "4"),
+        _fc("20261117", "0300", "PTY", "1"),  # 영업 시간 밖 비는 보지 않는다
+        _fc("20261117", "1200", "POP", "30"),
+        _fc("20261118", "1200", "PTY", "3"),
+        _fc("20261118", "1500", "PTY", "1"),
+        _fc("20261119", "1200", "PTY", "3"),
+        _fc("20261120", "1200", "SKY", "1"),
+        _fc("20261120", "1500", "SKY", "3"),
+    ]
+    got = {f.weather_date.day: f for f in summarize_forecast(items)}
+    assert got[17].sky == "OVERCAST" and got[17].min_temp == Decimal("3.0")
+    assert got[17].max_temp == Decimal("12.0") and got[17].precipitation_chance == 30
+    assert got[18].sky == "RAIN" and got[19].sky == "SNOW"
+    assert got[20].sky == "CLOUDY"  # 같은 횟수면 더 흐린 쪽
+    tz = ZoneInfo("Asia/Seoul")
+    assert forecast_base(datetime(2026, 11, 16, 20, 10, tzinfo=tz)).hour == 17
+    assert forecast_base(datetime(2026, 11, 16, 1, 0, tzinfo=tz)).day == 15
+
+
+def test_weather_month_adds_forecast_after_today(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "kma_station_id", STATION)
+    weather_service._forecast_cache.clear()
+    today = datetime.now(ZoneInfo(settings.app_timezone)).date()
+    fc = [
+        DayForecast(today + timedelta(days=i), Decimal("1.0"), Decimal("9.0"), 20, "CLEAR")
+        for i in range(0, 8)
+    ]
+    overrides = client.app.dependency_overrides  # type: ignore[attr-defined]
+    overrides[get_weather_fetcher] = lambda: None
+    overrides[get_forecast_fetcher] = lambda: lambda: fc
+    months = {today.strftime("%Y-%m"), (today + timedelta(days=5)).strftime("%Y-%m")}
+    days = [
+        d
+        for m in sorted(months)
+        for d in client.get("/api/v1/weather", params={"month": m}).json()["days"]
+        if d["forecast"]
+    ]
+    dates = [d["date"] for d in days]
+    assert dates == [(today + timedelta(days=i)).isoformat() for i in range(1, 6)]
+    assert days[0]["sky"] == "CLEAR" and days[0]["precipitation_chance"] == 20

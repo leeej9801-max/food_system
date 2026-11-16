@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchPnl, savePnlExpenses } from "../api/pnl";
 import { fetchWeatherMonth } from "../api/weather";
+import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { HeroKpi } from "../components/HeroKpi";
-import type { PnlLine, PnlResponse, Store, WeatherMonthDay } from "../types";
+import type { PnlLine, PnlResponse, Store, WeatherMonthDay, WeatherSkyType } from "../types";
 
 const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
 const pct = (p: string | null) => (p === null ? "-" : `${p}%`);
@@ -59,78 +60,111 @@ const AUTO_HINT: Record<string, string> = {
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
-function weatherLabel(day: WeatherMonthDay): string {
-  const precip = day.precipitation_mm !== null ? ` ${day.precipitation_mm}mm` : "";
-  const sky =
-    day.sky === "RAIN" ? `비${precip}` : day.sky === "SNOW" ? `눈${precip}` : "강수 없음";
-  const temps = [
+const SKY_LABEL: Record<WeatherSkyType, string> = {
+  RAIN: "비",
+  SNOW: "눈",
+  DRY: "강수 없음",
+  CLEAR: "맑음",
+  CLOUDY: "구름많음",
+  OVERCAST: "흐림",
+};
+
+function weatherTitle(day: WeatherMonthDay): string {
+  const sky = day.sky ? SKY_LABEL[day.sky] : "";
+  return day.precipitation_mm !== null && Number(day.precipitation_mm) > 0
+    ? `${sky} ${day.precipitation_mm}mm`
+    : sky;
+}
+
+function weatherDetail(day: WeatherMonthDay): string {
+  return [
     day.max_temp !== null ? `최고 ${day.max_temp}°` : null,
     day.min_temp !== null ? `최저 ${day.min_temp}°` : null,
-  ].filter(Boolean);
-  return temps.length > 0 ? `${sky} · ${temps.join(" ")}` : sky;
+    day.precipitation_chance !== null ? `강수확률 ${day.precipitation_chance}%` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
+
+const SUN = (
+  <>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+  </>
+);
+const CLOUD = <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />;
+const SNOW_ARM = (
+  <>
+    <path d="M12 2.5v19" />
+    <path d="M9.5 5.5 12 8l2.5-2.5M9.5 18.5 12 16l2.5 2.5" />
+  </>
+);
+
+const SKY_ICON: Record<WeatherSkyType, ReactNode> = {
+  RAIN: (
+    <>
+      <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+      <path d="M8 15v4M12 17v4M16 15v4" />
+    </>
+  ),
+  SNOW: (
+    <>
+      {SNOW_ARM}
+      <g transform="rotate(60 12 12)">{SNOW_ARM}</g>
+      <g transform="rotate(120 12 12)">{SNOW_ARM}</g>
+    </>
+  ),
+  DRY: SUN,
+  CLEAR: SUN,
+  CLOUDY: (
+    <>
+      <path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41M15.95 12.65a4 4 0 0 0-5.93-4.93" />
+      <path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z" />
+    </>
+  ),
+  OVERCAST: CLOUD,
+};
 
 function WeatherIcon({ day }: { day: WeatherMonthDay }) {
   if (!day.sky) return null;
-  const label = weatherLabel(day);
-  const colorClass = day.sky === "RAIN" ? "text-accent-600" : "text-muted";
+  const title = weatherTitle(day);
+  const detail = weatherDetail(day);
+  const label = `${day.forecast ? "예보 " : ""}${title}${detail ? ` · ${detail}` : ""}`;
+  const colorClass =
+    day.sky === "RAIN" || day.sky === "SNOW" ? "text-accent-600" : "text-muted";
   return (
-    <span
-      className={`inline-flex shrink-0 items-center ${colorClass}`}
-      title={label}
-      role="img"
-      aria-label={label}
+    <Tooltip
+      content={
+        <span className="flex flex-col gap-0.5">
+          <strong className="font-semibold">
+            {day.forecast ? `예보 · ${title}` : title}
+          </strong>
+          {detail && <span className="tabular-nums">{detail}</span>}
+        </span>
+      }
+      touchTrigger="tap"
+      focusTrigger="always"
+      hasHoverIndication={false}
     >
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-        className="h-3.5 w-3.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <button
+        type="button"
+        aria-label={label}
+        className={`pnl-weather-icon ${colorClass} ${day.forecast ? "opacity-40" : ""}`}
       >
-        {day.sky === "RAIN" && (
-          <>
-            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
-            <path d="M8 15v4" />
-            <path d="M12 17v4" />
-            <path d="M16 15v4" />
-          </>
-        )}
-        {day.sky === "SNOW" && (
-          <>
-            <path d="M12 2.5v19" />
-            <path d="M9.5 5.5 12 8l2.5-2.5" />
-            <path d="M9.5 18.5 12 16l2.5 2.5" />
-            <g transform="rotate(60 12 12)">
-              <path d="M12 2.5v19" />
-              <path d="M9.5 5.5 12 8l2.5-2.5" />
-              <path d="M9.5 18.5 12 16l2.5 2.5" />
-            </g>
-            <g transform="rotate(120 12 12)">
-              <path d="M12 2.5v19" />
-              <path d="M9.5 5.5 12 8l2.5-2.5" />
-              <path d="M9.5 18.5 12 16l2.5 2.5" />
-            </g>
-          </>
-        )}
-        {day.sky === "DRY" && (
-          <>
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2" />
-            <path d="M12 20v2" />
-            <path d="M4.93 4.93l1.41 1.41" />
-            <path d="M17.66 17.66l1.41 1.41" />
-            <path d="M2 12h2" />
-            <path d="M20 12h2" />
-            <path d="M6.34 17.66l-1.41 1.41" />
-            <path d="M19.07 4.93l-1.41 1.41" />
-          </>
-        )}
-      </svg>
-    </span>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="h-3.5 w-3.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          {SKY_ICON[day.sky]}
+        </svg>
+      </button>
+    </Tooltip>
   );
 }
 
@@ -148,7 +182,19 @@ function PnlCalendar({
     <section className="card">
       <div className="card-head">
         <h2>일별 매출 · 지출</h2>
-        <span className="card-meta">{y}.{String(m).padStart(2, "0")}</span>
+        <span className="flex items-center gap-1">
+          <span className="card-meta">{y}.{String(m).padStart(2, "0")}</span>
+          <Tooltip
+            content="오늘과 지난 날은 관측값, 흐린 아이콘은 오늘 기준 5일 예보예요. 출처: 기상청"
+            touchTrigger="tap"
+            focusTrigger="always"
+            hasHoverIndication={false}
+          >
+            <button type="button" className="inventory-info-button" aria-label="날씨 표시 안내">
+              ⓘ
+            </button>
+          </Tooltip>
+        </span>
       </div>
       <div className="grid grid-cols-7 gap-1.5 text-xs">
         {WEEKDAYS.map((w) => (

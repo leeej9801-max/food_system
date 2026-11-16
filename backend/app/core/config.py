@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     # 기상청 API허브 인증키와 AWS 지점번호(부천 433). 값은 .env에만 둔다 (U-28, U-56)
     kma_apihub_key: str = ""
     kma_station_id: str = ""
+    # 단기예보 격자(부천 상동 56,125). 0이면 예보를 부르지 않는다 (U-57)
+    kma_grid_nx: int = 0
+    kma_grid_ny: int = 0
     # 기본값 없음: DATABASE_URL이 없으면 기동하지 않는다 (SEC-001)
     database_url: str
     app_timezone: str = "Asia/Seoul"

@@ -524,7 +524,7 @@ export interface PnlExpensesUpdate {
   card_fee_percent?: string | null;
 }
 
-export type WeatherSkyType = "RAIN" | "SNOW" | "DRY";
+export type WeatherSkyType = "RAIN" | "SNOW" | "DRY" | "CLEAR" | "CLOUDY" | "OVERCAST";
 
 export interface WeatherMonthDay {
   date: string;
@@ -533,6 +533,8 @@ export interface WeatherMonthDay {
   max_temp: string | null;
   precipitation_mm: string | null;
   sky: WeatherSkyType | null;
+  forecast: boolean;
+  precipitation_chance: number | null;
 }
 
 export interface WeatherMonthResponse {

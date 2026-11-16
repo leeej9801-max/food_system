@@ -728,8 +728,10 @@ class WeatherMonthDay(BaseModel):
     min_temp: Decimal | None
     max_temp: Decimal | None
     precipitation_mm: Decimal | None
-    # 강수량으로만 정한다(구름 자료 없음). SNOW는 기온 추정(PROVISIONAL, U-56)
-    sky: Literal["RAIN", "SNOW", "DRY"] | None
+    # 확정(관측)은 강수량으로만 RAIN·SNOW·DRY, 예보는 CLEAR·CLOUDY·OVERCAST도 쓴다 (U-56, U-57)
+    sky: Literal["RAIN", "SNOW", "DRY", "CLEAR", "CLOUDY", "OVERCAST"] | None
+    forecast: bool = False
+    precipitation_chance: int | None = None
 
 
 class WeatherMonthResponse(BaseModel):

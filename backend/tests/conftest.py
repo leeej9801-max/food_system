@@ -94,3 +94,9 @@ def db_session(owner_engine: Engine) -> Generator[Session, None, None]:
 def client() -> Generator[TestClient, None, None]:
     with TestClient(create_app()) as c:
         yield c
+
+
+@pytest.fixture(autouse=True)
+def _no_live_kma(monkeypatch: pytest.MonkeyPatch) -> None:
+    """테스트는 기상청을 부르지 않는다. 필요한 테스트는 fetcher를 dependency_overrides로 바꾼다."""
+    monkeypatch.setattr(settings, "kma_apihub_key", "")
