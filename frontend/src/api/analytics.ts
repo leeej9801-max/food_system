@@ -1,6 +1,6 @@
 import { apiRequest } from "./client";
-import { costSimulationSchema, salesAnalyticsSchema } from "./schemas";
-import type { CostSimulationResponse, SalesAnalyticsResponse } from "../types";
+import { costSimulationSchema, guestAnalyticsSchema, salesAnalyticsSchema } from "./schemas";
+import type { CostSimulationResponse, GuestAnalyticsResponse, SalesAnalyticsResponse } from "../types";
 
 export function fetchSalesAnalytics(
   storeId: string
@@ -22,4 +22,8 @@ export function simulateMenuCosts(
       body: JSON.stringify(payload),
     }
   );
+}
+
+export function fetchGuestAnalytics(storeId: string): Promise<GuestAnalyticsResponse> {
+  return apiRequest(guestAnalyticsSchema, `/stores/${storeId}/analytics/guests`);
 }

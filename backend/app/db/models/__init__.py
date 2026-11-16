@@ -547,6 +547,24 @@ class Holiday(Base):
     )
 
 
+class WeatherDaily(Base):
+    """전역 일별 날씨 (기상청 AWS 매분자료 일값, 매장 데이터가 아니라 RLS 없음, U-28·U-56)."""
+
+    __tablename__ = "weather_daily"
+
+    station_id: Mapped[str] = mapped_column(String(10), primary_key=True)
+    weather_date: Mapped[date] = mapped_column(Date, primary_key=True)
+    avg_temp: Mapped[Decimal | None] = mapped_column(Numeric(4, 1), nullable=True)
+    min_temp: Mapped[Decimal | None] = mapped_column(Numeric(4, 1), nullable=True)
+    max_temp: Mapped[Decimal | None] = mapped_column(Numeric(4, 1), nullable=True)
+    # 일 강수량 mm. 기상청이 비 없음을 빈 값으로 주면 0으로 넣는다
+    precipitation_mm: Mapped[Decimal | None] = mapped_column(Numeric(6, 1), nullable=True)
+    source: Mapped[str] = mapped_column(String(10), nullable=False, default="KMA_ASOS")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
+
+
 class MonthlyExpense(Base):
     """손익표의 수기 항목 한 줄. 한 달치를 통째로 바꿔 쓴다 (WO-20261111-002)."""
 

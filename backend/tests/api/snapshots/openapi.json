@@ -68,6 +68,24 @@
         "title": "CostSimulationResponse",
         "type": "object"
       },
+      "CountBucket": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "count"
+        ],
+        "title": "CountBucket",
+        "type": "object"
+      },
       "CsvColumnMapping": {
         "properties": {
           "order_id_col": {
@@ -453,6 +471,166 @@
           "h"
         ],
         "title": "FloorFixture",
+        "type": "object"
+      },
+      "GuestAnalyticsResponse": {
+        "description": "손님 객층·날씨 분석 (WO-20261116-002). 주문–방문 연결은 시간 겹침 추정(PROVISIONAL).",
+        "properties": {
+          "age_bands": {
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            },
+            "title": "Age Bands",
+            "type": "array"
+          },
+          "ambiguous_order_count": {
+            "title": "Ambiguous Order Count",
+            "type": "integer"
+          },
+          "avg_stay_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Stay Minutes"
+          },
+          "genders": {
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            },
+            "title": "Genders",
+            "type": "array"
+          },
+          "guest_count": {
+            "title": "Guest Count",
+            "type": "integer"
+          },
+          "matched_order_count": {
+            "title": "Matched Order Count",
+            "type": "integer"
+          },
+          "menu_by_age_band": {
+            "items": {
+              "$ref": "#/components/schemas/GuestMenuBucket"
+            },
+            "title": "Menu By Age Band",
+            "type": "array"
+          },
+          "menu_by_relationship": {
+            "items": {
+              "$ref": "#/components/schemas/GuestMenuBucket"
+            },
+            "title": "Menu By Relationship",
+            "type": "array"
+          },
+          "party_sizes": {
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            },
+            "title": "Party Sizes",
+            "type": "array"
+          },
+          "profiled_person_count": {
+            "title": "Profiled Person Count",
+            "type": "integer"
+          },
+          "purposes": {
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            },
+            "title": "Purposes",
+            "type": "array"
+          },
+          "relationships": {
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            },
+            "title": "Relationships",
+            "type": "array"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          },
+          "unmatched_order_count": {
+            "title": "Unmatched Order Count",
+            "type": "integer"
+          },
+          "visit_count": {
+            "title": "Visit Count",
+            "type": "integer"
+          },
+          "weather_days": {
+            "items": {
+              "$ref": "#/components/schemas/WeatherDayItem"
+            },
+            "title": "Weather Days",
+            "type": "array"
+          },
+          "weather_groups": {
+            "items": {
+              "$ref": "#/components/schemas/WeatherGroupItem"
+            },
+            "title": "Weather Groups",
+            "type": "array"
+          },
+          "weather_station_configured": {
+            "title": "Weather Station Configured",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "store_id",
+          "visit_count",
+          "guest_count",
+          "profiled_person_count",
+          "avg_stay_minutes",
+          "age_bands",
+          "genders",
+          "relationships",
+          "purposes",
+          "party_sizes",
+          "matched_order_count",
+          "ambiguous_order_count",
+          "unmatched_order_count",
+          "menu_by_relationship",
+          "menu_by_age_band",
+          "weather_station_configured",
+          "weather_days",
+          "weather_groups"
+        ],
+        "title": "GuestAnalyticsResponse",
+        "type": "object"
+      },
+      "GuestMenuBucket": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "top_menus": {
+            "items": {
+              "$ref": "#/components/schemas/MenuQuantity"
+            },
+            "title": "Top Menus",
+            "type": "array"
+          },
+          "visit_count": {
+            "title": "Visit Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "visit_count",
+          "top_menus"
+        ],
+        "title": "GuestMenuBucket",
         "type": "object"
       },
       "GuestSessionContextUpdate": {
@@ -2151,6 +2329,24 @@
           "result"
         ],
         "title": "MenuDeleteResponse",
+        "type": "object"
+      },
+      "MenuQuantity": {
+        "properties": {
+          "menu_name": {
+            "title": "Menu Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "menu_name",
+          "quantity"
+        ],
+        "title": "MenuQuantity",
         "type": "object"
       },
       "MenuResponse": {
@@ -4221,6 +4417,217 @@
         ],
         "title": "VisitSummaryResponse",
         "type": "object"
+      },
+      "WeatherDayItem": {
+        "properties": {
+          "avg_temp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Temp"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "guest_count": {
+            "title": "Guest Count",
+            "type": "integer"
+          },
+          "net_sales": {
+            "title": "Net Sales",
+            "type": "string"
+          },
+          "precipitation_mm": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precipitation Mm"
+          }
+        },
+        "required": [
+          "day",
+          "avg_temp",
+          "precipitation_mm",
+          "net_sales",
+          "guest_count"
+        ],
+        "title": "WeatherDayItem",
+        "type": "object"
+      },
+      "WeatherGroupItem": {
+        "properties": {
+          "avg_guest_count": {
+            "title": "Avg Guest Count",
+            "type": "string"
+          },
+          "avg_net_sales": {
+            "title": "Avg Net Sales",
+            "type": "string"
+          },
+          "day_count": {
+            "title": "Day Count",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "top_menus": {
+            "items": {
+              "$ref": "#/components/schemas/MenuQuantity"
+            },
+            "title": "Top Menus",
+            "type": "array"
+          },
+          "top_relationships": {
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            },
+            "title": "Top Relationships",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "day_count",
+          "avg_net_sales",
+          "avg_guest_count",
+          "top_menus",
+          "top_relationships"
+        ],
+        "title": "WeatherGroupItem",
+        "type": "object"
+      },
+      "WeatherMonthDay": {
+        "properties": {
+          "avg_temp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Temp"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "max_temp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Temp"
+          },
+          "min_temp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Temp"
+          },
+          "precipitation_mm": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precipitation Mm"
+          },
+          "sky": {
+            "anyOf": [
+              {
+                "enum": [
+                  "RAIN",
+                  "SNOW",
+                  "DRY"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sky"
+          }
+        },
+        "required": [
+          "date",
+          "avg_temp",
+          "min_temp",
+          "max_temp",
+          "precipitation_mm",
+          "sky"
+        ],
+        "title": "WeatherMonthDay",
+        "type": "object"
+      },
+      "WeatherMonthResponse": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/WeatherMonthDay"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "station_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Id"
+          }
+        },
+        "required": [
+          "station_id",
+          "source",
+          "days"
+        ],
+        "title": "WeatherMonthResponse",
+        "type": "object"
       }
     }
   },
@@ -4993,6 +5400,49 @@
           }
         },
         "summary": "Simulate Menu Costs Endpoint",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/analytics/guests": {
+      "get": {
+        "operationId": "get_guest_analytics_endpoint_api_v1_stores__store_id__analytics_guests_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestAnalyticsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Guest Analytics Endpoint",
         "tags": [
           "analytics"
         ]
@@ -7608,6 +8058,50 @@
         "summary": "Patch Visit Slot",
         "tags": [
           "tables & visits"
+        ]
+      }
+    },
+    "/api/v1/weather": {
+      "get": {
+        "description": "그 달의 일별 날씨. 처음 여는 달은 기상청에서 받느라 수십 초 걸릴 수 있다.",
+        "operationId": "get_weather_month_api_v1_weather_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeatherMonthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Weather Month",
+        "tags": [
+          "weather"
         ]
       }
     },

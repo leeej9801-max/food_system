@@ -665,6 +665,79 @@ class MenuSalesRankItem(BaseModel):
     sales_amount: Decimal
 
 
+class CountBucket(BaseModel):
+    key: str
+    count: int
+
+
+class MenuQuantity(BaseModel):
+    menu_name: str
+    quantity: int
+
+
+class GuestMenuBucket(BaseModel):
+    key: str
+    visit_count: int
+    top_menus: list[MenuQuantity]
+
+
+class WeatherDayItem(BaseModel):
+    day: date
+    avg_temp: Decimal | None
+    precipitation_mm: Decimal | None
+    net_sales: Decimal
+    guest_count: int
+
+
+class WeatherGroupItem(BaseModel):
+    # RAIN | DRY | COLD | COOL | MILD | HOT
+    key: str
+    day_count: int
+    avg_net_sales: Decimal
+    avg_guest_count: Decimal
+    top_menus: list[MenuQuantity]
+    top_relationships: list[CountBucket]
+
+
+class GuestAnalyticsResponse(BaseModel):
+    """손님 객층·날씨 분석 (WO-20261116-002). 주문–방문 연결은 시간 겹침 추정(PROVISIONAL)."""
+
+    store_id: UUID
+    visit_count: int
+    guest_count: int
+    profiled_person_count: int
+    avg_stay_minutes: int | None
+    age_bands: list[CountBucket]
+    genders: list[CountBucket]
+    relationships: list[CountBucket]
+    purposes: list[CountBucket]
+    party_sizes: list[CountBucket]
+    matched_order_count: int
+    ambiguous_order_count: int
+    unmatched_order_count: int
+    menu_by_relationship: list[GuestMenuBucket]
+    menu_by_age_band: list[GuestMenuBucket]
+    weather_station_configured: bool
+    weather_days: list[WeatherDayItem]
+    weather_groups: list[WeatherGroupItem]
+
+
+class WeatherMonthDay(BaseModel):
+    date: date
+    avg_temp: Decimal | None
+    min_temp: Decimal | None
+    max_temp: Decimal | None
+    precipitation_mm: Decimal | None
+    # 강수량으로만 정한다(구름 자료 없음). SNOW는 기온 추정(PROVISIONAL, U-56)
+    sky: Literal["RAIN", "SNOW", "DRY"] | None
+
+
+class WeatherMonthResponse(BaseModel):
+    station_id: str | None
+    source: str | None
+    days: list[WeatherMonthDay]
+
+
 class SalesAnalyticsResponse(BaseModel):
     store_id: UUID
     total_completed_orders: int

@@ -6,6 +6,7 @@ import { withStore } from "../lib/navigation";
 import { createStore, fetchStores, fetchTables, fetchVisitSummary } from "../api/stores";
 import { fetchIntegrationStatus } from "../api/imports";
 import { AnalyticsPage } from "../pages/AnalyticsPage";
+import { LabPage } from "../pages/LabPage";
 import { PnlPage } from "../pages/PnlPage";
 import { HomePage } from "../pages/HomePage";
 import { InventoryPage } from "../pages/InventoryPage";
@@ -383,6 +384,7 @@ function ShellLayout({ store }: { store: Store }) {
     { to: "/inventory", label: "재고·입고", icon: "M12 3 4 7v10l8 4 8-4V7z M4 7l8 4 8-4 M12 11v10" },
     { to: "/pnl", label: "손익", icon: "M4 6h16v12H4z M4 10h16 M15 14h2" },
     { to: "/analytics", label: "분석", icon: "M4 20h16 M7 16v-5 M12 16V7 M17 16v-8" },
+    { to: "/lab", label: "실험실", icon: "M9 3h6 M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3 M7.5 15h9" },
     { to: "/settings", label: "설정", icon: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z M12 3v2 M12 19v2 M3 12h2 M19 12h2 M5.6 5.6l1.4 1.4 M17 17l1.4 1.4 M5.6 18.4 7 17 M17 7l1.4-1.4" },
   ];
 
@@ -584,6 +586,7 @@ function ShellLayout({ store }: { store: Store }) {
               <Route path="/inventory" element={<InventoryPage store={store} />} />
               <Route path="/pnl" element={<PnlPage store={store} />} />
               <Route path="/analytics" element={<AnalyticsPage store={store} />} />
+              <Route path="/lab" element={<LabPage store={store} />} />
               <Route path="/settings" element={<SettingsPage store={store} />} />
               <Route path="*" element={<Navigate to={withStore("/home", location.search)} replace />} />
             </Routes>

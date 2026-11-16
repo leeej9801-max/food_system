@@ -10,6 +10,7 @@ from app.api.v1.endpoints import (
     pnl,
     stores,
     tables,
+    weather,
 )
 
 api_router = APIRouter()
@@ -23,3 +24,4 @@ api_router.include_router(inventory.router)
 api_router.include_router(analytics.router)
 api_router.include_router(holidays.router)
 api_router.include_router(pnl.router)
+api_router.include_router(weather.router)

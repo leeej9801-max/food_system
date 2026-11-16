@@ -7,10 +7,16 @@
 
 import json
 import os
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
+
+from app.api.v1.endpoints.weather import get_weather_fetcher
+from app.core.config import settings
+from app.services.weather import DailyWeather
 
 FIXTURE = Path(__file__).parents[3] / "frontend" / "src" / "api" / "__fixtures__" / "responses.json"
 
@@ -21,7 +27,9 @@ S-3,bad-date,,x,9000,COMPLETED
 """
 
 
-def test_collect_frontend_response_samples(client: TestClient) -> None:
+def test_collect_frontend_response_samples(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
     samples: dict[str, list[Any]] = {}
 
     def call(schema: str, method: str, path: str, body: Any = None, unwrap: bool = False) -> Any:
@@ -115,6 +123,20 @@ def test_collect_frontend_response_samples(client: TestClient) -> None:
     call("inventoryItemSchema", "GET", f"{s}/inventory/summary?include_inactive=true", unwrap=True)
 
     call("salesAnalyticsSchema", "GET", f"{s}/analytics/sales")
+    call("guestAnalyticsSchema", "GET", f"{s}/analytics/guests")
+    # 기상청은 부르지 않는다: 지점을 바꾸고 받는 함수를 가짜로 둔다
+    monkeypatch.setattr(settings, "kma_station_id", "999")
+    overrides = client.app.dependency_overrides  # type: ignore[attr-defined]
+    overrides[get_weather_fetcher] = lambda: (
+        lambda day: DailyWeather(
+            day,
+            Decimal("3.0"),
+            None,
+            Decimal("5.5"),
+            Decimal("1.5") if day.day % 2 else Decimal("0"),
+        )
+    )
+    call("weatherMonthSchema", "GET", "/weather?month=2026-10")
     call("costSimulationSchema", "POST", f"{s}/analytics/costing", {"global_change_percent": 10})
     call(
         "pnlSchema",

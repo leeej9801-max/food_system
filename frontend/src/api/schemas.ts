@@ -365,6 +365,50 @@ export const salesAnalyticsSchema: z.ZodType<T.SalesAnalyticsResponse> = z.objec
   ),
 });
 
+const countBuckets = z.array(z.object({ key: str, count: num }));
+const menuQuantities = z.array(z.object({ menu_name: str, quantity: num }));
+const guestMenuBuckets = z.array(
+  z.object({ key: str, visit_count: num, top_menus: menuQuantities })
+);
+
+export const guestAnalyticsSchema: z.ZodType<T.GuestAnalyticsResponse> = z.object({
+  store_id: str,
+  visit_count: num,
+  guest_count: num,
+  profiled_person_count: num,
+  avg_stay_minutes: num.nullable(),
+  age_bands: countBuckets,
+  genders: countBuckets,
+  relationships: countBuckets,
+  purposes: countBuckets,
+  party_sizes: countBuckets,
+  matched_order_count: num,
+  ambiguous_order_count: num,
+  unmatched_order_count: num,
+  menu_by_relationship: guestMenuBuckets,
+  menu_by_age_band: guestMenuBuckets,
+  weather_station_configured: z.boolean(),
+  weather_days: z.array(
+    z.object({
+      day: str,
+      avg_temp: nstr,
+      precipitation_mm: nstr,
+      net_sales: str,
+      guest_count: num,
+    })
+  ),
+  weather_groups: z.array(
+    z.object({
+      key: z.enum(["RAIN", "DRY", "COLD", "COOL", "MILD", "HOT"]),
+      day_count: num,
+      avg_net_sales: str,
+      avg_guest_count: str,
+      top_menus: menuQuantities,
+      top_relationships: countBuckets,
+    })
+  ),
+});
+
 export const costSimulationSchema: z.ZodType<T.CostSimulationResponse> = z.object({
   store_id: str,
   cost_basis_label: str,
@@ -422,4 +466,19 @@ export const pnlSchema: z.ZodType<T.PnlResponse> = z.object({
     z.object({ month: str, revenue: num, total_expenses: num, operating_profit: num })
   ),
   daily: z.array(z.object({ date: str, revenue: num, expenses: num })),
+});
+
+export const weatherMonthSchema: z.ZodType<T.WeatherMonthResponse> = z.object({
+  station_id: nstr,
+  source: nstr,
+  days: z.array(
+    z.object({
+      date: str,
+      avg_temp: nstr,
+      min_temp: nstr,
+      max_temp: nstr,
+      precipitation_mm: nstr,
+      sky: z.enum(["RAIN", "SNOW", "DRY"]).nullable(),
+    })
+  ),
 });

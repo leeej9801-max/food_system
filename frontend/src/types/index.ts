@@ -357,6 +357,60 @@ export interface SalesAnalyticsResponse {
   menu_rankings: MenuSalesRankItem[];
 }
 
+export interface CountBucket {
+  key: string;
+  count: number;
+}
+
+export interface MenuQuantity {
+  menu_name: string;
+  quantity: number;
+}
+
+export interface GuestMenuBucket {
+  key: string;
+  visit_count: number;
+  top_menus: MenuQuantity[];
+}
+
+export interface WeatherDayItem {
+  day: string;
+  avg_temp: string | null;
+  precipitation_mm: string | null;
+  net_sales: string;
+  guest_count: number;
+}
+
+export interface WeatherGroupItem {
+  key: "RAIN" | "DRY" | "COLD" | "COOL" | "MILD" | "HOT";
+  day_count: number;
+  avg_net_sales: string;
+  avg_guest_count: string;
+  top_menus: MenuQuantity[];
+  top_relationships: CountBucket[];
+}
+
+export interface GuestAnalyticsResponse {
+  store_id: string;
+  visit_count: number;
+  guest_count: number;
+  profiled_person_count: number;
+  avg_stay_minutes: number | null;
+  age_bands: CountBucket[];
+  genders: CountBucket[];
+  relationships: CountBucket[];
+  purposes: CountBucket[];
+  party_sizes: CountBucket[];
+  matched_order_count: number;
+  ambiguous_order_count: number;
+  unmatched_order_count: number;
+  menu_by_relationship: GuestMenuBucket[];
+  menu_by_age_band: GuestMenuBucket[];
+  weather_station_configured: boolean;
+  weather_days: WeatherDayItem[];
+  weather_groups: WeatherGroupItem[];
+}
+
 export type MenuCostStatusType = "COMPLETE" | "NO_RECIPE" | "INCOMPLETE_COST";
 
 export interface MenuCostIngredientBreakdown {
@@ -468,4 +522,21 @@ export interface PnlResponse {
 export interface PnlExpensesUpdate {
   items: { code: string; label?: string | null; amount: number }[];
   card_fee_percent?: string | null;
+}
+
+export type WeatherSkyType = "RAIN" | "SNOW" | "DRY";
+
+export interface WeatherMonthDay {
+  date: string;
+  avg_temp: string | null;
+  min_temp: string | null;
+  max_temp: string | null;
+  precipitation_mm: string | null;
+  sky: WeatherSkyType | null;
+}
+
+export interface WeatherMonthResponse {
+  station_id: string | null;
+  source: string | null;
+  days: WeatherMonthDay[];
 }

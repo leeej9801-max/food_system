@@ -1,34 +1,34 @@
 {
  "storeSchema": [
   {
-   "id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "표본 매장",
    "timezone": "Asia/Seoul",
    "business_days": "월,화,수,목,금,토",
    "opening_hours": "11:00-21:00",
    "floor_fixtures": [],
-   "created_at": "2026-11-14T08:29:00.694192Z",
-   "updated_at": "2026-11-14T08:29:00.694192Z"
+   "created_at": "2026-11-16T09:03:53.276080Z",
+   "updated_at": "2026-11-16T09:03:53.276080Z"
   },
   {
-   "id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "표본 매장",
    "timezone": "Asia/Seoul",
    "business_days": "월,화,수,목,금,토",
    "opening_hours": "11:00-21:00",
    "floor_fixtures": [],
-   "created_at": "2026-11-14T08:29:00.694192Z",
-   "updated_at": "2026-11-14T08:29:00.694192Z"
+   "created_at": "2026-11-16T09:03:53.276080Z",
+   "updated_at": "2026-11-16T09:03:53.276080Z"
   },
   {
-   "id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "표본 매장",
    "timezone": "Asia/Seoul",
    "business_days": "월,화,수,목,금,토",
    "opening_hours": "11:00-21:00",
    "floor_fixtures": [],
-   "created_at": "2026-11-14T08:29:00.694192Z",
-   "updated_at": "2026-11-14T08:29:00.694192Z"
+   "created_at": "2026-11-16T09:03:53.276080Z",
+   "updated_at": "2026-11-16T09:03:53.276080Z"
   }
  ],
  "seedResultSchema": [
@@ -40,8 +40,8 @@
  ],
  "storeTableSchema": [
   {
-   "id": "01a1d92c-a0e9-7cf6-b9ce-e0c9d5ccb715",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-4502-776b-b8d3-cdd53f0274eb",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "T1",
    "seats": 4,
    "grid_x": 0,
@@ -49,12 +49,12 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": null,
-   "created_at": "2026-11-14T08:29:03.081499Z",
-   "updated_at": "2026-11-14T08:29:03.081499Z"
+   "created_at": "2026-11-16T09:03:55.138099Z",
+   "updated_at": "2026-11-16T09:03:55.138099Z"
   },
   {
-   "id": "01a1d92c-a0e9-7cf6-b9ce-e0c9d5ccb715",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-4502-776b-b8d3-cdd53f0274eb",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "T1",
    "seats": 4,
    "grid_x": 0,
@@ -62,14 +62,14 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": {
-    "id": "01a1d92c-a17f-7e5b-ac02-29e8b291a6df",
-    "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-    "table_id": "01a1d92c-a0e9-7cf6-b9ce-e0c9d5ccb715",
+    "id": "01a1e399-457a-7f23-bf49-e749800fcf62",
+    "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+    "table_id": "01a1e399-4502-776b-b8d3-cdd53f0274eb",
     "table_name": "T1",
     "party_size": 2,
     "age_band": "30S",
     "status": "SEATED",
-    "seated_at": "2026-11-14T08:29:03.226636Z",
+    "seated_at": "2026-11-16T09:03:55.255271Z",
     "paid_at": null,
     "left_at": null,
     "source": "manual",
@@ -99,12 +99,12 @@
      }
     ]
    },
-   "created_at": "2026-11-14T08:29:03.081499Z",
-   "updated_at": "2026-11-14T08:29:03.081499Z"
+   "created_at": "2026-11-16T09:03:55.138099Z",
+   "updated_at": "2026-11-16T09:03:55.138099Z"
   },
   {
-   "id": "01a1d92c-97b9-7f69-b405-10adc1bc9748",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-3de4-7047-b8b1-2a2235ac579d",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "T1",
    "seats": 4,
    "grid_x": 0,
@@ -112,12 +112,12 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": null,
-   "created_at": "2026-11-14T08:29:00.729214Z",
-   "updated_at": "2026-11-14T08:29:00.729214Z"
+   "created_at": "2026-11-16T09:03:53.316298Z",
+   "updated_at": "2026-11-16T09:03:53.316298Z"
   },
   {
-   "id": "01a1d92c-97b9-77ce-8e95-7136adcf2ca8",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-3de4-724c-97a7-8cebf2823f6e",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "T2",
    "seats": 4,
    "grid_x": 1,
@@ -125,12 +125,12 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": null,
-   "created_at": "2026-11-14T08:29:00.729214Z",
-   "updated_at": "2026-11-14T08:29:00.729214Z"
+   "created_at": "2026-11-16T09:03:53.316298Z",
+   "updated_at": "2026-11-16T09:03:53.316298Z"
   },
   {
-   "id": "01a1d92c-97b9-7f72-ac4c-9011d8fd51d1",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-3de4-7280-b0a8-63d007f927b3",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "T3",
    "seats": 4,
    "grid_x": 2,
@@ -138,12 +138,12 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": null,
-   "created_at": "2026-11-14T08:29:00.729214Z",
-   "updated_at": "2026-11-14T08:29:00.729214Z"
+   "created_at": "2026-11-16T09:03:53.316298Z",
+   "updated_at": "2026-11-16T09:03:53.316298Z"
   },
   {
-   "id": "01a1d92c-97b9-7b47-96bb-f766096ab9f5",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-3de4-7051-b4de-2f4343ac1077",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "T4",
    "seats": 4,
    "grid_x": 0,
@@ -151,12 +151,12 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": null,
-   "created_at": "2026-11-14T08:29:00.729214Z",
-   "updated_at": "2026-11-14T08:29:00.729214Z"
+   "created_at": "2026-11-16T09:03:53.316298Z",
+   "updated_at": "2026-11-16T09:03:53.316298Z"
   },
   {
-   "id": "01a1d92c-97b9-7ecf-b705-c4ddc3923eb2",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-3de4-7e43-91f9-0561fcecc2c5",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "T5",
    "seats": 4,
    "grid_x": 1,
@@ -164,12 +164,12 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": null,
-   "created_at": "2026-11-14T08:29:00.729214Z",
-   "updated_at": "2026-11-14T08:29:00.729214Z"
+   "created_at": "2026-11-16T09:03:53.316298Z",
+   "updated_at": "2026-11-16T09:03:53.316298Z"
   },
   {
-   "id": "01a1d92c-97b9-79a2-b85f-4de3012db45a",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-3de4-7756-be2c-586c2f99a7d7",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "T6",
    "seats": 4,
    "grid_x": 2,
@@ -177,20 +177,20 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": null,
-   "created_at": "2026-11-14T08:29:00.729214Z",
-   "updated_at": "2026-11-14T08:29:00.729214Z"
+   "created_at": "2026-11-16T09:03:53.316298Z",
+   "updated_at": "2026-11-16T09:03:53.316298Z"
   }
  ],
  "visitSessionSchema": [
   {
-   "id": "01a1d92c-a17f-7e5b-ac02-29e8b291a6df",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "table_id": "01a1d92c-a0e9-7cf6-b9ce-e0c9d5ccb715",
+   "id": "01a1e399-457a-7f23-bf49-e749800fcf62",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "table_id": "01a1e399-4502-776b-b8d3-cdd53f0274eb",
    "table_name": "T1",
    "party_size": 2,
    "age_band": "20S",
    "status": "SEATED",
-   "seated_at": "2026-11-14T08:29:03.226636Z",
+   "seated_at": "2026-11-16T09:03:55.255271Z",
    "paid_at": null,
    "left_at": null,
    "source": "manual",
@@ -221,14 +221,14 @@
    ]
   },
   {
-   "id": "01a1d92c-a17f-7e5b-ac02-29e8b291a6df",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "table_id": "01a1d92c-a0e9-7cf6-b9ce-e0c9d5ccb715",
+   "id": "01a1e399-457a-7f23-bf49-e749800fcf62",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "table_id": "01a1e399-4502-776b-b8d3-cdd53f0274eb",
    "table_name": "T1",
    "party_size": 2,
    "age_band": "30S",
    "status": "SEATED",
-   "seated_at": "2026-11-14T08:29:03.226636Z",
+   "seated_at": "2026-11-16T09:03:55.255271Z",
    "paid_at": null,
    "left_at": null,
    "source": "manual",
@@ -267,14 +267,14 @@
    "total_guest_count": 2,
    "sessions": [
     {
-     "id": "01a1d92c-a17f-7e5b-ac02-29e8b291a6df",
-     "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-     "table_id": "01a1d92c-a0e9-7cf6-b9ce-e0c9d5ccb715",
+     "id": "01a1e399-457a-7f23-bf49-e749800fcf62",
+     "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+     "table_id": "01a1e399-4502-776b-b8d3-cdd53f0274eb",
      "table_name": "T1",
      "party_size": 2,
      "age_band": "30S",
      "status": "SEATED",
-     "seated_at": "2026-11-14T08:29:03.226636Z",
+     "seated_at": "2026-11-16T09:03:55.255271Z",
      "paid_at": null,
      "left_at": null,
      "source": "manual",
@@ -309,8 +309,8 @@
  ],
  "menuItemSchema": [
   {
-   "id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "까르보나라",
    "selling_price": "16000.00",
    "category": "파스타",
@@ -319,12 +319,12 @@
    "pos_mapping_status": "UNLINKED_PROVISIONAL",
    "recipe_status": "COMPLETE",
    "recipe_item_count": 3,
-   "created_at": "2026-11-14T08:29:02.012149Z",
-   "updated_at": "2026-11-14T08:29:02.012149Z"
+   "created_at": "2026-11-16T09:03:54.388662Z",
+   "updated_at": "2026-11-16T09:03:54.388662Z"
   },
   {
-   "id": "01a1d92c-9f49-7746-b943-f8aacabde68c",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-43ad-787a-a26c-92aeb9f88ec4",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "부채살 스테이크",
    "selling_price": "29000.00",
    "category": "스테이크",
@@ -333,12 +333,12 @@
    "pos_mapping_status": "UNLINKED_PROVISIONAL",
    "recipe_status": "COMPLETE",
    "recipe_item_count": 2,
-   "created_at": "2026-11-14T08:29:02.665793Z",
-   "updated_at": "2026-11-14T08:29:02.665793Z"
+   "created_at": "2026-11-16T09:03:54.797566Z",
+   "updated_at": "2026-11-16T09:03:54.797566Z"
   },
   {
-   "id": "01a1d92c-9e10-7c67-82fb-9f479fe8b1d8",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-42fd-79cd-afae-fa0732667bea",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "알리오올리오",
    "selling_price": "14000.00",
    "category": "파스타",
@@ -347,12 +347,12 @@
    "pos_mapping_status": "UNLINKED_PROVISIONAL",
    "recipe_status": "COMPLETE",
    "recipe_item_count": 3,
-   "created_at": "2026-11-14T08:29:02.352348Z",
-   "updated_at": "2026-11-14T08:29:02.352348Z"
+   "created_at": "2026-11-16T09:03:54.621362Z",
+   "updated_at": "2026-11-16T09:03:54.621362Z"
   },
   {
-   "id": "01a1d92c-a040-7525-bbe6-b849843d47ec",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-4464-7e3a-a6fb-7273d3459336",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "하우스 와인(글라스)",
    "selling_price": "9000.00",
    "category": "음료/와인",
@@ -361,41 +361,41 @@
    "pos_mapping_status": "UNLINKED_PROVISIONAL",
    "recipe_status": "UNREGISTERED",
    "recipe_item_count": 0,
-   "created_at": "2026-11-14T08:29:02.912578Z",
-   "updated_at": "2026-11-14T08:29:02.912578Z"
+   "created_at": "2026-11-16T09:03:54.980028Z",
+   "updated_at": "2026-11-16T09:03:54.980028Z"
   }
  ],
  "menuCategorySchema": [
   {
-   "id": "01a1d92c-a42c-7f89-90d3-d0989284d08e",
+   "id": "01a1e399-47c8-7178-87bf-5fb323b69367",
    "name": "뇨끼",
    "menu_count": 0
   },
   {
-   "id": "01a1d92c-9ca0-71be-8dc6-38cce822b778",
+   "id": "01a1e399-420a-7fd0-9a48-d467ceac3a14",
    "name": "파스타",
    "menu_count": 2
   },
   {
-   "id": "01a1d92c-9f33-747c-9dd8-7de6dec2cd03",
+   "id": "01a1e399-43a8-7e32-a13f-fcb65a3bc779",
    "name": "스테이크",
    "menu_count": 1
   },
   {
-   "id": "01a1d92c-a03a-77c0-89a2-abc758ca79a9",
+   "id": "01a1e399-445d-7376-9c97-f2283f76fc6d",
    "name": "음료/와인",
    "menu_count": 1
   },
   {
-   "id": "01a1d92c-a42c-7f89-90d3-d0989284d08e",
+   "id": "01a1e399-47c8-7178-87bf-5fb323b69367",
    "name": "뇨끼",
    "menu_count": 0
   }
  ],
  "ingredientSchema": [
   {
-   "id": "01a1d92c-997d-74a6-bf51-19a5efd6b7da",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-3f81-79a4-9e72-355211ba34f6",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "관찰레(이탈리아산)",
    "base_unit": "g",
    "purchase_unit": "kg",
@@ -405,12 +405,12 @@
    "is_active": true,
    "linked_menu_count": 1,
    "stock_status": "IN_USE",
-   "created_at": "2026-11-14T08:29:01.181241Z",
-   "updated_at": "2026-11-14T08:29:01.181241Z"
+   "created_at": "2026-11-16T09:03:53.729390Z",
+   "updated_at": "2026-11-16T09:03:53.729390Z"
   },
   {
-   "id": "01a1d92c-9871-7675-9d37-68a8c384c120",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-3e9e-76ae-b08f-8ed17f278dda",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "스파게티면(데체코)",
    "base_unit": "g",
    "purchase_unit": "kg",
@@ -420,12 +420,12 @@
    "is_active": true,
    "linked_menu_count": 2,
    "stock_status": "IN_USE",
-   "created_at": "2026-11-14T08:29:00.913506Z",
-   "updated_at": "2026-11-14T08:29:00.913506Z"
+   "created_at": "2026-11-16T09:03:53.502474Z",
+   "updated_at": "2026-11-16T09:03:53.502474Z"
   },
   {
-   "id": "01a1d92c-9aba-723f-b732-d2e2fef9f77c",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-40c8-7615-a767-90a92332ee4e",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "엑스트라버진 올리브오일",
    "base_unit": "ml",
    "purchase_unit": "L",
@@ -435,12 +435,12 @@
    "is_active": true,
    "linked_menu_count": 2,
    "stock_status": "IN_USE",
-   "created_at": "2026-11-14T08:29:01.498431Z",
-   "updated_at": "2026-11-14T08:29:01.498431Z"
+   "created_at": "2026-11-16T09:03:54.056190Z",
+   "updated_at": "2026-11-16T09:03:54.056190Z"
   },
   {
-   "id": "01a1d92c-9a11-79c7-9a63-be07e7f9bcd1",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-401a-7e12-b301-c08dc1e87ac2",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "페코리노 로마노 치즈",
    "base_unit": "g",
    "purchase_unit": "kg",
@@ -450,12 +450,12 @@
    "is_active": true,
    "linked_menu_count": 2,
    "stock_status": "IN_USE",
-   "created_at": "2026-11-14T08:29:01.329315Z",
-   "updated_at": "2026-11-14T08:29:01.329315Z"
+   "created_at": "2026-11-16T09:03:53.883200Z",
+   "updated_at": "2026-11-16T09:03:53.883200Z"
   },
   {
-   "id": "01a1d92c-9b50-7cc5-8dc3-6aff73f3f3da",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-4164-788d-aedc-6ad45d2e612d",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "name": "프라임 부채살",
    "base_unit": "g",
    "purchase_unit": "kg",
@@ -465,22 +465,22 @@
    "is_active": true,
    "linked_menu_count": 1,
    "stock_status": "IN_USE",
-   "created_at": "2026-11-14T08:29:01.648541Z",
-   "updated_at": "2026-11-14T08:29:01.648541Z"
+   "created_at": "2026-11-16T09:03:54.212154Z",
+   "updated_at": "2026-11-16T09:03:54.212154Z"
   }
  ],
  "recipeDetailSchema": [
   {
-   "menu_item_id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
+   "menu_item_id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
    "menu_name": "까르보나라",
    "version": 1,
    "status": "COMPLETE",
-   "effective_from": "2026-11-14T08:29:02.185998Z",
-   "updated_at": "2026-11-14T08:29:02.190544Z",
+   "effective_from": "2026-11-16T09:03:54.490917Z",
+   "updated_at": "2026-11-16T09:03:54.493843Z",
    "items": [
     {
-     "id": "01a1d92c-9d87-72ed-85ea-6e2b9fe5e939",
-     "ingredient_id": "01a1d92c-9871-7675-9d37-68a8c384c120",
+     "id": "01a1e399-4294-76de-8105-c0f3892c9782",
+     "ingredient_id": "01a1e399-3e9e-76ae-b08f-8ed17f278dda",
      "ingredient_name": "스파게티면(데체코)",
      "ingredient_is_active": true,
      "quantity": "120.000",
@@ -488,8 +488,8 @@
      "notes": null
     },
     {
-     "id": "01a1d92c-9d88-7d29-b71b-cc81247a6a8d",
-     "ingredient_id": "01a1d92c-997d-74a6-bf51-19a5efd6b7da",
+     "id": "01a1e399-4294-7a3b-986d-d68a30d0b6ef",
+     "ingredient_id": "01a1e399-3f81-79a4-9e72-355211ba34f6",
      "ingredient_name": "관찰레(이탈리아산)",
      "ingredient_is_active": true,
      "quantity": "50.000",
@@ -497,8 +497,8 @@
      "notes": null
     },
     {
-     "id": "01a1d92c-9d88-71f2-a8a7-89cbcbb8a8aa",
-     "ingredient_id": "01a1d92c-9a11-79c7-9a63-be07e7f9bcd1",
+     "id": "01a1e399-4294-728c-8a7f-f76a61259f94",
+     "ingredient_id": "01a1e399-401a-7e12-b301-c08dc1e87ac2",
      "ingredient_name": "페코리노 로마노 치즈",
      "ingredient_is_active": true,
      "quantity": "30.000",
@@ -510,7 +510,7 @@
  ],
  "ingredientUsageSchema": [
   {
-   "menu_item_id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
+   "menu_item_id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
    "menu_name": "까르보나라",
    "menu_is_active": true,
    "quantity": "50.000",
@@ -523,19 +523,19 @@
    "recent_usage": [],
    "linked_menus": [
     {
-     "ingredient_id": "01a1d92c-9871-7675-9d37-68a8c384c120",
+     "ingredient_id": "01a1e399-3e9e-76ae-b08f-8ed17f278dda",
      "name": "스파게티면(데체코)",
      "value": "2",
      "unit": "개"
     },
     {
-     "ingredient_id": "01a1d92c-9aba-723f-b732-d2e2fef9f77c",
+     "ingredient_id": "01a1e399-40c8-7615-a767-90a92332ee4e",
      "name": "엑스트라버진 올리브오일",
      "value": "2",
      "unit": "개"
     },
     {
-     "ingredient_id": "01a1d92c-9a11-79c7-9a63-be07e7f9bcd1",
+     "ingredient_id": "01a1e399-401a-7e12-b301-c08dc1e87ac2",
      "name": "페코리노 로마노 치즈",
      "value": "2",
      "unit": "개"
@@ -543,7 +543,7 @@
    ],
    "menus_without_recipe": [
     {
-     "menu_id": "01a1d92c-a040-7525-bbe6-b849843d47ec",
+     "menu_id": "01a1e399-4464-7e3a-a6fb-7273d3459336",
      "name": "하우스 와인(글라스)"
     }
    ]
@@ -551,7 +551,7 @@
  ],
  "integrationStatusSchema": [
   {
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "mode": "CSV_UPLOAD",
    "connection_status": "READY_CSV",
    "is_realtime": false,
@@ -563,11 +563,11 @@
    "unmapped_products": []
   },
   {
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "mode": "CSV_UPLOAD",
    "connection_status": "READY_CSV",
    "is_realtime": false,
-   "last_synced_at": "2026-11-14T08:29:04.591013Z",
+   "last_synced_at": "2026-11-16T09:03:56.627422Z",
    "latest_data_time": "2026-11-01T12:10:00Z",
    "total_orders_count": 1,
    "net_sales_amount": "18000.00",
@@ -583,7 +583,7 @@
  ],
  "csvPreviewSchema": [
   {
-   "batch_id": "01a1d92c-a672-7a29-9ae4-6547209d1017",
+   "batch_id": "01a1e399-4a64-77d6-880f-f4522df1c93a",
    "file_name": "sample.csv",
    "status": "PREVIEWED",
    "duplicate_file_warning": false,
@@ -639,7 +639,7 @@
  ],
  "csvCommitSchema": [
   {
-   "batch_id": "01a1d92c-a672-7a29-9ae4-6547209d1017",
+   "batch_id": "01a1e399-4a64-77d6-880f-f4522df1c93a",
    "status": "COMMITTED",
    "orders_upserted": 2,
    "items_recorded": 2,
@@ -649,32 +649,32 @@
  ],
  "productMappingSchema": [
   {
-   "id": "01a1d92c-a740-7dad-8308-d31156c6fba1",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-4b58-7631-9e28-7436f174c422",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "external_product_name": "없는메뉴",
-   "menu_item_id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
+   "menu_item_id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
    "menu_name": "까르보나라",
    "retroactive_updated_items": 2
   },
   {
-   "id": "01a1d92c-a740-7dad-8308-d31156c6fba1",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-4b58-7631-9e28-7436f174c422",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "external_product_name": "없는메뉴",
-   "menu_item_id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
+   "menu_item_id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
    "menu_name": "까르보나라",
    "retroactive_updated_items": 0
   }
  ],
  "salesOrdersListSchema": [
   {
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "pos_mode": "CSV_UPLOAD",
    "can_manual_edit": true,
    "mode_notice": "CSV/수동 수집 모드: 현장에서 주문 수량 변경·환불(취소) 전환·수동 주문 추가 시 재고 및 매출 파이프라인에 즉시 반영됩니다.",
    "orders": [
     {
-     "id": "01a1d92c-a6e2-773e-ace6-1ad7a645bcc9",
-     "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+     "id": "01a1e399-4ae8-776f-a17b-2a378b1545fe",
+     "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
      "external_order_id": "S-2",
      "ordered_at": "2026-11-01T00:00:00Z",
      "time_basis": "date_only",
@@ -684,9 +684,9 @@
      "source_mode": "CSV_UPLOAD",
      "items": [
       {
-       "id": "01a1d92c-a70a-79d3-8df7-3c5f764b767d",
+       "id": "01a1e399-4b17-7c59-8aa3-61da75d8313b",
        "raw_product_name": "없는메뉴",
-       "menu_item_id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
+       "menu_item_id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
        "menu_name": "까르보나라",
        "mapping_status": "MAPPED",
        "quantity": 1,
@@ -696,8 +696,8 @@
      ]
     },
     {
-     "id": "01a1d92c-a6d1-7f35-8a49-6d08944a51b1",
-     "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+     "id": "01a1e399-4ad7-7cb1-a77e-b47019648b8d",
+     "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
      "external_order_id": "S-1",
      "ordered_at": "2026-11-01T12:10:00Z",
      "time_basis": "order_time",
@@ -707,9 +707,9 @@
      "source_mode": "CSV_UPLOAD",
      "items": [
       {
-       "id": "01a1d92c-a6e9-7124-b1d9-d0d11c4294e3",
+       "id": "01a1e399-4af1-744d-a856-69ff3314ef58",
        "raw_product_name": "없는메뉴",
-       "menu_item_id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
+       "menu_item_id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
        "menu_name": "까르보나라",
        "mapping_status": "MAPPED",
        "quantity": 2,
@@ -723,8 +723,8 @@
  ],
  "salesOrderSchema": [
   {
-   "id": "01a1d92c-a6e2-773e-ace6-1ad7a645bcc9",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-4ae8-776f-a17b-2a378b1545fe",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "external_order_id": "S-2",
    "ordered_at": "2026-11-01T00:00:00Z",
    "time_basis": "date_only",
@@ -734,9 +734,9 @@
    "source_mode": "CSV_UPLOAD",
    "items": [
     {
-     "id": "01a1d92c-a70a-79d3-8df7-3c5f764b767d",
+     "id": "01a1e399-4b17-7c59-8aa3-61da75d8313b",
      "raw_product_name": "없는메뉴",
-     "menu_item_id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
+     "menu_item_id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
      "menu_name": "까르보나라",
      "mapping_status": "MAPPED",
      "quantity": 1,
@@ -746,8 +746,8 @@
    ]
   },
   {
-   "id": "01a1d92c-a6d1-7f35-8a49-6d08944a51b1",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "id": "01a1e399-4ad7-7cb1-a77e-b47019648b8d",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "external_order_id": "S-1",
    "ordered_at": "2026-11-01T12:10:00Z",
    "time_basis": "order_time",
@@ -757,9 +757,9 @@
    "source_mode": "CSV_UPLOAD",
    "items": [
     {
-     "id": "01a1d92c-a6e9-7124-b1d9-d0d11c4294e3",
+     "id": "01a1e399-4af1-744d-a856-69ff3314ef58",
      "raw_product_name": "없는메뉴",
-     "menu_item_id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
+     "menu_item_id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
      "menu_name": "까르보나라",
      "mapping_status": "MAPPED",
      "quantity": 2,
@@ -771,9 +771,9 @@
  ],
  "inventoryReceiptSchema": [
   {
-   "id": "01a1d92c-a84e-70f7-b2ce-7da99870dd6f",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "ingredient_id": "01a1d92c-997d-74a6-bf51-19a5efd6b7da",
+   "id": "01a1e399-4d93-71d9-bbd2-46d6f74f4fcb",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "ingredient_id": "01a1e399-3f81-79a4-9e72-355211ba34f6",
    "ingredient_name": "관찰레(이탈리아산)",
    "purchase_quantity": "1.000",
    "purchase_unit": "kg",
@@ -784,12 +784,12 @@
    "unit_cost_per_base": "10.0000",
    "supplier_name": null,
    "notes": null,
-   "received_at": "2026-11-14T08:29:04.973447Z"
+   "received_at": "2026-11-16T09:03:57.331001Z"
   },
   {
-   "id": "01a1d92c-a84e-70f7-b2ce-7da99870dd6f",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "ingredient_id": "01a1d92c-997d-74a6-bf51-19a5efd6b7da",
+   "id": "01a1e399-4d93-71d9-bbd2-46d6f74f4fcb",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "ingredient_id": "01a1e399-3f81-79a4-9e72-355211ba34f6",
    "ingredient_name": "관찰레(이탈리아산)",
    "purchase_quantity": "1.000",
    "purchase_unit": "kg",
@@ -800,12 +800,12 @@
    "unit_cost_per_base": "10.0000",
    "supplier_name": null,
    "notes": null,
-   "received_at": "2026-11-14T08:29:04.973447Z"
+   "received_at": "2026-11-16T09:03:57.331001Z"
   },
   {
-   "id": "01a1d92c-9bd6-79a8-b3e8-d734e9a9ce5d",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "ingredient_id": "01a1d92c-9b50-7cc5-8dc3-6aff73f3f3da",
+   "id": "01a1e399-41c4-7101-aef9-2759356b8c07",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "ingredient_id": "01a1e399-4164-788d-aedc-6ad45d2e612d",
    "ingredient_name": "프라임 부채살",
    "purchase_quantity": "2.000",
    "purchase_unit": "kg",
@@ -816,12 +816,12 @@
    "unit_cost_per_base": "42.0000",
    "supplier_name": "유로푸드 파트너스(프로토타입)",
    "notes": "프로토타입 초기 입고 단가",
-   "received_at": "2026-11-14T08:29:01.781065Z"
+   "received_at": "2026-11-16T09:03:54.308309Z"
   },
   {
-   "id": "01a1d92c-9b1c-7693-8e81-4c27a0729162",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "ingredient_id": "01a1d92c-9aba-723f-b732-d2e2fef9f77c",
+   "id": "01a1e399-4133-7caa-b793-d411a01d06df",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "ingredient_id": "01a1e399-40c8-7615-a767-90a92332ee4e",
    "ingredient_name": "엑스트라버진 올리브오일",
    "purchase_quantity": "2.000",
    "purchase_unit": "L",
@@ -832,12 +832,12 @@
    "unit_cost_per_base": "18.0000",
    "supplier_name": "유로푸드 파트너스(프로토타입)",
    "notes": "프로토타입 초기 입고 단가",
-   "received_at": "2026-11-14T08:29:01.596377Z"
+   "received_at": "2026-11-16T09:03:54.162580Z"
   },
   {
-   "id": "01a1d92c-9a7f-7877-bc7f-dfb30b9840c6",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "ingredient_id": "01a1d92c-9a11-79c7-9a63-be07e7f9bcd1",
+   "id": "01a1e399-408c-78f3-9290-170177044e55",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "ingredient_id": "01a1e399-401a-7e12-b301-c08dc1e87ac2",
    "ingredient_name": "페코리노 로마노 치즈",
    "purchase_quantity": "1.000",
    "purchase_unit": "kg",
@@ -848,12 +848,12 @@
    "unit_cost_per_base": "45.0000",
    "supplier_name": "유로푸드 파트너스(프로토타입)",
    "notes": "프로토타입 초기 입고 단가",
-   "received_at": "2026-11-14T08:29:01.438777Z"
+   "received_at": "2026-11-16T09:03:53.995411Z"
   },
   {
-   "id": "01a1d92c-99df-78a6-9f18-352e011c97ac",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "ingredient_id": "01a1d92c-997d-74a6-bf51-19a5efd6b7da",
+   "id": "01a1e399-3fea-7f22-952e-c84110f534b9",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "ingredient_id": "01a1e399-3f81-79a4-9e72-355211ba34f6",
    "ingredient_name": "관찰레(이탈리아산)",
    "purchase_quantity": "1.000",
    "purchase_unit": "kg",
@@ -864,12 +864,12 @@
    "unit_cost_per_base": "32.0000",
    "supplier_name": "유로푸드 파트너스(프로토타입)",
    "notes": "프로토타입 초기 입고 단가",
-   "received_at": "2026-11-14T08:29:01.278618Z"
+   "received_at": "2026-11-16T09:03:53.833749Z"
   },
   {
-   "id": "01a1d92c-993e-7c1f-8ca5-773e1424e3e2",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "ingredient_id": "01a1d92c-9871-7675-9d37-68a8c384c120",
+   "id": "01a1e399-3f43-791c-a44e-95f892564695",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "ingredient_id": "01a1e399-3e9e-76ae-b08f-8ed17f278dda",
    "ingredient_name": "스파게티면(데체코)",
    "purchase_quantity": "3.000",
    "purchase_unit": "kg",
@@ -880,47 +880,47 @@
    "unit_cost_per_base": "9.0000",
    "supplier_name": "유로푸드 파트너스(프로토타입)",
    "notes": "프로토타입 초기 입고 단가",
-   "received_at": "2026-11-14T08:29:01.113182Z"
+   "received_at": "2026-11-16T09:03:53.664310Z"
   }
  ],
  "inventoryCountSchema": [
   {
-   "id": "01a1d92c-a8c4-717e-9889-128b5b2a7e59",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "ingredient_id": "01a1d92c-997d-74a6-bf51-19a5efd6b7da",
+   "id": "01a1e399-4f30-7ad5-83d2-c5e9f4800658",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "ingredient_id": "01a1e399-3f81-79a4-9e72-355211ba34f6",
    "ingredient_name": "관찰레(이탈리아산)",
    "actual_quantity": "500.000",
    "base_unit": "g",
    "notes": null,
-   "counted_at": "2026-11-14T08:29:05.090145Z"
+   "counted_at": "2026-11-16T09:03:57.741265Z"
   },
   {
-   "id": "01a1d92c-a8c4-717e-9889-128b5b2a7e59",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "ingredient_id": "01a1d92c-997d-74a6-bf51-19a5efd6b7da",
+   "id": "01a1e399-4f30-7ad5-83d2-c5e9f4800658",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "ingredient_id": "01a1e399-3f81-79a4-9e72-355211ba34f6",
    "ingredient_name": "관찰레(이탈리아산)",
    "actual_quantity": "500.000",
    "base_unit": "g",
    "notes": null,
-   "counted_at": "2026-11-14T08:29:05.090145Z"
+   "counted_at": "2026-11-16T09:03:57.741265Z"
   }
  ],
  "inventoryAdjustmentSchema": [
   {
-   "id": "01a1d92c-a93e-7a22-91f3-0c238fb9cec1",
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
-   "ingredient_id": "01a1d92c-997d-74a6-bf51-19a5efd6b7da",
+   "id": "01a1e399-5105-7d43-8185-79902a0b313a",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "ingredient_id": "01a1e399-3f81-79a4-9e72-355211ba34f6",
    "ingredient_name": "관찰레(이탈리아산)",
    "quantity_delta": "-10.000",
    "base_unit": "g",
    "reason": "WASTE",
    "notes": null,
-   "occurred_at": "2026-11-14T08:29:05.212457Z"
+   "occurred_at": "2026-11-16T09:03:58.210055Z"
   }
  ],
  "inventoryItemSchema": [
   {
-   "ingredient_id": "01a1d92c-997d-74a6-bf51-19a5efd6b7da",
+   "ingredient_id": "01a1e399-3f81-79a4-9e72-355211ba34f6",
    "ingredient_name": "관찰레(이탈리아산)",
    "is_active": true,
    "base_unit": "g",
@@ -931,7 +931,7 @@
    "latest_unit_cost_per_base": "10.0000",
    "cost_basis_label": "최근 입고 단가 기준 (PROVISIONAL P-12)",
    "last_actual_quantity": "500.000",
-   "last_counted_at": "2026-11-14T08:29:05.090145Z",
+   "last_counted_at": "2026-11-16T09:03:57.741265Z",
    "receipts_since_count_base": "0.000",
    "theoretical_consumption_base": "0.000",
    "adjustments_since_count_base": "-10.000",
@@ -939,7 +939,7 @@
    "stock_status": "LOW_STOCK"
   },
   {
-   "ingredient_id": "01a1d92c-9871-7675-9d37-68a8c384c120",
+   "ingredient_id": "01a1e399-3e9e-76ae-b08f-8ed17f278dda",
    "ingredient_name": "스파게티면(데체코)",
    "is_active": true,
    "base_unit": "g",
@@ -958,7 +958,7 @@
    "stock_status": "OK"
   },
   {
-   "ingredient_id": "01a1d92c-9aba-723f-b732-d2e2fef9f77c",
+   "ingredient_id": "01a1e399-40c8-7615-a767-90a92332ee4e",
    "ingredient_name": "엑스트라버진 올리브오일",
    "is_active": true,
    "base_unit": "ml",
@@ -977,7 +977,7 @@
    "stock_status": "OK"
   },
   {
-   "ingredient_id": "01a1d92c-9a11-79c7-9a63-be07e7f9bcd1",
+   "ingredient_id": "01a1e399-401a-7e12-b301-c08dc1e87ac2",
    "ingredient_name": "페코리노 로마노 치즈",
    "is_active": true,
    "base_unit": "g",
@@ -996,7 +996,7 @@
    "stock_status": "OK"
   },
   {
-   "ingredient_id": "01a1d92c-9b50-7cc5-8dc3-6aff73f3f3da",
+   "ingredient_id": "01a1e399-4164-788d-aedc-6ad45d2e612d",
    "ingredient_name": "프라임 부채살",
    "is_active": true,
    "base_unit": "g",
@@ -1017,7 +1017,7 @@
  ],
  "salesAnalyticsSchema": [
   {
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "total_completed_orders": 1,
    "total_quantity": 2,
    "total_net_sales": "18000.00",
@@ -1147,7 +1147,7 @@
    ],
    "menu_rankings": [
     {
-     "menu_item_id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
+     "menu_item_id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
      "menu_name": "까르보나라",
      "mapping_status": "MAPPED",
      "quantity": 2,
@@ -1156,14 +1156,307 @@
    ]
   }
  ],
+ "guestAnalyticsSchema": [
+  {
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
+   "visit_count": 1,
+   "guest_count": 2,
+   "profiled_person_count": 1,
+   "avg_stay_minutes": null,
+   "age_bands": [
+    {
+     "key": "30S",
+     "count": 1
+    }
+   ],
+   "genders": [
+    {
+     "key": "FEMALE",
+     "count": 1
+    }
+   ],
+   "relationships": [],
+   "purposes": [],
+   "party_sizes": [
+    {
+     "key": "2",
+     "count": 1
+    }
+   ],
+   "matched_order_count": 0,
+   "ambiguous_order_count": 0,
+   "unmatched_order_count": 1,
+   "menu_by_relationship": [],
+   "menu_by_age_band": [],
+   "weather_station_configured": true,
+   "weather_days": [],
+   "weather_groups": []
+  }
+ ],
+ "weatherMonthSchema": [
+  {
+   "station_id": "999",
+   "source": "KMA_AWS",
+   "days": [
+    {
+     "date": "2026-10-01",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-02",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-03",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-04",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-05",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-06",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-07",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-08",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-09",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-10",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-11",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-12",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-13",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-14",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-15",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-16",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-17",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-18",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-19",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-20",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-21",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-22",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-23",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-24",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-25",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-26",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-27",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-28",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-29",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    },
+    {
+     "date": "2026-10-30",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "0.0",
+     "sky": "DRY"
+    },
+    {
+     "date": "2026-10-31",
+     "avg_temp": "3.0",
+     "min_temp": null,
+     "max_temp": "5.5",
+     "precipitation_mm": "1.5",
+     "sky": "RAIN"
+    }
+   ]
+  }
+ ],
  "costSimulationSchema": [
   {
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "cost_basis_label": "최근 입고 단가 기준 (PROVISIONAL P-12 · 비파괴 시뮬레이션)",
    "global_change_percent": "10.00",
    "menus": [
     {
-     "menu_item_id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
+     "menu_item_id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
      "menu_name": "까르보나라",
      "category": "파스타",
      "selling_price": "16000.00",
@@ -1179,7 +1472,7 @@
      "high_cost_warning": false,
      "breakdown": [
       {
-       "ingredient_id": "01a1d92c-9871-7675-9d37-68a8c384c120",
+       "ingredient_id": "01a1e399-3e9e-76ae-b08f-8ed17f278dda",
        "ingredient_name": "스파게티면(데체코)",
        "quantity": "120.000",
        "base_unit": "g",
@@ -1189,7 +1482,7 @@
        "simulated_line_cost": "1188.00"
       },
       {
-       "ingredient_id": "01a1d92c-997d-74a6-bf51-19a5efd6b7da",
+       "ingredient_id": "01a1e399-3f81-79a4-9e72-355211ba34f6",
        "ingredient_name": "관찰레(이탈리아산)",
        "quantity": "50.000",
        "base_unit": "g",
@@ -1199,7 +1492,7 @@
        "simulated_line_cost": "550.00"
       },
       {
-       "ingredient_id": "01a1d92c-9a11-79c7-9a63-be07e7f9bcd1",
+       "ingredient_id": "01a1e399-401a-7e12-b301-c08dc1e87ac2",
        "ingredient_name": "페코리노 로마노 치즈",
        "quantity": "30.000",
        "base_unit": "g",
@@ -1211,7 +1504,7 @@
      ]
     },
     {
-     "menu_item_id": "01a1d92c-9f49-7746-b943-f8aacabde68c",
+     "menu_item_id": "01a1e399-43ad-787a-a26c-92aeb9f88ec4",
      "menu_name": "부채살 스테이크",
      "category": "스테이크",
      "selling_price": "29000.00",
@@ -1227,7 +1520,7 @@
      "high_cost_warning": true,
      "breakdown": [
       {
-       "ingredient_id": "01a1d92c-9b50-7cc5-8dc3-6aff73f3f3da",
+       "ingredient_id": "01a1e399-4164-788d-aedc-6ad45d2e612d",
        "ingredient_name": "프라임 부채살",
        "quantity": "220.000",
        "base_unit": "g",
@@ -1237,7 +1530,7 @@
        "simulated_line_cost": "10164.00"
       },
       {
-       "ingredient_id": "01a1d92c-9aba-723f-b732-d2e2fef9f77c",
+       "ingredient_id": "01a1e399-40c8-7615-a767-90a92332ee4e",
        "ingredient_name": "엑스트라버진 올리브오일",
        "quantity": "20.000",
        "base_unit": "ml",
@@ -1249,7 +1542,7 @@
      ]
     },
     {
-     "menu_item_id": "01a1d92c-9e10-7c67-82fb-9f479fe8b1d8",
+     "menu_item_id": "01a1e399-42fd-79cd-afae-fa0732667bea",
      "menu_name": "알리오올리오",
      "category": "파스타",
      "selling_price": "14000.00",
@@ -1265,7 +1558,7 @@
      "high_cost_warning": false,
      "breakdown": [
       {
-       "ingredient_id": "01a1d92c-9871-7675-9d37-68a8c384c120",
+       "ingredient_id": "01a1e399-3e9e-76ae-b08f-8ed17f278dda",
        "ingredient_name": "스파게티면(데체코)",
        "quantity": "120.000",
        "base_unit": "g",
@@ -1275,7 +1568,7 @@
        "simulated_line_cost": "1188.00"
       },
       {
-       "ingredient_id": "01a1d92c-9aba-723f-b732-d2e2fef9f77c",
+       "ingredient_id": "01a1e399-40c8-7615-a767-90a92332ee4e",
        "ingredient_name": "엑스트라버진 올리브오일",
        "quantity": "45.000",
        "base_unit": "ml",
@@ -1285,7 +1578,7 @@
        "simulated_line_cost": "891.00"
       },
       {
-       "ingredient_id": "01a1d92c-9a11-79c7-9a63-be07e7f9bcd1",
+       "ingredient_id": "01a1e399-401a-7e12-b301-c08dc1e87ac2",
        "ingredient_name": "페코리노 로마노 치즈",
        "quantity": "15.000",
        "base_unit": "g",
@@ -1297,7 +1590,7 @@
      ]
     },
     {
-     "menu_item_id": "01a1d92c-a040-7525-bbe6-b849843d47ec",
+     "menu_item_id": "01a1e399-4464-7e3a-a6fb-7273d3459336",
      "menu_name": "하우스 와인(글라스)",
      "category": "음료/와인",
      "selling_price": "9000.00",
@@ -1318,7 +1611,7 @@
  ],
  "pnlSchema": [
   {
-   "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+   "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
    "month": "2026-10",
    "card_fee_percent": "2.00",
    "revenue": {
@@ -1692,8 +1985,8 @@
   {
    "result": "DEACTIVATED",
    "menu": {
-    "id": "01a1d92c-9cbc-7d2b-97e2-8d533df7e206",
-    "store_id": "01a1d92c-9796-7796-a9ae-9b463816507a",
+    "id": "01a1e399-4214-7d1b-9fab-e8214f485df7",
+    "store_id": "01a1e399-3dbc-783e-9439-d902b03b8e58",
     "name": "까르보나라",
     "selling_price": "16000.00",
     "category": "파스타",
@@ -1702,8 +1995,8 @@
     "pos_mapping_status": "LINKED",
     "recipe_status": "COMPLETE",
     "recipe_item_count": 3,
-    "created_at": "2026-11-14T08:29:02.012149Z",
-    "updated_at": "2026-11-14T08:29:05.928925Z"
+    "created_at": "2026-11-16T09:03:54.388662Z",
+    "updated_at": "2026-11-16T09:04:00.032012Z"
    }
   }
  ],

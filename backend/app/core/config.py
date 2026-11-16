@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     guest_cookie_secure: bool = True
     # 천문연 특일정보(공공데이터포털) 인증키. 값은 .env에만 둔다 (U-28)
     kasi_service_key: str = ""
+    # 기상청 API허브 인증키와 AWS 지점번호(부천 433). 값은 .env에만 둔다 (U-28, U-56)
+    kma_apihub_key: str = ""
+    kma_station_id: str = ""
     # 기본값 없음: DATABASE_URL이 없으면 기동하지 않는다 (SEC-001)
     database_url: str
     app_timezone: str = "Asia/Seoul"

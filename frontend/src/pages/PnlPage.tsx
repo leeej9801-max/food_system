@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchPnl, savePnlExpenses } from "../api/pnl";
+import { fetchWeatherMonth } from "../api/weather";
 import { HeroKpi } from "../components/HeroKpi";
-import type { PnlLine, PnlResponse, Store } from "../types";
+import type { PnlLine, PnlResponse, Store, WeatherMonthDay } from "../types";
 
 const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
 const pct = (p: string | null) => (p === null ? "-" : `${p}%`);
@@ -26,6 +27,11 @@ function shiftMonth(month: string, delta: number): string {
   const [y, m] = month.split("-").map(Number);
   const d = new Date(y, m - 1 + delta, 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function formatKoreanMonth(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  return `${y}년 ${m}월`;
 }
 
 // 편집 중 값: 항목 코드 → 입력 문자열. 빈 문자열이면 자동 값(있으면)으로 돌아간다.
@@ -53,7 +59,88 @@ const AUTO_HINT: Record<string, string> = {
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
-function PnlCalendar({ days }: { days: PnlResponse["daily"] }) {
+function weatherLabel(day: WeatherMonthDay): string {
+  const precip = day.precipitation_mm !== null ? ` ${day.precipitation_mm}mm` : "";
+  const sky =
+    day.sky === "RAIN" ? `비${precip}` : day.sky === "SNOW" ? `눈${precip}` : "강수 없음";
+  const temps = [
+    day.max_temp !== null ? `최고 ${day.max_temp}°` : null,
+    day.min_temp !== null ? `최저 ${day.min_temp}°` : null,
+  ].filter(Boolean);
+  return temps.length > 0 ? `${sky} · ${temps.join(" ")}` : sky;
+}
+
+function WeatherIcon({ day }: { day: WeatherMonthDay }) {
+  if (!day.sky) return null;
+  const label = weatherLabel(day);
+  const colorClass = day.sky === "RAIN" ? "text-accent-600" : "text-muted";
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center ${colorClass}`}
+      title={label}
+      role="img"
+      aria-label={label}
+    >
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        className="h-3.5 w-3.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {day.sky === "RAIN" && (
+          <>
+            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+            <path d="M8 15v4" />
+            <path d="M12 17v4" />
+            <path d="M16 15v4" />
+          </>
+        )}
+        {day.sky === "SNOW" && (
+          <>
+            <path d="M12 2.5v19" />
+            <path d="M9.5 5.5 12 8l2.5-2.5" />
+            <path d="M9.5 18.5 12 16l2.5 2.5" />
+            <g transform="rotate(60 12 12)">
+              <path d="M12 2.5v19" />
+              <path d="M9.5 5.5 12 8l2.5-2.5" />
+              <path d="M9.5 18.5 12 16l2.5 2.5" />
+            </g>
+            <g transform="rotate(120 12 12)">
+              <path d="M12 2.5v19" />
+              <path d="M9.5 5.5 12 8l2.5-2.5" />
+              <path d="M9.5 18.5 12 16l2.5 2.5" />
+            </g>
+          </>
+        )}
+        {day.sky === "DRY" && (
+          <>
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="M4.93 4.93l1.41 1.41" />
+            <path d="M17.66 17.66l1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="M6.34 17.66l-1.41 1.41" />
+            <path d="M19.07 4.93l-1.41 1.41" />
+          </>
+        )}
+      </svg>
+    </span>
+  );
+}
+
+function PnlCalendar({
+  days,
+  weatherByDate,
+}: {
+  days: PnlResponse["daily"];
+  weatherByDate: Map<string, WeatherMonthDay>;
+}) {
   if (days.length === 0) return null;
   const [y, m] = days[0].date.split("-").map(Number);
   const lead = new Date(y, m - 1, 1).getDay();
@@ -72,22 +159,27 @@ function PnlCalendar({ days }: { days: PnlResponse["daily"] }) {
         {Array.from({ length: lead }, (_, i) => (
           <div key={`lead-${i}`} />
         ))}
-        {days.map((d) => (
-          <div key={d.date} className="min-h-16 min-w-0 rounded-xl bg-ground p-2">
-            {/* 날씨 아이콘 자리(왼쪽 위): 날씨 API 연결 후 날짜 앞에 넣는다 */}
-            <div className="text-muted tabular-nums">{Number(d.date.slice(8))}</div>
-            {d.revenue > 0 && (
-              <div className="mt-0.5 truncate text-right font-medium text-accent-700 tabular-nums">
-                +{d.revenue.toLocaleString("ko-KR")}
+        {days.map((d) => {
+          const weather = weatherByDate.get(d.date);
+          return (
+            <div key={d.date} className="min-h-16 min-w-0 rounded-xl bg-ground p-2">
+              <div className="flex items-center gap-1 text-muted tabular-nums">
+                {weather && <WeatherIcon day={weather} />}
+                <span>{Number(d.date.slice(8))}</span>
               </div>
-            )}
-            {d.expenses > 0 && (
-              <div className="truncate text-right font-medium text-[#b42318] tabular-nums">
-                -{d.expenses.toLocaleString("ko-KR")}
-              </div>
-            )}
-          </div>
-        ))}
+              {d.revenue > 0 && (
+                <div className="mt-0.5 truncate text-right font-medium text-accent-700 tabular-nums">
+                  +{d.revenue.toLocaleString("ko-KR")}
+                </div>
+              )}
+              {d.expenses > 0 && (
+                <div className="truncate text-right font-medium text-[#b42318] tabular-nums">
+                  -{d.expenses.toLocaleString("ko-KR")}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -103,6 +195,17 @@ export function PnlPage({ store }: { store: Store }) {
     queryKey: ["pnl", store.id, month],
     queryFn: () => fetchPnl(store.id, month),
   });
+
+  const weatherQuery = useQuery({
+    queryKey: ["weather", month],
+    queryFn: () => fetchWeatherMonth(month),
+  });
+
+  const weatherByDate = new Map<string, WeatherMonthDay>(
+    weatherQuery.data?.station_id != null
+      ? weatherQuery.data.days.map((d) => [d.date, d])
+      : []
+  );
 
   const saveMutation = useMutation({
     mutationFn: (d: Draft) =>
@@ -168,13 +271,12 @@ export function PnlPage({ store }: { store: Store }) {
           >
             ‹
           </button>
-          <input
-            type="month"
-            value={month}
-            onChange={(e) => e.target.value && changeMonth(e.target.value)}
-            className="pill pill-sm pill-secondary tabular-nums"
+          <span
             aria-label="손익 월"
-          />
+            className="pill pill-sm pill-secondary cursor-default select-none tabular-nums"
+          >
+            {formatKoreanMonth(month)}
+          </span>
           <button
             type="button"
             className="pill pill-sm pill-secondary"
@@ -194,13 +296,14 @@ export function PnlPage({ store }: { store: Store }) {
 
       {pnl && (
         <div className="flex flex-col gap-4 xl:gap-5">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 xl:gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
             <HeroKpi
               label="영업이익"
               value={pnl.operating_profit.toLocaleString("ko-KR")}
               unit="원"
               tone={pnl.operating_profit < 0 ? "alert" : "normal"}
               delta={profitDelta(pnl.trend)}
+              className="[&_.kpi-sub]:!flex-wrap [&_.kpi-sub]:!overflow-visible [&_.kpi-sub]:!whitespace-normal [&_.kpi-sub_.truncate]:!overflow-visible [&_.kpi-sub_.truncate]:!whitespace-normal"
             >
               {profitDelta(pnl.trend) ? "지난달 대비 · " : ""}영업이익률 {pct(pnl.operating_margin_percent)}
             </HeroKpi>
@@ -211,7 +314,7 @@ export function PnlPage({ store }: { store: Store }) {
                 {pnl.revenue.amount.toLocaleString("ko-KR")}
                 <small>원</small>
               </div>
-              <div className="kpi-sub">판매 합계</div>
+              <div className="kpi-sub !overflow-visible !whitespace-normal">판매 합계</div>
             </section>
 
             <section className="card">
@@ -220,7 +323,7 @@ export function PnlPage({ store }: { store: Store }) {
                 {pnl.total_expenses.toLocaleString("ko-KR")}
                 <small>원</small>
               </div>
-              <div className="kpi-sub">
+              <div className="kpi-sub !overflow-visible !whitespace-normal">
                 매출 대비 {pct(pnl.revenue.amount ? ((pnl.total_expenses * 100) / pnl.revenue.amount).toFixed(1) : null)}
               </div>
             </section>
@@ -257,7 +360,7 @@ export function PnlPage({ store }: { store: Store }) {
                       />
                     </div>
                     <span
-                      className={`text-[11px] tabular-nums ${
+                      className={`whitespace-nowrap text-[11px] tabular-nums ${
                         p.month === pnl.month ? "font-semibold text-ink" : "text-muted"
                       }`}
                     >
@@ -464,7 +567,7 @@ export function PnlPage({ store }: { store: Store }) {
             </div>
           </section>
 
-          <PnlCalendar days={pnl.daily} />
+          <PnlCalendar days={pnl.daily} weatherByDate={weatherByDate} />
         </div>
       )}
     </div>

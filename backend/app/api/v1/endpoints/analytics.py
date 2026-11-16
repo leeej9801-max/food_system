@@ -8,9 +8,11 @@ from app.db.session import get_db
 from app.schemas import (
     CostSimulationRequest,
     CostSimulationResponse,
+    GuestAnalyticsResponse,
     SalesAnalyticsResponse,
 )
 from app.services import analytics as analytics_service
+from app.services import guest_analytics as guest_analytics_service
 
 router = APIRouter(prefix="/stores/{store_id}/analytics", tags=["analytics"])
 
@@ -33,3 +35,11 @@ def simulate_menu_costs_endpoint(
     db: Annotated[Session, Depends(get_db)],
 ) -> CostSimulationResponse:
     return analytics_service.simulate_menu_costs(db, store_id=store_id, payload=payload)
+
+
+@router.get("/guests")
+def get_guest_analytics_endpoint(
+    store_id: UUID,
+    db: Annotated[Session, Depends(get_db)],
+) -> GuestAnalyticsResponse:
+    return guest_analytics_service.get_guest_analytics(db, store_id=store_id)
