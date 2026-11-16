@@ -676,6 +676,18 @@ table {
   color: var(--color-muted);
   cursor: pointer;
 }
+.pnl-weather-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  cursor: default;
+}
+.pnl-weather-icon:focus-visible {
+  outline: 2px solid var(--color-accent-600);
+  outline-offset: 2px;
+}
 .inventory-info-button:hover {
   background: var(--color-accent-50);
 }

@@ -4528,6 +4528,11 @@
             "title": "Date",
             "type": "string"
           },
+          "forecast": {
+            "default": false,
+            "title": "Forecast",
+            "type": "boolean"
+          },
           "max_temp": {
             "anyOf": [
               {
@@ -4550,6 +4555,17 @@
             ],
             "title": "Min Temp"
           },
+          "precipitation_chance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precipitation Chance"
+          },
           "precipitation_mm": {
             "anyOf": [
               {
@@ -4567,7 +4583,10 @@
                 "enum": [
                   "RAIN",
                   "SNOW",
-                  "DRY"
+                  "DRY",
+                  "CLEAR",
+                  "CLOUDY",
+                  "OVERCAST"
                 ],
                 "type": "string"
               },

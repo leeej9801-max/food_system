@@ -478,7 +478,9 @@ export const weatherMonthSchema: z.ZodType<T.WeatherMonthResponse> = z.object({
       min_temp: nstr,
       max_temp: nstr,
       precipitation_mm: nstr,
-      sky: z.enum(["RAIN", "SNOW", "DRY"]).nullable(),
+      sky: z.enum(["RAIN", "SNOW", "DRY", "CLEAR", "CLOUDY", "OVERCAST"]).nullable(),
+      forecast: z.boolean(),
+      precipitation_chance: z.number().nullable(),
     })
   ),
 });

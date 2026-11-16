@@ -3,13 +3,15 @@
 지난 날은 한 번 받아 weather_daily에 두고, 오늘은 짧게 캐시해서 다시 받는다.
 """
 
+import json
 import logging
 import time
 import urllib.request
+from collections import Counter
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Literal
 
@@ -86,9 +88,10 @@ def fetch_aws_day(day: date, station_id: str, auth_key: str) -> DailyWeather | N
         return parse_aws_minutes(resp.read().decode("euc-kr", "replace"), day)
 
 
-def sky_of(
-    precipitation_mm: Decimal | None, max_temp: Decimal | None
-) -> Literal["RAIN", "SNOW", "DRY"] | None:
+SkyType = Literal["RAIN", "SNOW", "DRY", "CLEAR", "CLOUDY", "OVERCAST"]
+
+
+def sky_of(precipitation_mm: Decimal | None, max_temp: Decimal | None) -> SkyType | None:
     """강수만으로 정한다(구름 자료 없음). 눈은 최고기온 1도 이하로 추정한다(PROVISIONAL)."""
     if precipitation_mm is None:
         return None
@@ -170,3 +173,102 @@ def month_weather(
         if cached[1]:
             days.append(cached[1])
     return sorted(days, key=lambda w: w.weather_date)
+
+
+# ---- 단기예보 (오늘 기준 +5일, U-57) ----
+FCST_URL = "https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0/getVilageFcst"
+FCST_BASE_HOURS = (2, 5, 8, 11, 14, 17, 20, 23)
+FCST_DAYS = 5
+# 단기예보 SKY 코드: 1 맑음, 3 구름많음, 4 흐림. PTY 3 눈, 7 눈날림(나머지 0 아닌 값은 비·빗방울)
+SKY_CODES: dict[str, SkyType] = {"1": "CLEAR", "3": "CLOUDY", "4": "OVERCAST"}
+SNOW_PTY = {"3", "7"}
+
+
+@dataclass(frozen=True)
+class DayForecast:
+    weather_date: date
+    min_temp: Decimal | None
+    max_temp: Decimal | None
+    precipitation_chance: int | None
+    sky: SkyType | None
+
+
+ForecastFetcher = Callable[[], list[DayForecast]]
+
+
+def forecast_base(now: datetime) -> datetime:
+    """가장 최근 발표 시각. 발표 뒤 10분부터 받을 수 있어 15분 여유를 둔다."""
+    t = now - timedelta(minutes=15)
+    hours = [h for h in FCST_BASE_HOURS if h <= t.hour]
+    if not hours:
+        return (t - timedelta(days=1)).replace(hour=23, minute=0, second=0, microsecond=0)
+    return t.replace(hour=hours[-1], minute=0, second=0, microsecond=0)
+
+
+def summarize_forecast(items: list[dict]) -> list[DayForecast]:
+    """시간별 예보를 날짜별로 줄인다. 하늘·강수는 영업 시간대(06~21시)만 본다."""
+    by_day: dict[str, list[dict]] = {}
+    for it in items:
+        by_day.setdefault(it["fcstDate"], []).append(it)
+    out = []
+    for d, rows in sorted(by_day.items()):
+        values: dict[str, list[str]] = {}
+        for r in rows:
+            if r["category"] in ("TMN", "TMX") or "0600" <= r["fcstTime"] <= "2100":
+                values.setdefault(r["category"], []).append(str(r["fcstValue"]))
+        wet = [v for v in values.get("PTY", []) if v != "0"]
+        skies = [SKY_CODES[v] for v in values.get("SKY", []) if v in SKY_CODES]
+        if wet:
+            sky: SkyType | None = "SNOW" if all(v in SNOW_PTY for v in wet) else "RAIN"
+        elif skies:
+            # 가장 많이 나온 하늘. 같으면 더 흐린 쪽
+            order: tuple[SkyType, ...] = ("CLEAR", "CLOUDY", "OVERCAST")
+            counts = Counter(skies)
+            sky = max(order, key=lambda k: (counts[k], order.index(k)))
+        else:
+            sky = None
+        out.append(
+            DayForecast(
+                weather_date=date(int(d[:4]), int(d[4:6]), int(d[6:])),
+                min_temp=_one_decimal(float(values["TMN"][0])) if values.get("TMN") else None,
+                max_temp=_one_decimal(float(values["TMX"][0])) if values.get("TMX") else None,
+                precipitation_chance=max(map(int, values["POP"])) if values.get("POP") else None,
+                sky=sky,
+            )
+        )
+    return out
+
+
+def fetch_forecast(now: datetime, nx: int, ny: int, auth_key: str) -> list[DayForecast]:
+    base = forecast_base(now)
+    url = (
+        f"{FCST_URL}?pageNo=1&numOfRows=2000&dataType=JSON&base_date={base:%Y%m%d}"
+        f"&base_time={base:%H}00&nx={nx}&ny={ny}&authKey={auth_key}"
+    )
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        payload = json.loads(resp.read().decode("utf-8"))
+    body = payload["response"]
+    if body["header"]["resultCode"] != "00":
+        raise OSError(f"forecast result {body['header']['resultCode']}")
+    return summarize_forecast(body["body"]["items"]["item"])
+
+
+# shortcut: 프로세스 메모리 캐시. 예보 발표가 3시간 간격이라 1시간이면 충분하다
+_forecast_cache: dict[str, tuple[float, list[DayForecast]]] = {}
+
+
+def upcoming_forecast(today: date, fetch: ForecastFetcher | None) -> list[DayForecast]:
+    """오늘 다음 날부터 5일 예보. 실패하면 빈 목록(확정 날씨만 보인다)."""
+    if fetch is None:
+        return []
+    cached = _forecast_cache.get("fcst")
+    if cached is None or time.monotonic() - cached[0] > TODAY_TTL_SECONDS:
+        try:
+            cached = (time.monotonic(), fetch())
+        except (OSError, KeyError, ValueError) as exc:
+            logger.warning("forecast fetch failed: %s", type(exc).__name__)
+            return []
+        _forecast_cache["fcst"] = cached
+    last = today + timedelta(days=FCST_DAYS)
+    return [f for f in cached[1] if today < f.weather_date <= last]
