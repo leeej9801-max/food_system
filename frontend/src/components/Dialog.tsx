@@ -25,7 +25,7 @@ export function Dialog({ label, onClose, children }: DialogProps) {
         e.preventDefault();
         onClose();
       }}
-      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none items-center justify-center overscroll-contain bg-transparent p-4 backdrop:bg-gray-900/50 open:flex"
+      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none items-center justify-center overscroll-contain bg-transparent p-4 backdrop:bg-gray-900/50 open:flex [&>*]:max-h-[calc(var(--app-viewport-height,100dvh)-2rem)] [&>*]:overflow-y-auto"
     >
       {children}
     </dialog>

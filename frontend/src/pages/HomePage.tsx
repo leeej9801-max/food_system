@@ -300,7 +300,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
   return (
     <div
       className="flex min-h-0 flex-col gap-3"
-      style={{ height: "calc(var(--app-viewport-height) - var(--app-header-height, 56px) - 2rem)" }}
+      style={{ height: "calc(var(--app-viewport-height) - var(--app-header-height, 56px) - 3rem)" }}
     >
       {banner && (
         <div
@@ -458,17 +458,17 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                       <span className="text-base tabular-nums text-ink">총 {slots.length}명</span>
                     </div>
                     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-                      <div className="grid shrink-0 grid-cols-[3rem_1fr_1fr] items-center pb-1 text-center text-sm font-bold text-muted">
+                      <div className="grid shrink-0 grid-cols-[2.75rem_1fr_1fr] items-center pb-1 text-center text-sm font-bold text-muted">
                         <span />
                         {GENDER_OPTIONS.map((g) => (
                           <span key={g.value}>{g.label}</span>
                         ))}
                       </div>
-                      <div className="flex flex-1 flex-col justify-between gap-1.5">
+                      <div className="flex flex-1 flex-col justify-between gap-1">
                         {AGE_OPTIONS.map((a) => (
                           <div
                             key={a.band}
-                            className="grid flex-1 grid-cols-[3rem_1fr_1fr] items-center gap-1.5"
+                            className="grid flex-1 grid-cols-[2.75rem_1fr_1fr] items-center gap-1.5"
                           >
                             <span className="text-base font-extrabold text-ink">{a.label}</span>
                             {GENDER_OPTIONS.map((g) => {
@@ -479,7 +479,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                               return (
                                 <div
                                   key={g.value}
-                                  className="flex items-center justify-center gap-2"
+                                  className="flex items-center justify-center gap-1.5"
                                   data-testid="person-counter"
                                 >
                                   <button
@@ -489,12 +489,12 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                                       busy || !slots.some((s) => match(s) && staffOwned(s))
                                     }
                                     onClick={() => removeLast(match)}
-                                    className="h-14 w-14 shrink-0 rounded-2xl bg-ground text-xl font-extrabold text-ink transition hover:bg-accent-50 active:scale-95 disabled:opacity-30"
+                                    className="h-11 w-11 shrink-0 rounded-2xl bg-ground text-xl font-extrabold text-ink transition hover:bg-accent-50 active:scale-95 disabled:opacity-30 xl:h-12 xl:w-12"
                                   >
                                     −
                                   </button>
                                   <span
-                                    className={`w-7 text-center text-lg font-extrabold tabular-nums ${
+                                    className={`w-6 text-center text-lg font-extrabold tabular-nums ${
                                       n ? "text-ink" : "text-muted/40"
                                     }`}
                                   >
@@ -505,7 +505,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
                                     aria-label={`${label} 더하기`}
                                     disabled={busy}
                                     onClick={() => addPerson(g.value, a.band)}
-                                    className="h-14 w-14 shrink-0 rounded-2xl bg-ground text-xl font-extrabold text-ink transition hover:bg-accent-50 active:scale-95 disabled:opacity-30"
+                                    className="h-11 w-11 shrink-0 rounded-2xl bg-ground text-xl font-extrabold text-ink transition hover:bg-accent-50 active:scale-95 disabled:opacity-30 xl:h-12 xl:w-12"
                                   >
                                     +
                                   </button>

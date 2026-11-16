@@ -63,7 +63,7 @@
     font-size: var(--text-supporting-size);
     font-weight: var(--text-supporting-weight);
     line-height: var(--text-supporting-leading);
-    color: var(--color-text-secondary);
+    color: inherit;
   }
 
   :where(code, pre) {

@@ -370,12 +370,12 @@ export function SettingsPage({ store }: SettingsPageProps) {
                   }`}
                 >
                   <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-ink">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <span className="break-keep text-xs font-bold text-ink">
                         {info.title}
                       </span>
                       <span
-                        className={`chip ${
+                        className={`chip shrink-0 ${
                           m === "CSV_UPLOAD" ? "chip-ok" : "chip-warn"
                         }`}
                       >
@@ -732,7 +732,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
           <div>
             <label htmlFor="settings-f8" className="mb-1.5 block text-xs font-bold text-muted">
               매장명
@@ -768,7 +768,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-7 gap-1.5">
+            <div className="grid grid-cols-7 gap-1 2xl:gap-1.5">
               {ALL_DAYS.map((day) => {
                 const currentDays = businessDays
                   .split(",")

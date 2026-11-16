@@ -496,11 +496,15 @@ table {
   }
 }
 @media (min-width: 768px) and (min-height: 600px) {
-  .menu-management,
-  .ingredient-management {
+  .menu-management {
     display: flex;
     height: calc(var(--app-viewport-height) - var(--app-header-height, 56px) - 3rem);
-    min-height: 0;
+    min-height: 600px;
+    flex-direction: column;
+  }
+  .ingredient-management {
+    display: flex;
+    min-height: max(600px, calc(var(--app-viewport-height) - var(--app-header-height, 56px) - 3rem));
     flex-direction: column;
   }
   .menu-management .page-heading,
@@ -511,29 +515,31 @@ table {
     grid-template-columns: 240px minmax(0, 1fr);
   }
   .ingredient-layout {
-    min-height: 0;
     flex: 1;
     align-items: stretch;
   }
-  .ingredient-side {
-    min-height: 0;
-    max-height: 100%;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
   .menu-list {
-    min-height: 0;
     flex: 1;
   }
   .menu-table-region {
-    min-height: 0;
+    min-height: 310px;
     flex: 1;
     overflow: hidden;
+  }
+  .ingredient-management .menu-table-region {
+    max-height: max(360px, calc(var(--app-viewport-height) - var(--app-header-height, 56px) - 14rem));
   }
   .menu-table-region .astryx-table-scroll-wrapper {
     height: 100%;
     overflow: auto;
     overscroll-behavior: contain;
+  }
+}
+/* 사이드가 표 아래로 쌓이는 폭에서는 높이 고정을 풀고 페이지가 스크롤된다 */
+@media (max-width: 1279px) {
+  .ingredient-management {
+    height: auto;
+    min-height: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -623,6 +629,14 @@ table {
 .inventory-table-region {
   height: 360px;
 }
+.inventory-table th {
+  padding-inline: 6px;
+  line-height: 1.25;
+  white-space: normal;
+}
+.inventory-table td {
+  padding-inline: 6px;
+}
 .inventory-table th,
 .inventory-history-scroll th {
   position: sticky;
@@ -707,16 +721,55 @@ table {
 @media (min-width: 768px) and (min-height: 600px) {
   .inventory-management {
     height: calc(var(--app-viewport-height) - var(--app-header-height, 56px) - 3rem);
-    min-height: 0;
+    min-height: 720px;
   }
   .inventory-list {
-    min-height: 0;
     flex: 1;
   }
   .inventory-table-region {
     height: auto;
-    min-height: 0;
+    min-height: 310px;
     flex: 1;
+  }
+}
+@media (max-width: 1200px) {
+  .inventory-table {
+    font-size: 13px;
+  }
+  .inventory-table th,
+  .inventory-table td {
+    padding-inline: 4px;
+  }
+  .inventory-table th {
+    word-break: keep-all;
+  }
+  .inventory-table th:first-child,
+  .inventory-table td:first-child {
+    min-width: 96px;
+    max-width: 112px;
+    padding-left: 0;
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.25;
+  }
+  .inventory-table th:last-child,
+  .inventory-table td:last-child {
+    padding-right: 0;
+  }
+  .inventory-table .inventory-count-value {
+    gap: 2px;
+  }
+  .inventory-table .inventory-info-button,
+  .inventory-table .inventory-info-placeholder {
+    width: 26px;
+    height: 26px;
+  }
+  .inventory-table-actions {
+    gap: 4px;
+  }
+  .inventory-table-actions .pill-sm {
+    padding: 0 9px;
+    font-size: 12px;
   }
 }
 @media (pointer: coarse) {

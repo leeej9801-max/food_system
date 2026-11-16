@@ -1,8 +1,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { App } from "./app/App";
+// index.css 먼저: @layer 순서를 Astryx CSS보다 앞서 선언해야 Tailwind preflight가 Astryx를 덮지 않는다
 import "./index.css";
+import { App } from "./app/App";
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Switch } from "@astryxdesign/core/Switch";
 import { ApiClientError } from "../api/client";
 import { formatKrwPrice, validateMenuForm } from "../lib/menuValidation";
 import type { MenuItem } from "../types";
@@ -113,52 +114,45 @@ export function MenuFormModal({
     }
   }
 
+  const input = "h-10 w-full rounded-xl bg-ground px-3 text-sm text-ink";
+  const label = "block text-xs font-medium text-muted";
+  const err = "mt-1 text-xs font-semibold text-[#b42318]";
+
   return (
     <Dialog label={initialMenu ? "메뉴 수정" : "새 메뉴 추가"} onClose={handleSafeClose}>
-      <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
-        <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
-          <h2 className="text-lg font-bold text-gray-900">
-            {initialMenu ? "메뉴 수정" : "새 메뉴 추가"}
-          </h2>
-          <button
-            type="button"
-            onClick={handleSafeClose}
-            className="rounded px-2 py-1 text-sm text-gray-500 hover:bg-gray-100"
-          >
+      <div className="card w-full max-w-lg shadow-xl">
+        <div className="card-head">
+          <h2>{initialMenu ? "메뉴 수정" : "새 메뉴 추가"}</h2>
+          <button type="button" onClick={handleSafeClose} className="pill pill-sm pill-soft">
             닫기
           </button>
         </div>
 
         {generalError && (
-          <div
-            role="alert"
-            className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
-          >
-            <strong>저장 실패:</strong> {generalError}
+          <div role="alert" className="mb-4 rounded-2xl bg-[#fdecec] px-4 py-2 text-sm font-semibold text-[#b42318]">
+            저장 실패: {generalError}
           </div>
         )}
 
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-3">
           <div>
-            <label htmlFor="menuform-f1" className="mb-1 block text-sm font-medium text-gray-800">
-              메뉴명 <span className="text-red-600">* (필수)</span>
+            <label htmlFor="menuform-f1" className={label}>
+              메뉴명 *
             </label>
             <input id="menuform-f1"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="예: 제육볶음"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-accent-600"
+              className={`mt-1 ${input}`}
             />
-            {fieldErrors.name && (
-              <p className="mt-1 text-xs font-medium text-red-600">{fieldErrors.name}</p>
-            )}
+            {fieldErrors.name && <p className={err}>{fieldErrors.name}</p>}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor="menuform-f2" className="mb-1 block text-sm font-medium text-gray-800">
-                판매가격 (선택, 원)
+              <label htmlFor="menuform-f2" className={label}>
+                판매가 (원)
               </label>
               <input id="menuform-f2"
                 type="number"
@@ -166,87 +160,59 @@ export function MenuFormModal({
                 step={100}
                 value={sellingPrice}
                 onChange={(e) => setSellingPrice(e.target.value)}
-                placeholder="비워두면 미입력 상태"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-accent-600"
+                placeholder="비워두면 미입력"
+                className={`mt-1 ${input} tabular-nums`}
               />
-              <p className="mt-1 text-xs text-gray-500">
-                표시 미리보기: {formatKrwPrice(sellingPrice)}
-              </p>
-              {fieldErrors.selling_price && (
-                <p className="mt-1 text-xs font-medium text-red-600">
-                  {fieldErrors.selling_price}
-                </p>
-              )}
+              <p className="mt-1 text-xs text-muted">{formatKrwPrice(sellingPrice)}</p>
+              {fieldErrors.selling_price && <p className={err}>{fieldErrors.selling_price}</p>}
             </div>
 
             <div>
-              <label htmlFor="menuform-f3" className="mb-1 block text-sm font-medium text-gray-800">
-                종류 (선택)
+              <label htmlFor="menuform-f3" className={label}>
+                종류
               </label>
               <input id="menuform-f3"
                 type="text"
                 list="menuform-categories"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="예: 파스타, 리조또, 음료"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-accent-600"
+                placeholder="예: 파스타, 음료"
+                className={`mt-1 ${input}`}
               />
               <datalist id="menuform-categories">
                 {categories.map((c) => (
                   <option key={c} value={c} />
                 ))}
               </datalist>
-              {fieldErrors.category && (
-                <p className="mt-1 text-xs font-medium text-red-600">{fieldErrors.category}</p>
-              )}
+              {fieldErrors.category && <p className={err}>{fieldErrors.category}</p>}
             </div>
           </div>
 
           <div>
-            <label htmlFor="menuform-f4" className="mb-1 block text-sm font-medium text-gray-800">
-              설명 / 메모 (선택)
+            <label htmlFor="menuform-f4" className={label}>
+              메모
             </label>
             <textarea id="menuform-f4"
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="메모"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-accent-600"
+              className="mt-1 w-full rounded-xl bg-ground px-3 py-2 text-sm text-ink"
             />
-            {fieldErrors.description && (
-              <p className="mt-1 text-xs font-medium text-red-600">{fieldErrors.description}</p>
-            )}
+            {fieldErrors.description && <p className={err}>{fieldErrors.description}</p>}
           </div>
 
-          <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-            <span className="text-sm font-medium text-gray-800">판매 활성 상태</span>
-            <label className="inline-flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-                className="h-5 w-5 rounded border-gray-300"
-              />
-              <span className="text-sm font-semibold text-gray-800">
-                {isActive ? "판매중(활성)" : "비활성(보관)"}
-              </span>
-            </label>
-          </div>
+          <Switch
+            label={isActive ? "판매중" : "비활성"}
+            value={isActive}
+            onChange={setIsActive}
+          />
 
           <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={handleSafeClose}
-              disabled={submitting}
-              className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
-            >
+            <button type="button" onClick={handleSafeClose} disabled={submitting} className="pill pill-sm pill-soft">
               취소
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-lg bg-accent-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
-            >
+            <button type="submit" disabled={submitting} className="pill pill-sm pill-primary">
               {submitting ? "저장 중..." : initialMenu ? "변경 저장" : "메뉴 추가"}
             </button>
           </div>

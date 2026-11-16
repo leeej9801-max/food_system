@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pagination } from "@astryxdesign/core/Pagination";
+import { InternationalizationProvider } from "@astryxdesign/core/i18n";
+import koKR from "@astryxdesign/core/locales/ko-KR.generated.js";
 import { SegmentedControl, SegmentedControlItem } from "@astryxdesign/core/SegmentedControl";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { Theme } from "@astryxdesign/core/theme";
@@ -424,7 +426,7 @@ function Inventory({ store }: InventoryPageProps) {
                       <td className="!text-right text-muted tabular-nums">{fmt(item.adjustments_since_count_base)}{u}</td>
                       <td className="!text-right font-semibold tabular-nums">{fmt(item.estimated_quantity)}{u}</td>
                       <td><span className={`chip ${status.className}`}>{status.label}</span></td>
-                      <td className="!text-right"><div className="flex justify-end gap-1.5">
+                      <td className="!text-right"><div className="inventory-table-actions flex justify-end gap-1.5">
                         {(Object.keys(ACTION_LABELS) as Action[]).map((action) => (
                           <button key={action} type="button" onClick={() => openAction(item, action)}
                             className={`pill pill-sm ${action === "RECEIPT" ? "pill-dark" : "pill-soft"}`}>{ACTION_LABELS[action]}</button>
@@ -438,8 +440,8 @@ function Inventory({ store }: InventoryPageProps) {
         </div>
         <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-rule pt-3 text-xs text-muted tabular-nums">
           <p role="status" aria-live="polite">{summaryReady ? `${filtered.length > 0 ? `${offset + 1}–${offset + rows.length}` : "0"} / ${filtered.length}종 · 페이지당 ${INVENTORY_PAGE_SIZE}행` : "—"}</p>
-          <Pagination label="재고 목록 페이지" page={page} totalPages={pageCount} size="sm" variant="compact"
-            isDisabled={!summaryReady || filtered.length === 0} onChange={(next) => setPagination({ filterKey, page: next })} />
+          <InternationalizationProvider locale="ko-KR" messages={{ "ko-KR": koKR }}><Pagination label="재고 목록 페이지" page={page} totalPages={pageCount} size="sm" variant="compact"
+            isDisabled={!summaryReady || filtered.length === 0} onChange={(next) => setPagination({ filterKey, page: next })} /></InternationalizationProvider>
         </footer>
       </section>
 

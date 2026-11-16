@@ -8,6 +8,8 @@ import { Heading } from "@astryxdesign/core/Heading";
 import { MoreMenu } from "@astryxdesign/core/MoreMenu";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { Pagination } from "@astryxdesign/core/Pagination";
+import { InternationalizationProvider } from "@astryxdesign/core/i18n";
+import koKR from "@astryxdesign/core/locales/ko-KR.generated.js";
 import { SegmentedControl, SegmentedControlItem } from "@astryxdesign/core/SegmentedControl";
 import { Selector } from "@astryxdesign/core/Selector";
 import { Switch } from "@astryxdesign/core/Switch";
@@ -236,14 +238,14 @@ function IngredientManagement({ store }: Props) {
     {
       key: "name",
       header: "식자재명",
-      width: proportional(1.4, { minWidth: 140 }),
+      width: proportional(1.4, { minWidth: 120 }),
       align: "start",
       renderCell: (r) => <Text color={dim(r)}>{r.name}</Text>,
     },
     {
       key: "safety_stock",
       header: "안전재고",
-      width: proportional(1, { minWidth: 100 }),
+      width: proportional(1, { minWidth: 88 }),
       align: "end",
       renderCell: (r) => (
         <Text color={dim(r)}>
@@ -254,21 +256,21 @@ function IngredientManagement({ store }: Props) {
     {
       key: "linked_menu_count",
       header: "연결 메뉴 수",
-      width: proportional(0.9, { minWidth: 96 }),
+      width: proportional(0.9, { minWidth: 80 }),
       align: "center",
       renderCell: (r) => <Text color={dim(r)}>{r.linked_menu_count}</Text>,
     },
     {
       key: "stock_status",
       header: "상태",
-      width: proportional(0.9, { minWidth: 96 }),
+      width: proportional(0.9, { minWidth: 84 }),
       align: "center",
       renderCell: (r) => <Badge {...STATUS[r.stock_status]} />,
     },
     {
       key: "is_active",
       header: "활성화",
-      width: proportional(0.8, { minWidth: 84 }),
+      width: proportional(0.8, { minWidth: 72 }),
       align: "center",
       renderCell: (r) => (
         <Switch
@@ -333,7 +335,7 @@ function IngredientManagement({ store }: Props) {
         </div>
       </div>
 
-      <div className="ingredient-layout grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-5">
+      <div className="ingredient-layout grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-5">
         <section className="card menu-list flex min-w-0 flex-col gap-4" aria-label="식자재 목록">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
             <div className="flex min-w-0 flex-wrap items-center gap-3">
@@ -414,6 +416,7 @@ function IngredientManagement({ store }: Props) {
                 전체 식자재 {all.length}개 · 사용중 {inUseCount} · 입고필요 {restock.length}
               </span>
             </div>
+            <InternationalizationProvider locale="ko-KR" messages={{ "ko-KR": koKR }}>
             <Pagination
               label="식자재 목록 페이지"
               page={page}
@@ -425,6 +428,7 @@ function IngredientManagement({ store }: Props) {
               }
               onChange={(next) => setPagination({ filterKey, page: next })}
             />
+            </InternationalizationProvider>
           </footer>
         </section>
 
@@ -478,6 +482,7 @@ function IngredientManagement({ store }: Props) {
         isOpen={form !== null}
         onOpenChange={(open) => !open && setForm(null)}
         purpose="form"
+        aria-label={form?.id ? "식자재 수정" : "식자재 추가"}
         width={420}
       >
         {form && (

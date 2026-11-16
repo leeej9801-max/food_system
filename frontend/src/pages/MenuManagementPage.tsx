@@ -5,6 +5,8 @@ import { Button } from "@astryxdesign/core/Button";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { MoreMenu } from "@astryxdesign/core/MoreMenu";
 import { Pagination } from "@astryxdesign/core/Pagination";
+import { InternationalizationProvider } from "@astryxdesign/core/i18n";
+import koKR from "@astryxdesign/core/locales/ko-KR.generated.js";
 import { SegmentedControl, SegmentedControlItem } from "@astryxdesign/core/SegmentedControl";
 import { Switch } from "@astryxdesign/core/Switch";
 import { Table, pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
@@ -185,11 +187,11 @@ function MenuManagement({ store }: MenuManagementPageProps) {
   }
 
   const columns: TableColumn<Row>[] = [
-    { key: "no", header: "no", width: pixel(48), align: "start" },
+    { key: "no", header: "no", width: pixel(44), align: "start" },
     {
       key: "category",
       header: "종류",
-      width: proportional(1, { minWidth: 100 }),
+      width: proportional(0.9, { minWidth: 72 }),
       align: "start",
       renderCell: (m) =>
         m.category ? (
@@ -203,7 +205,7 @@ function MenuManagement({ store }: MenuManagementPageProps) {
     {
       key: "name",
       header: "메뉴 이름",
-      width: proportional(1.5, { minWidth: 180 }),
+      width: proportional(1.5, { minWidth: 120 }),
       align: "start",
       renderCell: (m) => (
         <Text weight="medium" color={m.is_active ? "primary" : "secondary"}>
@@ -214,14 +216,14 @@ function MenuManagement({ store }: MenuManagementPageProps) {
     {
       key: "selling_price",
       header: "가격",
-      width: proportional(1, { minWidth: 110 }),
+      width: proportional(0.9, { minWidth: 84 }),
       align: "start",
       renderCell: (m) => (m.selling_price !== null ? formatKrwPrice(m.selling_price) : <Text color="secondary">미입력</Text>),
     },
     {
       key: "is_active",
       header: "운영",
-      width: proportional(1, { minWidth: 140 }),
+      width: proportional(1, { minWidth: 96 }),
       align: "start",
       renderCell: (m) => (
         <MenuOperatingSwitch
@@ -235,7 +237,7 @@ function MenuManagement({ store }: MenuManagementPageProps) {
     {
       key: "recipe_status",
       header: "레시피",
-      width: proportional(1, { minWidth: 140 }),
+      width: proportional(1, { minWidth: 96 }),
       align: "start",
       renderCell: (m) => {
         const status = m.recipe_status === "COMPLETE"
@@ -258,7 +260,7 @@ function MenuManagement({ store }: MenuManagementPageProps) {
     {
       key: "actions",
       header: "관리",
-      width: pixel(64),
+      width: pixel(60),
       align: "start",
       renderCell: (m) => (
         <MoreMenu
@@ -424,6 +426,7 @@ function MenuManagement({ store }: MenuManagementPageProps) {
             <span>{menus.length > 0 ? `${offset + 1}–${offset + rows.length}` : "0"} / {menus.length}개 · 페이지당 {PAGE_SIZE}개</span>
             <span>전체 메뉴 {totalMenus}개 · 운영중 {activeCount} · 출시대기 {standbyCount}</span>
           </div>
+          <InternationalizationProvider locale="ko-KR" messages={{ "ko-KR": koKR }}>
           <Pagination
             label="메뉴 목록 페이지"
             page={page}
@@ -433,6 +436,7 @@ function MenuManagement({ store }: MenuManagementPageProps) {
             isDisabled={menusQuery.isLoading || menusQuery.isError || menus.length === 0}
             onChange={(next) => setPagination({ filterKey, page: next })}
           />
+          </InternationalizationProvider>
         </footer>
       </section>
 
