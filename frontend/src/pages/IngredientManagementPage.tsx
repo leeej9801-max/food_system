@@ -494,10 +494,21 @@ function IngredientManagement({ store }: Props) {
   const safetyMutation = useMutation({
     mutationFn: ({ id, safety_stock }: { id: string; safety_stock: number }) =>
       updateIngredient(store.id, id, { safety_stock }),
-    onSuccess: () => {
-      refresh();
+    // 상태(부족/충분)를 바로 바꾸려고 목록 캐시를 먼저 고치고, 실패하면 되돌린다
+    onMutate: async ({ id, safety_stock }) => {
+      const key = ["ingredients", store.id, "all"];
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<Ingredient[]>(key);
+      queryClient.setQueryData<Ingredient[]>(key, (list) =>
+        list?.map((i) => (i.id === id ? { ...i, safety_stock: String(safety_stock) } : i))
+      );
+      return { previous };
     },
-    onError: (err) => {
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["ingredients", store.id] });
+    },
+    onError: (err, _v, context) => {
+      if (context?.previous) queryClient.setQueryData(["ingredients", store.id, "all"], context.previous);
       fail(err, "안전재고를 저장하지 못했습니다");
     },
   });

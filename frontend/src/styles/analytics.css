@@ -66,7 +66,7 @@
   .analytics-page .age-stat small { color: var(--kpi-sub); font-weight: 500; margin-left: 3px; font-size: 10px; }
   .analytics-page .rel-body { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; align-items: center; }
   .analytics-page .rel-summary { display: flex; flex-direction: column; gap: 12px; }
-  .analytics-page .rel-menus { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .analytics-page .rel-menus { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .analytics-page .rel-group { min-width: 0; background: var(--kpi-soft); border-radius: 14px; padding: 14px 16px; }
   .analytics-page .rel-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 13px; flex-wrap: wrap; }
   .analytics-page .rel-head i { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
