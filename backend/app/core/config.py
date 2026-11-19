@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     # 기본값 없음: DATABASE_URL이 없으면 기동하지 않는다 (SEC-001)
     database_url: str
     app_timezone: str = "Asia/Seoul"
-    cors_allowed_origins: str = "http://localhost:5173"
+    cors_allowed_origins: str = "http://localhost:5173,http://localhost:5174"
     pos_mode: str = "csv"
     kakao_rest_api_key: str = ""
     kakao_client_secret: str = ""
@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     staff_frontend_url: str = "http://localhost:5175"
     # 미설정 시 카카오 client secret에서 용도를 분리한 HMAC 키를 유도한다.
     staff_auth_signing_key: str = ""
+    # 점주 카카오 로그인. 카카오 콘솔 Redirect URI에 owner_kakao_redirect_uri를 등록해야 한다.
+    owner_kakao_redirect_uri: str = "http://localhost:8001/api/v1/auth/owner/kakao/callback"
+    owner_frontend_url: str = "http://localhost:5174"
+    # 미설정 시 카카오 client secret에서 점주 전용 HMAC 키를 유도한다.
+    owner_auth_signing_key: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

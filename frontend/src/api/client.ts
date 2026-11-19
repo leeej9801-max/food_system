@@ -25,6 +25,7 @@ export async function apiRequest<T>(
   init?: RequestInit
 ): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
+    credentials: "include", // 점주·직원 인증은 HttpOnly 쿠키라 교차 출처 요청에도 보낸다.
     ...init,
     headers: {
       "Content-Type": "application/json",

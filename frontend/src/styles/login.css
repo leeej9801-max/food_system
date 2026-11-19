@@ -1,0 +1,504 @@
+@layer components {
+  .login-page {
+    position: relative;
+    min-height: var(--app-viewport-height, 100dvh);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: var(--color-ground, #f1f4f9);
+    color: var(--color-ink, #0f1e3d);
+    padding: 24px 20px;
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .login-page.is-initializing,
+  .login-page.is-initializing * {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* 배경 장식 레이어 (dev_skm LoginBackground 포트 · 블루 팔레트) */
+  .login-page .login-page-decor {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .login-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(47, 107, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(47, 107, 255, 0.045) 1px, transparent 1px);
+    background-size: 44px 44px;
+    opacity: 0.75;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .login-page::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(47, 107, 255, 0.07) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .login-page .login-page-glow {
+    position: absolute;
+    width: 720px;
+    height: 720px;
+    border-radius: 50%;
+    filter: blur(110px);
+    opacity: 0.16;
+    z-index: 2;
+  }
+
+  .login-page .login-glow-1 {
+    top: -220px;
+    left: -220px;
+    background: radial-gradient(circle, #2f6bff 0%, transparent 70%);
+  }
+
+  .login-page .login-glow-2 {
+    bottom: -220px;
+    right: -220px;
+    background: radial-gradient(circle, #0f1e3d 0%, transparent 70%);
+  }
+
+  .login-page .login-page-shape {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(47, 107, 255, 0.09) 0%, transparent 70%);
+    z-index: 2;
+  }
+
+  .login-page .shape-circle-1 {
+    width: 380px;
+    height: 380px;
+    top: -90px;
+    right: -90px;
+  }
+
+  .login-page .shape-square-1 {
+    width: 280px;
+    height: 280px;
+    border-radius: 56px;
+    bottom: -50px;
+    left: 8%;
+    transform: rotate(15deg);
+    background: radial-gradient(circle, rgba(15, 30, 61, 0.06) 0%, transparent 72%);
+  }
+
+  .login-page .login-page-line {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, rgba(47, 107, 255, 0.1), transparent);
+    height: 1px;
+    width: 120%;
+    left: -10%;
+    z-index: 2;
+  }
+
+  .login-page .login-page-line-1 {
+    top: 20%;
+    transform: rotate(-8deg);
+  }
+
+  .login-page .login-page-line-2 {
+    top: 52%;
+    transform: rotate(4deg);
+  }
+
+  .login-page .login-page-line-3 {
+    bottom: 16%;
+    transform: rotate(-3deg);
+  }
+
+  .login-page .login-page-node {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: rgba(47, 107, 255, 0.28);
+    border-radius: 50%;
+    z-index: 2;
+    box-shadow: 0 0 10px rgba(47, 107, 255, 0.15);
+  }
+
+  .login-page .node-bg-1 {
+    top: 15%;
+    left: 10%;
+  }
+
+  .login-page .node-bg-2 {
+    top: 45%;
+    right: 15%;
+  }
+
+  .login-page .node-bg-3 {
+    bottom: 25%;
+    left: 20%;
+  }
+
+  .login-page .node-bg-4 {
+    bottom: 15%;
+    right: 12%;
+    width: 12px;
+    height: 12px;
+    background: rgba(47, 107, 255, 0.35);
+  }
+
+  /* 메인 결합 카드 (border 없음, radius 16px) */
+  .login-page .login-combined-card {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 520px 460px;
+    width: min(980px, 100%);
+    min-height: 580px;
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 0;
+    box-shadow:
+      0 28px 80px rgba(15, 30, 61, 0.1),
+      0 6px 24px rgba(47, 107, 255, 0.06);
+    overflow: hidden;
+    margin: 0 auto;
+  }
+
+  /* 좌측 비주얼 패널 (dev_skm LoginVisualPanel 포트 · 블루 팔레트) */
+  .login-page .login-background {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 12% 12%, rgba(255, 255, 255, 0.14), transparent 42%),
+      linear-gradient(145deg, #2f6bff 0%, #1f55e0 48%, #0f1e3d 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .login-page .login-background::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    z-index: 0;
+  }
+
+  .login-page .login-background::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 75% 28%, rgba(47, 107, 255, 0.25) 0%, transparent 58%),
+      radial-gradient(circle at 82% 82%, rgba(255, 255, 255, 0.1) 0%, transparent 42%);
+    z-index: 1;
+  }
+
+  .login-page .login-visual-content {
+    position: relative;
+    z-index: 2;
+    padding: 64px 48px 48px;
+    color: #ffffff;
+  }
+
+  .login-page .login-visual-kicker {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  .login-page .login-visual-title {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.28;
+    letter-spacing: -0.03em;
+    margin-bottom: 32px;
+    word-break: keep-all;
+  }
+
+  .login-page .login-visual-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .login-page .login-visual-chip {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    border: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+    backdrop-filter: blur(16px);
+  }
+
+  .login-page .login-visual-assets {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .login-page .data-flow-node {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 14px rgba(255, 255, 255, 0.8);
+  }
+
+  .login-page .node-1 {
+    top: 28%;
+    right: 18%;
+    opacity: 0.6;
+  }
+
+  .login-page .node-2 {
+    bottom: 36%;
+    left: 26%;
+    opacity: 0.45;
+  }
+
+  .login-page .node-3 {
+    bottom: 18%;
+    right: 16%;
+    opacity: 0.35;
+  }
+
+  .login-page .node-4 {
+    top: 16%;
+    left: 44%;
+    opacity: 0.25;
+  }
+
+  .login-page .login-visual-orb {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .login-page .login-visual-orb-main {
+    right: -48px;
+    bottom: -48px;
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(
+      circle at 35% 35%,
+      rgba(255, 255, 255, 0.32) 0%,
+      rgba(111, 151, 255, 0.22) 45%,
+      rgba(15, 30, 61, 0.05) 100%
+    );
+    box-shadow: 0 24px 60px rgba(15, 30, 61, 0.3);
+  }
+
+  .login-page .login-visual-orb-sub {
+    top: 56px;
+    right: 48px;
+    width: 96px;
+    height: 96px;
+    background: radial-gradient(
+      circle at 30% 30%,
+      rgba(255, 255, 255, 0.26) 0%,
+      rgba(47, 107, 255, 0.08) 100%
+    );
+  }
+
+  /* 우측 로그인 패널 */
+  .login-page .login-form-panel {
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 36px;
+    height: 100%;
+    min-height: 0;
+    position: relative;
+  }
+
+  .login-page .login-card-viewport {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .login-page .login-card {
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 0;
+  }
+
+  .login-page .login-logo-mark {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--color-accent-600, #2f6bff);
+    letter-spacing: 0.12em;
+    margin-bottom: 16px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .login-page h1 {
+    font-size: 32px;
+    line-height: 1.25;
+    margin: 0 0 36px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0f1e3d);
+    text-align: center;
+  }
+
+  .login-page .social-button-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .login-page .social-login-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 54px;
+    padding: 0 20px;
+    border-radius: 16px;
+    border: 0;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .login-page .social-login-button:focus-visible {
+    outline: 3px solid var(--color-accent-600, #2f6bff);
+    outline-offset: 2px;
+  }
+
+  /* 카카오 브랜드 가이드: #FEE500 배경 / 검정 텍스트 */
+  .login-page .social-login-kakao {
+    background-color: #fee500;
+    color: #000000;
+    box-shadow: 0 8px 20px rgba(15, 30, 61, 0.08);
+  }
+
+  .login-page .social-login-kakao:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(15, 30, 61, 0.12);
+  }
+
+  .login-page .social-login-kakao:disabled {
+    opacity: 0.65;
+    cursor: wait;
+  }
+
+  /* Google로 시작하기 (비활성 / 준비 중) */
+  .login-page .social-login-google {
+    background-color: var(--color-ground, #f1f4f9);
+    color: var(--color-muted, #636d81);
+    cursor: not-allowed;
+  }
+
+  .login-page .social-button-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .login-page .social-ready-badge {
+    margin-left: auto;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background-color: #ffffff;
+    color: var(--color-muted, #636d81);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .login-page .login-error-box {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 0;
+    background-color: #fdecec;
+    color: #b42318;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .login-page .login-links {
+    margin-top: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-muted, #636d81);
+  }
+
+  .login-page .login-links a {
+    color: var(--color-muted, #636d81);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .login-page .login-links a:hover {
+    color: var(--color-accent-600, #2f6bff);
+  }
+
+  @media (max-width: 960px) {
+    .login-page .login-background,
+    .login-page .login-page-decor {
+      display: none;
+    }
+
+    .login-page .login-combined-card {
+      grid-template-columns: 1fr;
+      width: min(440px, 100%);
+      min-height: auto;
+    }
+
+    .login-page .login-form-panel {
+      padding: 40px 24px;
+    }
+
+    .login-page h1 {
+      font-size: 28px;
+      margin-bottom: 28px;
+    }
+  }
+}

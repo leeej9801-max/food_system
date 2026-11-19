@@ -30,6 +30,7 @@ def create_app() -> FastAPI:
         sensitive = (
             "/staff-access" in request.url.path
             or "/auth/kakao" in request.url.path
+            or "/auth/owner" in request.url.path
             or "/attendance/" in request.url.path
         )
         try:
