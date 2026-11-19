@@ -130,5 +130,16 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(Exception)
     async def handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
-        logger.error("Unhandled error: %s %s", request.method, request.url.path, exc_info=exc)
+        sensitive = (
+            "/auth/kakao" in request.url.path
+            or "/staff-access" in request.url.path
+            or "/attendance/" in request.url.path
+        )
+        # 인증 SQL/HTTP 예외에는 secret·토큰이 포함될 수 있어 traceback을 기록하지 않는다.
+        logger.error(
+            "Unhandled error: %s %s",
+            request.method,
+            request.url.path,
+            exc_info=None if sensitive else exc,
+        )
         return problem_response(request, 500, "INTERNAL_ERROR", "서버 오류가 발생했습니다.")

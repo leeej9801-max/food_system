@@ -1,9 +1,23 @@
+from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.db.models import VisitSession
+
+
+def summary_between(db: Session, store_id: UUID, start: datetime, end: datetime) -> tuple[int, int]:
+    row = db.execute(
+        select(
+            func.count(VisitSession.id), func.coalesce(func.sum(VisitSession.party_size), 0)
+        ).where(
+            VisitSession.store_id == store_id,
+            VisitSession.seated_at >= start,
+            VisitSession.seated_at < end,
+        )
+    ).one()
+    return int(row[0]), int(row[1])
 
 
 def add(db: Session, visit: VisitSession) -> None:

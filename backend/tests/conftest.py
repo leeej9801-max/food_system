@@ -80,7 +80,24 @@ def _clean_tables(owner_engine: Engine) -> Generator[None, None, None]:
     yield
     tables = ", ".join(t.name for t in Base.metadata.sorted_tables)
     with owner_engine.begin() as conn:
+        # 격리 테스트 DB 소유자만 불변 근태 이력을 정리한다. 런타임에는 이 권한이 없다.
+        for table in (
+            "attendance_events",
+            "attendance_corrections",
+            "audit_logs",
+            "attendance_event_retries",
+            "attendance_qr_uses",
+        ):
+            conn.exec_driver_sql(f"ALTER TABLE {table} DISABLE TRIGGER attendance_immutable")
         conn.exec_driver_sql(f"TRUNCATE {tables} CASCADE")
+        for table in (
+            "attendance_events",
+            "attendance_corrections",
+            "audit_logs",
+            "attendance_event_retries",
+            "attendance_qr_uses",
+        ):
+            conn.exec_driver_sql(f"ALTER TABLE {table} ENABLE TRIGGER attendance_immutable")
 
 
 @pytest.fixture
