@@ -152,9 +152,8 @@ def test_demo_seed_attendance(context, monkeypatch):
     )
     assert shifts == sorted(
         [
-            ("김서윤", 780, 870),
-            ("박도현", 750, 810),
-            ("박도현", 870, 930),
+            ("김서윤", 660, 900),
+            ("박도현", 660, 900),
             ("최유진", 750, 810),
             ("윤민재", 750, 810),
             ("한지우", 690, 750),
@@ -169,8 +168,8 @@ def test_demo_seed_attendance(context, monkeypatch):
         for row in result["sessions"]
     }
     assert actual == {
-        "김서윤": ("04:00", None),
-        "박도현": ("03:42", "04:30"),
+        "김서윤": ("02:30", None),
+        "박도현": ("02:40", None),
         "최유진": ("03:30", "04:15"),
         "윤민재": ("03:30", "04:45"),
         "한지우": ("02:30", "03:30"),

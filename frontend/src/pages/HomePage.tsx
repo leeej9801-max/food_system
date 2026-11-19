@@ -174,40 +174,82 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
     },
   });
 
+  // 인원 +/−는 화면 숫자를 먼저 바꾸고(낙관적), 같은 방문의 저장은 순서대로 보낸다(scope).
+  // 연타해도 이전 저장이 끝난 뒤의 자리 번호로 요청해 SLOT_NOT_FOUND 404가 나지 않는다.
+  const tablesKey = ["tables", store.id];
+  async function patchSlots(visitId: string, change: (slots: VisitSlot[]) => VisitSlot[]) {
+    await queryClient.cancelQueries({ queryKey: tablesKey });
+    const previous = queryClient.getQueryData<StoreTable[]>(tablesKey);
+    queryClient.setQueryData<StoreTable[]>(tablesKey, (tables) =>
+      tables?.map((t) =>
+        t.active_visit?.id === visitId
+          ? { ...t, active_visit: { ...t.active_visit, slots: change(t.active_visit.slots) } }
+          : t
+      )
+    );
+    return { previous };
+  }
+  function rollback(context: { previous?: StoreTable[] } | undefined, err: unknown, fallback: string) {
+    if (context?.previous) queryClient.setQueryData(tablesKey, context.previous);
+    setBanner({ type: "error", text: `${errorText(err, fallback)} 다시 시도해 주세요.` });
+  }
+  const slotScope = { id: `visit-slots-${activeVisit?.id ?? "none"}` };
+  // 연타 중간에 다시 불러오면 아직 덜 저장된 서버 값으로 숫자가 되돌아갔다 다시 오른다.
+  // 같은 종류의 저장이 모두 끝난 마지막 한 번만 서버 값과 맞춘다.
+  const slotKey = ["visit-slots", store.id];
+  function settleSlots() {
+    if (queryClient.isMutating({ mutationKey: slotKey }) <= 1) refreshFloor();
+  }
+
   const slotMutation = useMutation({
-    mutationFn: (params: { slotNo: number; gender?: GenderType; age_band?: AgeBandType }) => {
-      if (!activeVisit) throw new Error("진행 중인 방문 세션이 없습니다.");
-      return updateVisitSlot(store.id, activeVisit.id, params.slotNo, {
+    scope: slotScope,
+    mutationKey: slotKey,
+    mutationFn: (params: { visitId: string; slotNo: number; gender?: GenderType; age_band?: AgeBandType }) =>
+      updateVisitSlot(store.id, params.visitId, params.slotNo, {
         gender: params.gender,
         age_band: params.age_band,
-      });
-    },
-    onSuccess: () => refreshFloor(),
-    onError: (err: unknown) => {
-      setBanner({ type: "error", text: errorText(err, "객층 입력에 실패했습니다.") });
-    },
+      }),
+    onMutate: (p) =>
+      patchSlots(p.visitId, (slots) =>
+        slots.map((s) =>
+          s.slot_no === p.slotNo
+            ? { ...s, gender: p.gender ?? s.gender, age_band: p.age_band ?? s.age_band, profile_source: "STAFF" }
+            : s
+        )
+      ),
+    onSettled: () => settleSlots(),
+    onError: (err, _p, context) => rollback(context, err, "객층 입력에 실패했습니다."),
   });
 
   const addSlotMutation = useMutation({
-    mutationFn: (p: { gender: GenderType; age_band: AgeBandType }) => {
-      if (!activeVisit) throw new Error("진행 중인 방문 세션이 없습니다.");
-      return addVisitSlot(store.id, activeVisit.id, p);
-    },
-    onSuccess: () => refreshFloor(),
-    onError: (err: unknown) => {
-      setBanner({ type: "error", text: errorText(err, "인원 추가에 실패했습니다.") });
-    },
+    scope: slotScope,
+    mutationKey: slotKey,
+    mutationFn: (p: { visitId: string; gender: GenderType; age_band: AgeBandType }) =>
+      addVisitSlot(store.id, p.visitId, { gender: p.gender, age_band: p.age_band }),
+    onMutate: (p) =>
+      patchSlots(p.visitId, (slots) => [
+        ...slots,
+        {
+          // 서버도 max(slot_no)+1로 만든다 (backend/app/services/guest.py)
+          slot_no: Math.max(0, ...slots.map((s) => s.slot_no)) + 1,
+          state: "ACTIVE",
+          is_claimed: false,
+          gender: p.gender,
+          age_band: p.age_band,
+          profile_source: "STAFF",
+        },
+      ]),
+    onSettled: () => settleSlots(),
+    onError: (err, _p, context) => rollback(context, err, "인원 추가에 실패했습니다."),
   });
 
   const removeSlotMutation = useMutation({
-    mutationFn: (slotNo: number) => {
-      if (!activeVisit) throw new Error("진행 중인 방문 세션이 없습니다.");
-      return removeVisitSlot(store.id, activeVisit.id, slotNo);
-    },
-    onSuccess: () => refreshFloor(),
-    onError: (err: unknown) => {
-      setBanner({ type: "error", text: errorText(err, "인원 빼기에 실패했습니다.") });
-    },
+    scope: slotScope,
+    mutationKey: slotKey,
+    mutationFn: (p: { visitId: string; slotNo: number }) => removeVisitSlot(store.id, p.visitId, p.slotNo),
+    onMutate: (p) => patchSlots(p.visitId, (slots) => slots.filter((s) => s.slot_no !== p.slotNo)),
+    onSettled: () => settleSlots(),
+    onError: (err, _p, context) => rollback(context, err, "인원 빼기에 실패했습니다."),
   });
 
   const updateOrderMutation = useMutation({
@@ -284,24 +326,23 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
   const slots: VisitSlot[] = activeVisit?.slots ?? [];
   const contextByGuest = activeVisit?.context_source === "GUEST";
-  const busy =
-    updateVisitMutation.isPending ||
-    slotMutation.isPending ||
-    addSlotMutation.isPending ||
-    removeSlotMutation.isPending;
+  // 인원 +/−는 잠그지 않는다(낙관적 반영). 상태·동반관계 변경만 저장 중 잠금.
+  const busy = updateVisitMutation.isPending;
   const csvMode = integrationQuery.data?.mode === "CSV_UPLOAD";
   const blankSlots = slots.filter(isBlank);
 
   // +: 빈 자리(손님 QR로 열린 미입력 자리)가 있으면 채우고, 없으면 한 명 추가 (U-48)
   function addPerson(gender: GenderType, age_band: AgeBandType) {
+    if (!activeVisit) return;
     const blank = blankSlots.find(staffOwned);
-    if (blank) slotMutation.mutate({ slotNo: blank.slot_no, gender, age_band });
-    else addSlotMutation.mutate({ gender, age_band });
+    if (blank) slotMutation.mutate({ visitId: activeVisit.id, slotNo: blank.slot_no, gender, age_band });
+    else addSlotMutation.mutate({ visitId: activeVisit.id, gender, age_band });
   }
 
   function removeLast(match: (s: VisitSlot) => boolean) {
+    if (!activeVisit) return;
     const slot = slots.filter((s) => match(s) && staffOwned(s)).at(-1);
-    if (slot) removeSlotMutation.mutate(slot.slot_no);
+    if (slot) removeSlotMutation.mutate({ visitId: activeVisit.id, slotNo: slot.slot_no });
   }
 
   return (

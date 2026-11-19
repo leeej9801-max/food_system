@@ -207,19 +207,18 @@ def _demo_day_plans(
 ) -> list[tuple[int, int, int | None, int | None]]:
     """(예정 시작, 예정 종료, 실제 출근, 실제 퇴근). 시각은 매장 자정 기준 분."""
     anchor = minute // 30 * 30
-    if anchor - 150 >= opening and minute < closing:
+    if anchor - 180 >= opening and minute < closing:
         start, end = anchor - 90, anchor - 30
+        long_end = min(anchor + 60, closing)
         all_plans: list[list[tuple[int, int, int | None, int | None]]] = [
-            [(anchor - 60, anchor + 30, anchor - 60, None)],
-            [(start, end, start + 12, end)],
+            # 홀·주방: 30분/40분 지각 후 2시간 넘게 근무 중
+            [(anchor - 180, long_end, anchor - 150, None)],
+            [(anchor - 180, long_end, anchor - 140, None)],
             [(start, end, start, end - 15)],
             [(start, end, start, end + 15)],
             [(anchor - 150, start, anchor - 150, start), (anchor - 60, anchor, None, None)],
         ]
-        plans = all_plans[index]
-        if index == 1 and anchor + 90 <= closing:
-            plans.append((anchor + 30, anchor + 90, None, None))
-        return plans
+        return all_plans[index]
 
     start = min(opening + index * 30, closing - 60)
     end = min(start + 240, closing)
@@ -293,8 +292,13 @@ def _seed_attendance(
         )
         for index, staff_id in staff_ids.items():
             existing = scheduled[day, staff_id]
-            if any(shift.label != SAMPLE for shift in existing):
+            if any(
+                shift.label != SAMPLE and shift.id not in _seed_shift_ids(staff_id, day)
+                for shift in existing
+            ):
                 continue
+            for shift in existing:  # 예전 시드의 "demo:bistro:v2" 라벨을 근무 유형으로 교체
+                shift.label = _shift_label(shift.start_minute, shift.end_minute)
             if recorded:
                 # 당일 시연을 보존하고 날짜가 지난 열린 근무만 퇴근 원본을 추가한다.
                 if day < today:
@@ -323,6 +327,7 @@ def _seed_attendance(
                 if slot < len(existing):
                     shift = existing[slot]
                     shift.start_minute, shift.end_minute = start, end
+                    shift.label = _shift_label(start, end)
                 else:
                     shift = AttendanceShift(
                         id=uuid5(staff_id, f"{SAMPLE}:shift:{day}:{slot}"),
@@ -331,11 +336,24 @@ def _seed_attendance(
                         work_date=day,
                         start_minute=start,
                         end_minute=end,
-                        label=SAMPLE,
+                        label=_shift_label(start, end),
                     )
                     db.add(shift)
                 _add_demo_event(db, shift, "IN", midnight, clock_in, now, events)
                 _add_demo_event(db, shift, "OUT", midnight, clock_out, now, events)
+
+
+def _seed_shift_ids(staff_id: UUID, day: date) -> set[UUID]:
+    # 시연 근무는 결정적 id로 구분한다(라벨은 화면에 보이는 근무 유형이라 표식으로 쓰지 않는다).
+    return {uuid5(staff_id, f"{SAMPLE}:shift:{day}:{slot}") for slot in range(3)}
+
+
+def _shift_label(start: int, end: int) -> str:
+    if end <= 15 * 60:
+        return "오전 타임"
+    if start >= 14 * 60:
+        return "오후 타임"
+    return "풀타임"
 
 
 def _add_demo_event(
@@ -640,7 +658,11 @@ def _seed_activity(
                         ingredient_id=ingredient.id,
                         actual_quantity=(ingredient.safety_stock or Decimal(0)) * 2,
                         base_unit=ingredient.base_unit,
-                        counted_at=datetime.combine(day, time(23), zone),
+                        # 오늘 실사를 23시(미래)로 넣으면 이후 실제 실사가 무시된다
+                        counted_at=min(
+                            datetime.combine(day, time(23), zone),
+                            datetime.now(zone) - timedelta(minutes=5),
+                        ),
                         notes=SAMPLE,
                     )
                 )

@@ -12,10 +12,10 @@ export function prefersReducedMotion(): boolean {
 }
 
 /**
- * KPI 숫자 등이 바뀔 때 목표값까지 부드럽게 카운트 업/다운한다 (기본 400ms ease-out).
+ * KPI 숫자 등이 바뀔 때 목표값까지 부드럽게 카운트 업/다운한다 (기본 900ms ease-out, 느린 네트워크 뒤 늦게 떠도 차분하게).
  * SSR 및 `prefers-reduced-motion: reduce` 환경에서는 즉시 목표값을 반환한다.
  */
-export function useAnimatedNumber(target: number | null, durationMs = 400): number | null {
+export function useAnimatedNumber(target: number | null, durationMs = 900): number | null {
   const reduced = prefersReducedMotion();
   const initialValue = !reduced && target !== null ? 0 : target;
   const [shown, setShown] = useState<number | null>(initialValue);

@@ -202,13 +202,22 @@ function PnlCalendar({
                     ? "text-accent-700"
                     : "text-ink";
             return (
-              <button
-                type="button"
+              // 날씨 아이콘이 자체 버튼(툴팁)이라 칸은 div+role=button (button 중첩 금지)
+              <div
+                role="button"
+                tabIndex={0}
                 key={d.date}
                 aria-current={isToday ? "date" : undefined}
                 aria-pressed={isSel}
                 onClick={() => setPicked(d.date)}
-                className={`flex min-h-[92px] min-w-0 flex-col gap-1.5 rounded-xl border-2 p-1.5 text-left transition-colors ${
+                onKeyDown={(e) => {
+                  if (e.target !== e.currentTarget) return;
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setPicked(d.date);
+                  }
+                }}
+                className={`flex min-h-[92px] cursor-pointer min-w-0 flex-col gap-1.5 rounded-xl border-2 p-1.5 text-left transition-colors ${
                   isToday
                     ? "border-accent-600 bg-accent-600 text-white ring-2 ring-accent-300 ring-offset-1"
                     : isSel
@@ -236,7 +245,7 @@ function PnlCalendar({
                 {closed && (
                   <div className="mt-auto w-full rounded-lg bg-white py-1 text-center text-[13px] text-muted">휴무</div>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>
