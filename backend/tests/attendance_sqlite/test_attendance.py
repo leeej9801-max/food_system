@@ -61,8 +61,8 @@ def context(monkeypatch):
     )
     with engine.begin() as connection:
         with Operations.context(MigrationContext.configure(connection)):
-            migration("0014_attendance.py").upgrade()
-            migration("0015_attendance_integrity.py").upgrade()
+            migration("0015_attendance.py").upgrade()
+            migration("0016_attendance_integrity.py").upgrade()
     with Session(engine) as db:
         store = Store(
             name="테스트 매장",
@@ -605,7 +605,7 @@ def test_migration_roundtrip_preserves_legacy_history(context):
     _, base, _, engine = context
     store_id = UUID(base.split("/")[-2]).hex
     person, original, correction = uuid4().hex, uuid4().hex, uuid4().hex
-    module = migration("0015_attendance_integrity.py")
+    module = migration("0016_attendance_integrity.py")
     with engine.begin() as connection:
         with Operations.context(MigrationContext.configure(connection)):
             module.downgrade()

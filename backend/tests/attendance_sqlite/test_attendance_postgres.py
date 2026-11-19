@@ -163,7 +163,7 @@ def test_postgres_migration_runtime_permissions_and_rls(monkeypatch):
         # 기존 데이터가 있는 PostgreSQL에서도 downgrade → upgrade가 이력을 보존한다.
         settings.database_url = owner_url
         try:
-            command.downgrade(config, "0014_attendance")
+            command.downgrade(config, "0015_attendance")
             with owner.connect() as conn:
                 assert conn.scalar(text("SELECT count(*) FROM attendance_events")) == 2
                 legacy = conn.execute(

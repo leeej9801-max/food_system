@@ -1,14 +1,14 @@
 """Attendance schedules and append-only original/correction records.
 
-Revision ID: 0014_attendance
-Revises: 0013_weather_daily
+Revision ID: 0015_attendance
+Revises: 0014_monthly_goals
 """
 
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0014_attendance"
-down_revision = "0013_weather_daily"
+revision = "0015_attendance"
+down_revision = "0014_monthly_goals"
 branch_labels = None
 depends_on = None
 

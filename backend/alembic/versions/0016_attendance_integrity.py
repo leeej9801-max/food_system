@@ -1,14 +1,14 @@
 """Attendance idempotency, staff lifecycle and append-only audit logs.
 
-Revision ID: 0015_attendance_integrity
-Revises: 0014_attendance
+Revision ID: 0016_attendance_integrity
+Revises: 0015_attendance
 """
 
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0015_attendance_integrity"
-down_revision = "0014_attendance"
+revision = "0016_attendance_integrity"
+down_revision = "0015_attendance"
 branch_labels = None
 depends_on = None
 

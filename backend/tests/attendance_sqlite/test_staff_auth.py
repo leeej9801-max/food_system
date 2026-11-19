@@ -58,19 +58,19 @@ def auth_context(monkeypatch):
     def foreign_keys(connection, _):
         connection.execute("PRAGMA foreign_keys=ON")
 
-    new_tables = set(migration("0014_attendance.py").TABLES) | {
+    new_tables = set(migration("0015_attendance.py").TABLES) | {
         "audit_logs",
         "attendance_event_retries",
-        *migration("0016_staff_kakao_qr.py").TABLES,
+        *migration("0017_staff_kakao_qr.py").TABLES,
     }
     Base.metadata.create_all(
         engine, tables=[t for t in Base.metadata.sorted_tables if t.name not in new_tables]
     )
     with engine.begin() as conn, Operations.context(MigrationContext.configure(conn)):
         for name in (
-            "0014_attendance.py",
-            "0015_attendance_integrity.py",
-            "0016_staff_kakao_qr.py",
+            "0015_attendance.py",
+            "0016_attendance_integrity.py",
+            "0017_staff_kakao_qr.py",
         ):
             migration(name).upgrade()
     monkeypatch.setattr(settings, "kakao_rest_api_key", secrets.token_urlsafe(32))
@@ -515,10 +515,10 @@ def test_0016_downgrade_preserves_staff_and_events(auth_context):
     active(ctx)
     record(ctx, qr_token(ctx))
     with ctx[1].begin() as conn, Operations.context(MigrationContext.configure(conn)):
-        migration("0016_staff_kakao_qr.py").downgrade()
+        migration("0017_staff_kakao_qr.py").downgrade()
         assert conn.scalar(text("select count(*) from attendance_events")) == 1
         assert conn.scalar(text("select count(*) from staff")) == 1
-        migration("0016_staff_kakao_qr.py").upgrade()
+        migration("0017_staff_kakao_qr.py").upgrade()
         assert conn.scalar(text("select count(*) from staff_sessions")) == 0
 
 
