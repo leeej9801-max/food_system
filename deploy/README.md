@@ -1,4 +1,6 @@
-# Windows Docker 배포 — lci-prod /food
+# Windows Docker 배포 — food.leejblab.site
+
+> 2026-11-17: 이 브랜치는 루트 경로 전환용이다. 운영 이미지는 아직 `/food` 기반이며 재배포는 사용자 승인 후에만 실행한다. 아래 실행·재시작 명령은 절차 안내이며 이번 작업에서 실행하지 않았다.
 
 ## 구성
 `compose.yaml`: PostgreSQL 17 영구 볼륨 → Alembic → FastAPI → Nginx(빌드된 React).
@@ -46,26 +48,52 @@ docker compose --env-file .env.deploy logs --tail 20 migrate   # "runtime role r
 이전 뒤에는 기존 개발 서버(SQLite)에 입력하지 않고 새 배포 주소만 사용한다. 두 DB는 자동 동기화되지 않는다. 이전 후 재차 가져오기로 합치지 말고 별도 검토한다.
 
 ## 주소와 데이터
-- 로컬: `http://localhost:8088/food/`
-- 배포 목표: `https://lci.leejblab.site/food/`
-- 화면: `/food/home`, `/food/menus`, `/food/ingredients`, `/food/inventory`, `/food/analytics`, `/food/settings`.
+- 재배포 후 로컬: `http://localhost:8088/`
+- 배포 목표: `https://food.leejblab.site/`
+- 화면: `/home`, `/menus`, `/ingredients`, `/inventory`, `/analytics`, `/settings`.
 - 공통 `?store=<UUID>`를 모든 화면 링크에 유지한다. 존재하지 않는 매장은 오류로 표시하며 다른 매장으로 조용히 변경하지 않는다.
 - 메뉴: `q`, `category`, `status`; 식자재: `q`, `status`; 재고: `ingredient`, `tab=RECEIPT|COUNT|ADJUST`는 URL에 유지되어 새로고침/뒤로 가기/주소 공유 시 복원된다.
 - 저장을 완료한 업무 데이터는 공통 PostgreSQL에 영구 저장된다. 저장 전 입력/열린 모달/단가 시뮬레이션은 자동 저장 대상이 아니다.
-- 정적 파일은 Vite base `/food/`, API는 `/food/api/v1`, Nginx는 `/food`를 제거해 API에 전달한다.
+- 정적 파일은 Vite base `/`, API는 `/api/v1`이며 Nginx가 URI를 그대로 API에 전달한다. 웹·API 헬스 체크는 `/health`이다. Uvicorn에 별도 root-path를 주지 않는다.
+- `BrowserRouter basename={import.meta.env.BASE_URL}`은 빌드 base `/`를 자동 사용한다. 로컬 개발 API 주소와 origin 설정은 기존 `.env.example` 방식을 유지한다.
+- 재배포 후 구 호스트 `lci.leejblab.site`의 `/food`·`/food/...`만 새 주소로 301한다. 쿼리·인코딩된 경로를 보존한다. 다른 호스트·경로에는 이 리다이렉트를 적용하지 않는다.
 - API 응답과 HTML은 캐시하지 않는다. 해시 이름 정적 파일만 장기 캐시한다.
 
-## Cloudflare 적용 (로컬 검증 후)
-`lci-prod` → Routes → Published application. 새 규칙을 기존 전체 호스트 규칙보다 위로 배치한다.
+## Cloudflare 추가 구성과 전환
+기존 원격 관리 터널 `lci-prod`(`3cbebf65-3f0a-4f1b-bbd8-42a55068dbda`, 컨테이너 `lci-prod-cloudflared-1`)를 사용한다. 기존 규칙의 순서·값을 보존하고 새 호스트 규칙만 catch-all 앞에 추가한다.
 
 | 우선순위 | 호스트 | 경로 | 서비스 |
 |---|---|---|---|
 | 1 | lci.leejblab.site | `^/food(/.*)?$` | `http://food-web:80` |
 | 2 | lci.leejblab.site | 기존 전체 경로 | `http://nginx:80` (기존 값 유지) |
+| 3 | food.leejblab.site | 전체 경로 | `http://food-web:80` |
+| 4 | 전체 | catch-all | `http_status:404` (기존 값 유지) |
 
-DNS 레코드는 변경하지 않는다. `food-web`은 컨테이너에서만 해석되는 이름으로, 터널과 같은 `lci-prod_edge`에 있어야 한다.
+DNS는 `leejblab.site` zone의 `food` CNAME → `3cbebf65-3f0a-4f1b-bbd8-42a55068dbda.cfargotunnel.com`, 프록시 사용으로 설정한다. 이미 있으면 변경하지 않는다. 실제 추가·검증 상태는 이번 IR을 확인한다. `food-web`은 컨테이너에서만 해석되는 이름으로, 터널과 같은 `lci-prod_edge`에 있어야 한다.
 
-**현재 데모의 공개 정책(U-14, 2026-10-31):** 사용자가 지인 소개용 프로토타입이므로 로그인을 생략한다고 명시하여, 이번 `/food`는 Cloudflare Access 없이 공개한다. 링크를 아는 사람은 같은 데모 데이터를 조회·수정할 수 있다. 기존 LCI의 인증·보안 설정은 변경하지 않는다. 실제 매장 운영/민감 데이터 사용 전 `/food`와 하위 API 전체를 보호하는 인증을 도입한다. 이전의 공개 전 Access 제안(P-14)은 이번 데모에 한해 사용자 지시로 대체되었다.
+2026-11-17 확인: 원격 ingress version 4에 위 새 호스트가 이미 있어 PUT하지 않았다. DNS는 API 403 후 로그인된 대시보드에서 신규 추가했고 Proxied·lci-prod 연결을 확인했다. 23:02 KST에 새 루트 404, 기존 `/food/` 200을 확인했다. 운영 재배포 전 결과이며 상세 근거는 IR에 있다.
+
+운영 재배포 전에는 기존 `/food` 라우트를 바꾸지 않는다. 새 호스트를 추가해도 현재 운영 이미지는 `/food` 기반이므로 루트가 404이거나 화면이 깨질 수 있다. 이는 예상된 전환 전 상태이며 새 이미지 재배포 후 확인한다. 재배포 뒤에도 기존 `/food` 터널 규칙을 유지해야 food-web의 301이 동작한다.
+
+**현재 데모의 공개 정책(U-14, 2026-10-31):** 사용자가 지인 소개용 프로토타입이므로 로그인을 생략한다고 명시하여 Cloudflare Access 없이 공개한다. 링크를 아는 사람은 같은 데모 데이터를 조회·수정할 수 있다. 기존 LCI의 인증·보안 설정은 변경하지 않는다. 실제 매장 운영/민감 데이터 사용 전 새 호스트와 API 전체를 보호하는 인증을 도입한다. 이전의 공개 전 Access 제안(P-14)은 이번 데모에 한해 사용자 지시로 대체되었다.
+
+## 전환 검사·승인 후 재배포
+
+로컬 검사는 운영 컨테이너와 분리해서 실행한다.
+```powershell
+cd frontend
+npm ci
+npm run typecheck
+npm run test
+$env:VITE_API_BASE_URL = '/api/v1'
+npm run build -- --base=/
+Remove-Item Env:VITE_API_BASE_URL
+cd ..
+python deploy/test_nginx.py
+```
+`test_nginx.py`는 Docker에 임시 네트워크·API 대역·웹 컨테이너를 만들고 끝나면 제거한다. 루트/SPA/assets/API URI·쿼리/health/호스트 제한 301을 확인한다. 실제 운영 API나 DB 검사는 아니다.
+
+**사용자 승인 후:** 기존 이미지·설정·PostgreSQL 백업 → 이 브랜치의 승인된 코드 빌드 → `docker compose --env-file .env.deploy up -d --wait` → 새 호스트 화면·API·자산·health 및 구 주소 301·쿼리 확인 순서다. `lci.leejblab.site`의 `/food` 터널 규칙은 301 전달용으로 유지하는 것을 권장하며 삭제는 별도 결정한다. 자세한 백업·롤백·확인 순서는 `DOCS/07_구현보고서/IR-20261117-001_food_서브도메인_분리.md`를 따른다. 브랜치의 main 병합·push·운영 재배포는 각각 사용자 확인 대상이다.
 
 ## 업데이트 / 중지 / 보존
 ```powershell
