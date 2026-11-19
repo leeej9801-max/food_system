@@ -5,6 +5,8 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
+    CHAR,
+    BigInteger,
     Boolean,
     Date,
     DateTime,
@@ -581,6 +583,25 @@ class MonthlyExpense(Base):
     amount: Mapped[int] = mapped_column(Integer, nullable=False)  # 원
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
+    )
+
+
+class MonthlyGoal(Base):
+    __tablename__ = "monthly_goals"
+    __table_args__ = (UniqueConstraint("store_id", "month", name="monthly_goals_store_month_key"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=new_uuid)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("stores.id", ondelete="RESTRICT"), nullable=False
+    )
+    month: Mapped[str] = mapped_column(CHAR(7), nullable=False)
+    revenue_target: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    profit_target: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
     )
 
 

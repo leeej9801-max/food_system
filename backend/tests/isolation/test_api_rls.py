@@ -119,11 +119,17 @@ def test_each_store_lists_only_its_own_rows(stores):
 
 def test_sales_and_analytics_do_not_leak(client, stores):
     a, b = stores["A"]["id"], stores["B"]["id"]
+    # 데모 시드가 두 매장 모두에 6개월 판매를 넣으므로 0건 대신 소속·교차 여부로 격리를 본다.
+    orders_a = client.get(f"/api/v1/stores/{a}/sales-orders").json()["orders"]
+    orders_b = client.get(f"/api/v1/stores/{b}/sales-orders").json()["orders"]
+    assert orders_a and orders_b
+    assert {o["store_id"] for o in orders_a} == {a}
+    assert {o["store_id"] for o in orders_b} == {b}
+    assert {o["id"] for o in orders_a}.isdisjoint({o["id"] for o in orders_b})
     sales_a = client.get(f"/api/v1/stores/{a}/analytics/sales").json()
     sales_b = client.get(f"/api/v1/stores/{b}/analytics/sales").json()
-    assert sales_a["total_completed_orders"] > 0
-    assert sales_b["total_completed_orders"] == 0
-    assert client.get(f"/api/v1/stores/{b}/sales-orders").json()["orders"] == []
+    # 매장 A에만 CSV 판매를 더 넣었으므로 A가 B보다 많아야 한다.
+    assert sales_a["total_completed_orders"] > sales_b["total_completed_orders"] > 0
 
 
 def test_other_store_menu_is_not_found_through_my_path(client, stores):
@@ -294,3 +300,36 @@ def test_holidays_are_global_for_runtime_role(client, runtime_sessionmaker):
     with runtime_sessionmaker() as db:
         assert db.execute(text("SELECT count(*) FROM holidays")).scalar_one() == 1
     assert len(client.get("/api/v1/holidays?year=2026").json()) == 1
+
+
+def test_monthly_goals_are_isolated(client, stores, runtime_sessionmaker):
+    a, b = stores["A"]["id"], stores["B"]["id"]
+    for sid, target in ((a, 100), (b, 200)):
+        response = client.put(
+            f"/api/v1/stores/{sid}/pnl/2026-03/goal", json={"revenue_target": target}
+        )
+        assert response.status_code == 200, response.text
+    for sid, target in ((a, 100), (b, 200)):
+        response = client.get(f"/api/v1/stores/{sid}/pnl?month=2026-03")
+        assert response.json()["goal"]["revenue_target"] == target
+        assert response.json()["goal"]["profit_target"] is None
+    with runtime_sessionmaker() as db:
+        assert db.execute(text("SELECT count(*) FROM monthly_goals")).scalar_one() == 0
+        apply_store_scope(db, RequestContext(store_id=a))
+        assert db.execute(text("SELECT revenue_target FROM monthly_goals")).scalars().all() == [100]
+        changed = db.execute(
+            text("UPDATE monthly_goals SET revenue_target = 999 WHERE store_id = :b"), {"b": b}
+        ).rowcount
+        assert changed == 0
+        deleted = db.execute(
+            text("DELETE FROM monthly_goals WHERE store_id = :b"), {"b": b}
+        ).rowcount
+        assert deleted == 0
+        with pytest.raises(ProgrammingError, match="row-level security"):
+            db.execute(
+                text(
+                    "INSERT INTO monthly_goals (id, store_id, month, created_at, updated_at) "
+                    "VALUES (gen_random_uuid(), :b, '2026-04', now(), now())"
+                ),
+                {"b": b},
+            )

@@ -6,6 +6,7 @@
 - 날씨: 기상청 AWS 일값(weather_daily, U-56)와 영업일 매출·손님 수를 날짜로 잇는다.
 """
 
+import heapq
 from collections import Counter, defaultdict
 from collections.abc import Callable
 from datetime import UTC, date, datetime
@@ -75,18 +76,33 @@ def match_orders(
     orders: list[SalesOrder], visits: list[VisitSession], now: datetime
 ) -> tuple[dict[UUID, list[SalesOrder]], int, int]:
     """시각이 있는 주문을 착석–퇴점 구간이 겹치는 유일한 방문에 붙인다. (연결, 모호 수, 미연결 수)."""
-    spans = [(v.id, _utc(v.seated_at), _utc(v.left_at) if v.left_at else now) for v in visits]
+    # 시간순 sweep: 주문 시각까지 시작한 방문을 넣고 이미 끝난 방문을 빼면 남은 것이 겹치는 방문이다.
+    # 주문×방문 이중 루프(수천×수천)를 O((N+M) log M)으로 줄인다.
+    spans = sorted(
+        ((_utc(v.seated_at), _utc(v.left_at) if v.left_at else now, v.id) for v in visits),
+        key=lambda s: s[0],
+    )
     matched: dict[UUID, list[SalesOrder]] = defaultdict(list)
     ambiguous = unmatched = 0
-    for order in orders:
+    timed: list[tuple[datetime, int, SalesOrder]] = []
+    for i, order in enumerate(orders):
         if order.time_basis != "order_time" or order.ordered_at is None:
             unmatched += 1
-            continue
-        at = _utc(order.ordered_at)
-        hits = [vid for vid, start, end in spans if start <= at <= end]
-        if len(hits) == 1:
-            matched[hits[0]].append(order)
-        elif hits:
+        else:
+            timed.append((_utc(order.ordered_at), i, order))
+    timed.sort(key=lambda t: (t[0], t[1]))
+    active: list[tuple[datetime, int, UUID]] = []
+    nxt = 0
+    for at, _, order in timed:
+        while nxt < len(spans) and spans[nxt][0] <= at:
+            start, end, vid = spans[nxt]
+            heapq.heappush(active, (end, nxt, vid))
+            nxt += 1
+        while active and active[0][0] < at:
+            heapq.heappop(active)
+        if len(active) == 1:
+            matched[active[0][2]].append(order)
+        elif active:
             ambiguous += 1
         else:
             unmatched += 1

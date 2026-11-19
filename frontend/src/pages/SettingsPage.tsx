@@ -247,15 +247,12 @@ export function SettingsPage({ store }: SettingsPageProps) {
 
   const seedDemoMutation = useMutation({
     mutationFn: () => seedWesternDemo(store.id),
+    onError: (error) => setBanner({ type: "error", text: `샘플 갱신 실패: ${error.message}` }),
     onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ["menus", store.id] });
-      queryClient.invalidateQueries({ queryKey: ["ingredients", store.id] });
-      queryClient.invalidateQueries({ queryKey: ["inventory-summary", store.id] });
-      queryClient.invalidateQueries({ queryKey: ["inventory-receipts", store.id] });
-      queryClient.invalidateQueries({ queryKey: ["analytics-costing", store.id] });
+      queryClient.invalidateQueries();
       setBanner({
         type: "success",
-        text: `양식당 프로토타입 기본 마스터 세팅 완료 (신규 식자재 ${res.ingredients_created}종 · 메뉴 ${res.menus_created}종 · 초기 입고단가 ${res.receipts_created}건 생성, 가짜 매출은 주입되지 않음).`,
+        text: `샘플 데이터 갱신 완료 · 최근 6개월과 이번 달의 매출·방문·입고·재고·손익을 채웠어요. 식자재 ${res.ingredients_created}종 · 메뉴 ${res.menus_created}종 신규, 입고 ${res.receipts_created}건. 실제 입력은 보존해요.`,
       });
     },
   });
@@ -282,7 +279,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="settings-page space-y-6">
       <div className="page-heading">
         <div className="page-title">
           <h1>설정</h1>
@@ -301,7 +298,7 @@ export function SettingsPage({ store }: SettingsPageProps) {
           >
             {seedDemoMutation.isPending
               ? "프로토타입 데이터 준비 중..."
-              : "양식당 프로토타입 마스터(식자재·메뉴·레시피·단가) 원클릭 세팅"}
+              : "샘플 데이터 채우기 · 최근 6개월 + 이번 달"}
           </button>
         </div>
       </div>

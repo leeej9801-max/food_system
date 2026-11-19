@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Badge, type BadgeVariant } from "@astryxdesign/core/Badge";
 import { Button } from "@astryxdesign/core/Button";
-import { Dialog } from "@astryxdesign/core/Dialog";
+import { Dialog as AstryxDialog } from "@astryxdesign/core/Dialog";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { Heading } from "@astryxdesign/core/Heading";
 import { MoreMenu } from "@astryxdesign/core/MoreMenu";
@@ -10,10 +9,7 @@ import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { Pagination } from "@astryxdesign/core/Pagination";
 import { InternationalizationProvider } from "@astryxdesign/core/i18n";
 import koKR from "@astryxdesign/core/locales/ko-KR.generated.js";
-import { SegmentedControl, SegmentedControlItem } from "@astryxdesign/core/SegmentedControl";
 import { Selector } from "@astryxdesign/core/Selector";
-import { Switch } from "@astryxdesign/core/Switch";
-import { Table, pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
 import { Text } from "@astryxdesign/core/Text";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { useToast } from "@astryxdesign/core/Toast";
@@ -23,33 +19,47 @@ import "@astryxdesign/core/astryx.css";
 import { defaultThemeSlug, themes } from "../astryx-themes";
 import {
   createIngredient,
-  fetchIngredientInsights,
   fetchIngredients,
   updateIngredient,
 } from "../api/ingredients";
-import { fetchInventorySummary } from "../api/inventory";
-import { fetchMenus } from "../api/menus";
-import { RecipeEditorModal } from "../components/RecipeEditorModal";
-import { getMenuCategoryToneClass } from "../lib/menuCategoryColor";
+import { createAdjustment, fetchInventorySummary } from "../api/inventory";
+import { AppLink as Link } from "../components/AppLink";
+import { Dialog } from "../components/Dialog";
+import {
+  computeIngredientKpi,
+  getEstimatedTickPercent,
+  getSafetySliderSpec,
+  matchesIngredientCheckCondition,
+  type IngredientCheckCondition,
+  type IngredientUiStatus,
+} from "../lib/ingredientKpi";
 import { useUrlState } from "../lib/useUrlState";
+import { ActionDialog } from "./InventoryPage";
 import type {
+  AdjustmentReasonType,
   Ingredient,
   IngredientInventoryItem,
   IngredientRankItem,
-  IngredientStockStatus,
-  MenuItem,
   PurchaseUnitType,
   Store,
 } from "../types";
 
-type Filter = "all" | "IN_USE" | "IDLE" | "NEEDS_RESTOCK";
-const FILTERS: readonly Filter[] = ["all", "IN_USE", "IDLE", "NEEDS_RESTOCK"];
+type Filter = "all" | "NEEDS_RESTOCK" | "OUT_OF_STOCK" | "IDLE" | "IN_USE";
+const FILTERS: readonly Filter[] = ["all", "NEEDS_RESTOCK", "OUT_OF_STOCK", "IDLE", "IN_USE"];
 
-const STATUS: Record<IngredientStockStatus, { label: string; variant: BadgeVariant }> = {
-  IN_USE: { label: "사용중", variant: "info" },
-  IDLE: { label: "대기", variant: "neutral" },
-  NEEDS_RESTOCK: { label: "입고필요", variant: "warning" },
-  INACTIVE: { label: "비활성", variant: "neutral" },
+type CheckParam = "" | IngredientCheckCondition;
+const CHECK_VALUES: readonly CheckParam[] = ["", "unlinked", "no_cost"];
+
+const CHECK_LABELS: Record<IngredientCheckCondition, string> = {
+  unlinked: "레시피 미연결",
+  no_cost: "단가 미입력",
+};
+
+const UI_STATUS_BADGE: Record<IngredientUiStatus, { label: string; className: string }> = {
+  OK: { label: "충분", className: "chip-ok" },
+  NEEDS_RESTOCK: { label: "입고 필요", className: "chip-warn" },
+  OUT_OF_STOCK: { label: "재고 없음", className: "chip-danger" },
+  IDLE: { label: "미사용", className: "chip-idle" },
 };
 
 const UNITS: PurchaseUnitType[] = ["kg", "g", "L", "ml", "ea"];
@@ -93,7 +103,6 @@ export function getTopRestockIngredients(
   const usageById = new Map(recentUsage.map((item) => [item.ingredient_id, Number(item.value)]));
   const candidates = ingredients.filter((item) => item.stock_status === "NEEDS_RESTOCK");
 
-  // 정렬 기준: 안전재고 대비 부족 비율((안전재고 - 추정재고) / 안전재고) 내림차순, 동률이면 부족량·안전재고·7일 사용량·연결 메뉴 수 내림차순
   return candidates
     .map((item) => {
       const inv = summaryById.get(item.id);
@@ -136,6 +145,255 @@ export function getTopRestockIngredients(
     }));
 }
 
+function SafetyStockSlider({
+  ingredient,
+  estimatedQuantity,
+  onCommit,
+}: {
+  ingredient: Ingredient;
+  estimatedQuantity: number | null;
+  onCommit: (nextSafety: number) => Promise<void>;
+}) {
+  const serverSafety =
+    ingredient.safety_stock !== null && ingredient.safety_stock !== undefined
+      ? Math.max(0, Number(ingredient.safety_stock))
+      : 0;
+  const [sessionBase] = useState<number>(() => serverSafety);
+  const { max, step } = getSafetySliderSpec(sessionBase, ingredient.base_unit);
+
+  const [draft, setDraft] = useState<number>(serverSafety);
+  const [lastKnownServer, setLastKnownServer] = useState<number>(serverSafety);
+  if (lastKnownServer !== serverSafety) {
+    setLastKnownServer(serverSafety);
+    setDraft(serverSafety);
+  }
+
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const scheduleSave = (nextVal: number) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      if (nextVal === serverSafety) return;
+      void onCommit(nextVal).catch(() => {
+        setDraft(serverSafety);
+      });
+    }, 250);
+  };
+
+  const tickPercent = getEstimatedTickPercent(estimatedQuantity, max);
+
+  // 슬라이더를 움직이면 숫자가 목표값까지 부드럽게 따라간다(약 180ms, ease-out)
+  const [shown, setShown] = useState<number>(draft);
+  const shownRef = useRef(draft);
+  useEffect(() => {
+    const from = shownRef.current;
+    if (from === draft || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      shownRef.current = draft;
+      setShown(draft);
+      return;
+    }
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / 180);
+      const v = from + (draft - from) * (1 - (1 - p) ** 3);
+      shownRef.current = v;
+      setShown(v);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [draft]);
+
+  return (
+    <div className="ing-safety-slider">
+      <span className="ing-safety-val">
+        {fmt(Math.round(shown))}
+        {unitLabel(ingredient.base_unit)}
+      </span>
+      <span className="ing-safety-track-wrap">
+        <input
+          type="range"
+          className="ing-safety-range"
+          aria-label={`${ingredient.name} 안전재고`}
+          min={0}
+          max={max}
+          step={step}
+          value={Math.min(max, draft)}
+          onChange={(e) => {
+            const next = Number(e.target.value);
+            setDraft(next);
+            scheduleSave(next);
+          }}
+          onPointerUp={(e) => {
+            const next = Number((e.currentTarget as HTMLInputElement).value);
+            scheduleSave(next);
+          }}
+        />
+        {tickPercent !== null && (
+          <b
+            className="ing-est-tick"
+            style={{ left: `${tickPercent}%` }}
+            title={`예상 재고 ${fmt(estimatedQuantity!)}${unitLabel(ingredient.base_unit)}`}
+          />
+        )}
+      </span>
+    </div>
+  );
+}
+
+function StockAdjustmentModal({
+  store,
+  ingredient,
+  onClose,
+  onSaved,
+}: {
+  store: Store;
+  ingredient: Ingredient;
+  onClose: () => void;
+  onSaved: (summaryText: string) => void;
+}) {
+  const [reason, setReason] = useState<"WASTE" | "CORRECTION">("WASTE");
+  const [quantity, setQuantity] = useState("");
+  const [notes, setNotes] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const q = Number(quantity);
+      if (!Number.isFinite(q) || q <= 0) {
+        throw new Error("차감할 수량을 0보다 크게 입력해 주세요.");
+      }
+      const trimmedNotes = notes.trim().slice(0, 200) || null;
+      const reasonType: AdjustmentReasonType = reason;
+      await createAdjustment(store.id, {
+        ingredient_id: ingredient.id,
+        quantity_delta: -Math.abs(q),
+        reason: reasonType,
+        notes: trimmedNotes,
+      });
+      const reasonLabel = reason === "WASTE" ? "폐기" : "재고 보정";
+      return `${ingredient.name} ${reasonLabel} -${fmt(q)}${unitLabel(ingredient.base_unit)}`;
+    },
+    onSuccess: (summaryText) => {
+      onSaved(summaryText);
+    },
+    onError: (err: unknown) => {
+      setError(err instanceof Error && err.message ? err.message : "재고 수정에 실패했습니다.");
+    },
+  });
+
+  const placeholderText =
+    reason === "WASTE" ? "예: 잘못 만들어 폐기, 유통기한 경과" : "예: 정량 초과 사용, 실사 차이 보정";
+
+  return (
+    <Dialog label={`${ingredient.name} 재고 수정`} onClose={onClose}>
+      <form
+        className="ing-adjust-modal"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setError(null);
+          mutation.mutate();
+        }}
+      >
+        <div className="kpi-modal-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <div>
+            <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>{ingredient.name} 재고 수정</h2>
+            <p style={{ fontSize: 12, color: "#636d81", margin: "2px 0 0" }}>
+              폐기 또는 보정으로 차감할 수량을 기록합니다
+            </p>
+          </div>
+          <button type="button" className="pill pill-sm pill-soft" onClick={onClose}>
+            닫기
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <span className="block text-xs font-medium text-muted">사유 선택</span>
+            <div className="ing-adjust-reasons mt-1" role="radiogroup" aria-label="재고 수정 사유">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={reason === "WASTE"}
+                className={`ing-adjust-reason-btn${reason === "WASTE" ? " is-on" : ""}`}
+                onClick={() => setReason("WASTE")}
+              >
+                폐기
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={reason === "CORRECTION"}
+                className={`ing-adjust-reason-btn${reason === "CORRECTION" ? " is-on" : ""}`}
+                onClick={() => setReason("CORRECTION")}
+              >
+                재고 보정
+              </button>
+            </div>
+          </div>
+
+          <label className="block text-xs font-medium text-muted">
+            감소 수량
+            <div className="mt-1 flex items-center gap-2">
+              <input
+                autoFocus
+                aria-label="감소 수량"
+                inputMode="decimal"
+                placeholder="0"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="h-10 w-full rounded-xl bg-ground px-3 text-sm text-ink tabular-nums"
+              />
+              <span className="shrink-0 text-sm font-semibold text-muted">
+                {unitLabel(ingredient.base_unit)}
+              </span>
+            </div>
+          </label>
+
+          <label className="block text-xs font-medium text-muted">
+            메모 (선택, 최대 200자)
+            <input
+              type="text"
+              aria-label="재고 수정 메모"
+              maxLength={200}
+              placeholder={placeholderText}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="mt-1 h-10 w-full rounded-xl bg-ground px-3 text-sm text-ink"
+            />
+          </label>
+
+          {error && (
+            <p role="alert" className="text-xs font-semibold text-[#b42318]">
+              {error}
+            </p>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="pill pill-sm pill-soft">
+              취소
+            </button>
+            <button
+              type="submit"
+              disabled={mutation.isPending}
+              className="pill pill-sm pill-primary"
+            >
+              {mutation.isPending ? "저장 중..." : "저장"}
+            </button>
+          </div>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
 type Props = { store: Store };
 
 export function IngredientManagementPage(props: Props) {
@@ -156,36 +414,56 @@ type FormState = {
 
 const EMPTY_FORM: FormState = { id: null, name: "", safety: null, unit: "g", notes: "" };
 
+function toFallbackInventoryItem(ing: Ingredient): IngredientInventoryItem {
+  return {
+    ingredient_id: ing.id,
+    ingredient_name: ing.name,
+    is_active: ing.is_active,
+    base_unit: ing.base_unit,
+    purchase_unit: ing.purchase_unit,
+    conversion_factor: ing.conversion_factor,
+    safety_stock: ing.safety_stock,
+    latest_unit_cost_per_purchase: null,
+    latest_unit_cost_per_base: null,
+    cost_basis_label: "",
+    last_actual_quantity: null,
+    last_counted_at: null,
+    receipts_since_count_base: "0.000",
+    theoretical_consumption_base: "0.000",
+    adjustments_since_count_base: "0.000",
+    estimated_quantity: "0.000",
+    stock_status: "OK",
+  };
+}
+
 function IngredientManagement({ store }: Props) {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [filter, setFilter] = useUrlState<Filter>("status", "all", FILTERS);
+  const [checkFilter, setCheckFilter] = useUrlState<CheckParam>("check", "", CHECK_VALUES);
   const [q, setQ] = useState("");
   const [form, setForm] = useState<FormState | null>(null);
-  const [recipeTarget, setRecipeTarget] = useState<{ id: string; name: string } | null>(null);
+  const [valuationModalOpen, setValuationModalOpen] = useState(false);
+  const [adjustTarget, setAdjustTarget] = useState<Ingredient | null>(null);
+  const [inventoryAction, setInventoryAction] = useState<{
+    item: IngredientInventoryItem;
+    action: "RECEIPT" | "COUNT";
+  } | null>(null);
   const keyword = q.trim().toLowerCase();
-  const filterKey = JSON.stringify([store.id, filter, keyword]);
+  const filterKey = JSON.stringify([store.id, filter, checkFilter, keyword]);
   const [pagination, setPagination] = useState({ filterKey, page: 1 });
 
   const listQuery = useQuery({
     queryKey: ["ingredients", store.id, "all"],
     queryFn: () => fetchIngredients(store.id, { status: "all" }),
   });
-  const insightsQuery = useQuery({
-    queryKey: ["ingredients", store.id, "insights"],
-    queryFn: () => fetchIngredientInsights(store.id),
-  });
   const inventorySummaryQuery = useQuery({
     queryKey: ["inventory-summary", store.id, "active"],
     queryFn: () => fetchInventorySummary(store.id, false),
   });
-  const menusQuery = useQuery({
-    queryKey: ["menus", store.id, "all-for-category"],
-    queryFn: () => fetchMenus(store.id, { status: "all" }),
-  });
 
   const refresh = () => {
-    for (const key of ["ingredients", "inventory-summary", "menus"]) {
+    for (const key of ["ingredients", "inventory-summary", "menus", "menu-costs"]) {
       void queryClient.invalidateQueries({ queryKey: [key, store.id] });
     }
   };
@@ -212,6 +490,17 @@ function IngredientManagement({ store }: Props) {
     onError: (err) => fail(err, "저장하지 못했습니다"),
   });
 
+  const safetyMutation = useMutation({
+    mutationFn: ({ id, safety_stock }: { id: string; safety_stock: number }) =>
+      updateIngredient(store.id, id, { safety_stock }),
+    onSuccess: () => {
+      refresh();
+    },
+    onError: (err) => {
+      fail(err, "안전재고를 저장하지 못했습니다");
+    },
+  });
+
   const toggleMutation = useMutation({
     mutationFn: ({ id, on }: { id: string; on: boolean }) =>
       updateIngredient(store.id, id, { is_active: on }),
@@ -220,9 +509,45 @@ function IngredientManagement({ store }: Props) {
   });
 
   const all = listQuery.data ?? [];
-  const filteredIngredients = all
-    .filter((i) => filter === "all" || i.stock_status === filter)
+  const summaryList = inventorySummaryQuery.data ?? [];
+  const kpi = computeIngredientKpi(all, summaryList, store.timezone);
+  const enrichedById = new Map(kpi.rows.map((r) => [r.ingredient.id, r]));
+
+  function selectStatusTab(next: Filter) {
+    setFilter(next);
+    if (checkFilter) {
+      setCheckFilter("");
+    }
+  }
+
+  function selectCheckRow(condition: IngredientCheckCondition) {
+    if (checkFilter === condition) {
+      setCheckFilter("");
+      return;
+    }
+    setFilter("all");
+    setCheckFilter(condition);
+  }
+
+  const sortedIngredients = kpi.rows.map((r) => r.ingredient);
+  const filteredIngredients = sortedIngredients
+    .filter((ing) => {
+      const row = enrichedById.get(ing.id);
+      if (checkFilter) {
+        return matchesIngredientCheckCondition(row, checkFilter);
+      }
+      if (filter === "all") return true;
+      if (filter === "OUT_OF_STOCK") return row?.uiStatus === "OUT_OF_STOCK";
+      if (filter === "NEEDS_RESTOCK") {
+        return row?.uiStatus === "NEEDS_RESTOCK" || ing.stock_status === "NEEDS_RESTOCK";
+      }
+      if (filter === "IDLE") {
+        return row?.uiStatus === "IDLE" || ing.stock_status === "IDLE";
+      }
+      return ing.stock_status === filter;
+    })
     .filter((i) => !keyword || i.name.toLowerCase().includes(keyword));
+
   const { page, pageCount, offset, rows } = getIngredientPage(
     filteredIngredients,
     pagination.filterKey === filterKey ? pagination.page : 1,
@@ -231,254 +556,510 @@ function IngredientManagement({ store }: Props) {
     setPagination({ filterKey, page });
   }
 
-  const dim = (r: Row) => (r.stock_status === "INACTIVE" ? "secondary" : "primary");
+  const allInventoryItems: IngredientInventoryItem[] =
+    summaryList.length > 0 ? summaryList : all.map(toFallbackInventoryItem);
 
-  const columns: TableColumn<Row>[] = [
-    { key: "no", header: "no", width: pixel(48), align: "start" },
-    {
-      key: "name",
-      header: "식자재명",
-      width: proportional(1.4, { minWidth: 120 }),
-      align: "start",
-      renderCell: (r) => <Text color={dim(r)}>{r.name}</Text>,
-    },
-    {
-      key: "safety_stock",
-      header: "안전재고",
-      width: proportional(1, { minWidth: 88 }),
-      align: "end",
-      renderCell: (r) => (
-        <Text color={dim(r)}>
-          {r.safety_stock === null ? "-" : `${fmt(r.safety_stock)} ${unitLabel(r.base_unit)}`}
-        </Text>
-      ),
-    },
-    {
-      key: "linked_menu_count",
-      header: "연결 메뉴 수",
-      width: proportional(0.9, { minWidth: 80 }),
-      align: "center",
-      renderCell: (r) => <Text color={dim(r)}>{r.linked_menu_count}</Text>,
-    },
-    {
-      key: "stock_status",
-      header: "상태",
-      width: proportional(0.9, { minWidth: 84 }),
-      align: "center",
-      renderCell: (r) => <Badge {...STATUS[r.stock_status]} />,
-    },
-    {
-      key: "is_active",
-      header: "활성화",
-      width: proportional(0.8, { minWidth: 72 }),
-      align: "center",
-      renderCell: (r) => (
-        <Switch
-          size="sm"
-          label={`${r.name} 활성화`}
-          isLabelHidden
-          value={r.is_active}
-          isDisabled={toggleMutation.isPending}
-          onChange={(on) => toggleMutation.mutate({ id: r.id, on })}
-        />
-      ),
-    },
-    {
-      key: "actions",
-      header: "",
-      width: pixel(56),
-      align: "end",
-      renderCell: (r) => (
-        <MoreMenu
-          label={`${r.name} 메뉴`}
-          alignment="end"
-          items={[
-            {
-              label: "수정",
-              onClick: () =>
-                setForm({
-                  id: r.id,
-                  name: r.name,
-                  safety: r.safety_stock === null ? null : Number(r.safety_stock),
-                  unit: r.base_unit,
-                  notes: r.notes ?? "",
-                }),
-            },
-          ]}
-        />
-      ),
-    },
-  ];
+  function openInventoryAction(action: "RECEIPT" | "COUNT", targetIng?: Ingredient) {
+    const targetId = targetIng?.id ?? all[0]?.id;
+    if (!targetId) return;
+    const found =
+      allInventoryItems.find((it) => it.ingredient_id === targetId) ??
+      (targetIng ? toFallbackInventoryItem(targetIng) : allInventoryItems[0]);
+    if (found) {
+      setInventoryAction({ item: found, action });
+    }
+  }
 
-  const insights = insightsQuery.data;
-  const restock = all.filter((i) => i.stock_status === "NEEDS_RESTOCK");
-  const topRestock = getTopRestockIngredients(
-    all,
-    inventorySummaryQuery.data ?? [],
-    insights?.recent_usage ?? [],
-  );
-  const inUseCount = all.filter((i) => i.stock_status === "IN_USE").length;
-  const unregMenus = insights?.menus_without_recipe ?? [];
-  const menuCategoryById = new Map<string, string | null>(
-    (menusQuery.data ?? []).map((m: MenuItem) => [m.id, m.category]),
-  );
-
-  const selectRestockTab = () => setFilter("NEEDS_RESTOCK");
+  function openEditForm(ing: Ingredient) {
+    setForm({
+      id: ing.id,
+      name: ing.name,
+      safety: ing.safety_stock === null ? null : Number(ing.safety_stock),
+      unit: ing.base_unit,
+      notes: ing.notes ?? "",
+    });
+  }
 
   return (
-    <div className="ingredient-management">
-      <div className="page-heading shrink-0">
-        <div className="page-title">
-          <h1>식자재 관리</h1>
-          <span className="title-divider" />
-          <span className="title-meta">{all.length}개</span>
-        </div>
-      </div>
+    <div className="ingredient-management kpi-page">
+      <h1 className="kpi-title">
+        식자재 관리{" "}
+        <small>
+          {kpi.totalCount}개 ·{" "}
+          {kpi.lastCountedLabel ? `마지막 실사 ${kpi.lastCountedLabel}` : "실사 기록 없음"}
+        </small>
+      </h1>
 
-      <div className="ingredient-layout grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-5">
-        <section className="card menu-list flex min-w-0 flex-col gap-4" aria-label="식자재 목록">
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-wrap items-center gap-3">
-              <SegmentedControl
-                label="상태"
-                value={filter}
-                onChange={(v) => setFilter(v as Filter)}
-              >
-                <SegmentedControlItem value="all" label="전체" />
-                <SegmentedControlItem value="IN_USE" label="사용중" />
-                <SegmentedControlItem value="IDLE" label="대기" />
-                <SegmentedControlItem value="NEEDS_RESTOCK" label="입고필요" />
-              </SegmentedControl>
-              <div className="w-full sm:w-56">
-                <TextInput
-                  type="search"
-                  label="식자재 검색"
-                  isLabelHidden
-                  placeholder="식자재 검색"
-                  value={q}
-                  onChange={setQ}
-                  size="sm"
-                />
-              </div>
-            </div>
-            <div className="page-actions">
+      <section className="kpi-grid" aria-label="식자재 핵심 지표">
+        {/* 1. 대표 숫자: 재고 평가금액 (그라데이션 1개) */}
+        <article className="kpi-card">
+          <div className="kpi-head">
+            <b>재고 평가금액</b>
+            <div className="kpi-head-right">
+              <span>예상 재고 × 최근 입고 단가</span>
               <button
                 type="button"
-                className="pill pill-primary"
-                onClick={() => setForm(EMPTY_FORM)}
+                className="kpi-head-action"
+                disabled={kpi.allValuationItems.length === 0}
+                onClick={() => setValuationModalOpen(true)}
               >
-                + 식자재 추가
+                전체 보기 →
               </button>
             </div>
           </div>
-
-          <div className="menu-table-region">
-            {listQuery.isLoading ? (
-              <Text color="secondary">불러오는 중...</Text>
-            ) : listQuery.isError ? (
-              <EmptyState
-                title="불러오지 못했습니다"
-                actions={<Button label="다시 시도" onClick={() => void listQuery.refetch()} />}
-              />
-            ) : rows.length === 0 ? (
-              <EmptyState
-                title="식자재가 없습니다"
-                actions={
-                  <Button
-                    variant="primary"
-                    label="식자재 추가"
-                    onClick={() => setForm(EMPTY_FORM)}
-                  />
-                }
-              />
+          <div className="kpi-big kpi-grad">
+            {kpi.totalEvaluationManWon}
+            <em>만원</em>
+          </div>
+          <div className="kpi-stack" aria-label="식자재별 평가금액 비중">
+            {kpi.valuationSegments.map((seg) => (
+              <i key={seg.id} style={{ flex: seg.flex, background: seg.colorVar }} />
+            ))}
+          </div>
+          <div className="kpi-rows">
+            {kpi.valuationRows.length === 0 ? (
+              <div className="kpi-row">
+                <span className="l">입고 단가가 입력된 식자재 없음</span>
+                <span className="v kpi-na">미산출</span>
+              </div>
             ) : (
-              <Table<Row>
-                key={`${filterKey}:${page}`}
-                data={rows}
-                columns={columns}
-                idKey="id"
-                rowIndexStart={offset + 1}
-                rowCount={filteredIngredients.length}
-                hasHover
-              />
+              kpi.valuationRows.map((row) => (
+                <div key={row.id} className="kpi-row">
+                  <span className="l">
+                    <i style={{ background: row.colorVar }} />
+                    {row.label}
+                  </span>
+                  <span className="v">
+                    {row.amountWon.toLocaleString("ko-KR")}원
+                    <small>{row.roundedSharePercent}%</small>
+                  </span>
+                </div>
+              ))
             )}
           </div>
+        </article>
 
-          <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-rule pt-3 text-xs text-muted tabular-nums">
+        {/* 2. 재고 상태: 구간 막대 + 값 행 */}
+        <article className="kpi-card">
+          <div className="kpi-head">
+            <b>재고 상태</b>
+            <span>안전재고 기준</span>
+          </div>
+          <div className="kpi-seg" aria-label="상태별 식자재 수">
+            {kpi.sufficientCount > 0 && (
+              <i style={{ flex: kpi.sufficientCount, background: "var(--kpi-c2)" }}>
+                충분 {kpi.sufficientCount}
+              </i>
+            )}
+            {kpi.needsRestockCount > 0 && (
+              <i style={{ flex: kpi.needsRestockCount, background: "#f5b301" }}>
+                입고 필요 {kpi.needsRestockCount}
+              </i>
+            )}
+            {kpi.outOfStockCount > 0 && (
+              <i style={{ flex: kpi.outOfStockCount, background: "var(--kpi-warn)" }}>
+                재고 없음 {kpi.outOfStockCount}
+              </i>
+            )}
+            {kpi.totalCount === 0 && (
+              <i style={{ flex: 1, background: "var(--kpi-c5)" }}>식자재 0</i>
+            )}
+          </div>
+          <div className="kpi-rows">
+            <div className="kpi-row">
+              <span className="l">
+                <i style={{ background: "var(--kpi-c2)" }} />
+                충분
+              </span>
+              <span className="v">{kpi.sufficientCount}개</span>
+            </div>
+            <div className="kpi-row">
+              <span className="l">
+                <i style={{ background: "#f5b301" }} />
+                입고 필요
+              </span>
+              <span className={`v${kpi.needsRestockCount > 0 ? " w" : ""}`}>
+                {kpi.needsRestockCount}개
+              </span>
+            </div>
+            <div className="kpi-row">
+              <span className="l">
+                <i style={{ background: "var(--kpi-warn)" }} />
+                재고 없음
+              </span>
+              <span className={`v${kpi.outOfStockCount > 0 ? " w" : ""}`}>
+                {kpi.outOfStockCount}개
+              </span>
+            </div>
+          </div>
+          <div className="kpi-foot kpi-foot-end">
+            <button
+              type="button"
+              disabled={all.length === 0}
+              onClick={() => openInventoryAction("RECEIPT")}
+            >
+              입고 등록 →
+            </button>
+          </div>
+        </article>
+
+        {/* 3. 확인 필요 */}
+        <article className="kpi-card kpi-check">
+          <div className="kpi-head">
+            <b>확인 필요</b>
+            <span>{kpi.needsCheckCount}건</span>
+          </div>
+          <div className="kpi-rows">
+            <button
+              type="button"
+              disabled={kpi.unlinkedCount === 0}
+              aria-pressed={checkFilter === "unlinked"}
+              className={`kpi-row kpi-row-btn${checkFilter === "unlinked" ? " is-active" : ""}`}
+              onClick={() => selectCheckRow("unlinked")}
+            >
+              <span className="l">
+                <i style={{ background: "#f5b301" }} />
+                레시피 미연결
+              </span>
+              <span className={`v${kpi.unlinkedCount > 0 ? " w" : ""}`}>
+                {kpi.unlinkedCount}개
+              </span>
+            </button>
+            <button
+              type="button"
+              disabled={kpi.noCostCount === 0}
+              aria-pressed={checkFilter === "no_cost"}
+              className={`kpi-row kpi-row-btn${checkFilter === "no_cost" ? " is-active" : ""}`}
+              onClick={() => selectCheckRow("no_cost")}
+            >
+              <span className="l">
+                <i style={{ background: "var(--kpi-c5)" }} />
+                단가 미입력
+              </span>
+              <span className={`v${kpi.noCostCount > 0 ? " w" : ""}`}>{kpi.noCostCount}개</span>
+            </button>
+          </div>
+          <div className="kpi-foot">
+            <span>
+              {kpi.needsCheckCount > 0 ? `${kpi.needsCheckCount}개 항목 확인 필요` : "확인할 항목 없음"}
+            </span>
+            {kpi.unlinkedCount > 0 ? (
+              <Link to="/menus">레시피 연결 →</Link>
+            ) : kpi.noCostCount > 0 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  const firstNoCost = kpi.rows.find((r) => r.isNoCost)?.ingredient;
+                  openInventoryAction("RECEIPT", firstNoCost);
+                }}
+              >
+                입고 등록 →
+              </button>
+            ) : null}
+          </div>
+        </article>
+      </section>
+
+      <section className="kpi-table-section" aria-label="식자재 목록">
+        <div className="kpi-bar">
+          <div className="kpi-tabs" role="tablist" aria-label="상태">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filter === "all" && !checkFilter}
+              className={filter === "all" && !checkFilter ? "on" : undefined}
+              onClick={() => selectStatusTab("all")}
+            >
+              전체<em>{kpi.totalCount}</em>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filter === "NEEDS_RESTOCK" && !checkFilter}
+              className={filter === "NEEDS_RESTOCK" && !checkFilter ? "on" : undefined}
+              onClick={() => selectStatusTab("NEEDS_RESTOCK")}
+            >
+              입고 필요<em>{kpi.needsRestockCount}</em>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filter === "OUT_OF_STOCK" && !checkFilter}
+              className={filter === "OUT_OF_STOCK" && !checkFilter ? "on" : undefined}
+              onClick={() => selectStatusTab("OUT_OF_STOCK")}
+            >
+              재고 없음<em>{kpi.outOfStockCount}</em>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filter === "IDLE" && !checkFilter}
+              className={filter === "IDLE" && !checkFilter ? "on" : undefined}
+              onClick={() => selectStatusTab("IDLE")}
+            >
+              미사용<em>{kpi.idleCount}</em>
+            </button>
+          </div>
+          <div className="kpi-right">
+            {checkFilter && (
+              <button
+                type="button"
+                className="chip chip-warn"
+                style={{ cursor: "pointer" }}
+                aria-label={`${CHECK_LABELS[checkFilter]} 필터 해제`}
+                onClick={() => setCheckFilter("")}
+              >
+                {CHECK_LABELS[checkFilter]} ×
+              </button>
+            )}
+            <input
+              type="search"
+              className="kpi-search"
+              aria-label="식자재 이름 검색"
+              placeholder="식자재 이름 검색"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+            <button
+              type="button"
+              className="kpi-ghost"
+              disabled={all.length === 0}
+              onClick={() => openInventoryAction("COUNT")}
+            >
+              재고 실사
+            </button>
+            <button type="button" className="kpi-primary" onClick={() => setForm(EMPTY_FORM)}>
+              + 식자재 추가
+            </button>
+          </div>
+        </div>
+
+        <div className="menu-table-region">
+          {listQuery.isLoading ? (
+            <Text color="secondary">불러오는 중...</Text>
+          ) : listQuery.isError ? (
+            <EmptyState
+              title="불러오지 못했습니다"
+              actions={<Button label="다시 시도" onClick={() => void listQuery.refetch()} />}
+            />
+          ) : rows.length === 0 ? (
+            <EmptyState
+              title="식자재가 없습니다"
+              actions={
+                <Button
+                  variant="primary"
+                  label="식자재 추가"
+                  onClick={() => setForm(EMPTY_FORM)}
+                />
+              }
+            />
+          ) : (
+            <table className="kpi-table">
+              <thead>
+                <tr>
+                  <th>식자재</th>
+                  <th className="n">예상 재고</th>
+                  <th style={{ textAlign: "center" }}>안전재고</th>
+                  <th className="n">최근 단가</th>
+                  <th className="n">평가금액</th>
+                  <th className="c">연결 메뉴</th>
+                  <th className="c">상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => {
+                  const enriched = enrichedById.get(r.id);
+                  const uiStatus = enriched?.uiStatus ?? "OK";
+                  const badge = UI_STATUS_BADGE[uiStatus];
+                  const estimated = enriched?.estimatedQuantity ?? null;
+                  const unitCostPurchase = enriched?.unitCostPerPurchase ?? null;
+                  const evalWon = enriched?.evaluationWon ?? null;
+
+                  return (
+                    <tr key={r.id}>
+                      <td>
+                        <button
+                          type="button"
+                          className="ing-name-btn"
+                          onClick={() => openEditForm(r)}
+                        >
+                          {r.name}
+                        </button>
+                      </td>
+                      <td className={`n${estimated === null ? " kpi-na" : ""}`}>
+                        {estimated !== null
+                          ? `${fmt(estimated)}${unitLabel(r.base_unit)}`
+                          : "미산출"}
+                      </td>
+                      <td style={{ textAlign: "center" }}>
+                        <SafetyStockSlider
+                          ingredient={r}
+                          estimatedQuantity={estimated}
+                          onCommit={async (nextSafety) => {
+                            await safetyMutation.mutateAsync({
+                              id: r.id,
+                              safety_stock: nextSafety,
+                            });
+                          }}
+                        />
+                      </td>
+                      <td className={`n${unitCostPurchase === null ? " kpi-na" : ""}`}>
+                        {unitCostPurchase !== null
+                          ? `${Math.round(unitCostPurchase).toLocaleString("ko-KR")}원/${unitLabel(
+                              r.purchase_unit,
+                            )}`
+                          : "미산출"}
+                      </td>
+                      <td className={`n${evalWon === null ? " kpi-na" : ""}`}>
+                        {evalWon !== null ? `${evalWon.toLocaleString("ko-KR")}원` : "미산출"}
+                      </td>
+                      <td className="c">{r.linked_menu_count}</td>
+                      <td className="c">
+                        <div className="ing-status-cell">
+                          <span className={`chip ${badge.className}`}>{badge.label}</span>
+                          <MoreMenu
+                            label={`${r.name} 메뉴`}
+                            alignment="end"
+                            items={[
+                              { label: "수정", onClick: () => openEditForm(r) },
+                              {
+                                label: "입고 등록",
+                                onClick: () => openInventoryAction("RECEIPT", r),
+                              },
+                              {
+                                label: "재고 실사",
+                                onClick: () => openInventoryAction("COUNT", r),
+                              },
+                              {
+                                label: "재고 수정",
+                                onClick: () => setAdjustTarget(r),
+                              },
+                              {
+                                label: r.is_active ? "비활성화" : "활성화",
+                                onClick: () => toggleMutation.mutate({ id: r.id, on: !r.is_active }),
+                              },
+                            ]}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <p className="kpi-note">
+          숫자는 개발 DB 샘플 매장 실제 값. 슬라이더 눈금 = 예상 재고 위치, 손잡이 = 안전재고. 단가는 최근 입고 기준(PROVISIONAL).
+        </p>
+
+        {pageCount > 1 ? (
+          <footer className="mt-3 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-rule pt-3 text-xs text-muted tabular-nums">
             <div className="flex flex-wrap gap-x-4 gap-y-1" aria-live="polite" role="status">
               <span>
-                {filteredIngredients.length > 0
-                  ? `${offset + 1}–${offset + rows.length}`
-                  : "0"}{" "}
-                / {filteredIngredients.length}개 · 페이지당 {PAGE_SIZE}개
-              </span>
-              <span>
-                전체 식자재 {all.length}개 · 사용중 {inUseCount} · 입고필요 {restock.length}
+                {filteredIngredients.length > 0 ? `${offset + 1}–${offset + rows.length}` : "0"} /{" "}
+                {filteredIngredients.length}개 · 페이지당 {PAGE_SIZE}개
               </span>
             </div>
             <InternationalizationProvider locale="ko-KR" messages={{ "ko-KR": koKR }}>
-            <Pagination
-              label="식자재 목록 페이지"
-              page={page}
-              totalPages={pageCount}
-              size="sm"
-              variant="compact"
-              isDisabled={
-                listQuery.isLoading || listQuery.isError || filteredIngredients.length === 0
-              }
-              onChange={(next) => setPagination({ filterKey, page: next })}
-            />
+              <Pagination
+                label="식자재 목록 페이지"
+                page={page}
+                totalPages={pageCount}
+                size="sm"
+                variant="compact"
+                isDisabled={
+                  listQuery.isLoading || listQuery.isError || filteredIngredients.length === 0
+                }
+                onChange={(next) => setPagination({ filterKey, page: next })}
+              />
             </InternationalizationProvider>
           </footer>
-        </section>
-
-        <div className="ingredient-side flex min-w-0 flex-col gap-4">
-          <RestockHeroCard
-            totalCount={restock.length}
-            activeCount={all.filter((i) => i.is_active).length}
-            topItems={topRestock}
-            onSelect={selectRestockTab}
-          />
-
-          <div className="card flex flex-col gap-6">
-            <RankBlock title="최근 7일 식자재 사용량 순" items={insights?.recent_usage} showBar />
-            <RankBlock title="연결된 메뉴 많은 식자재 순" items={insights?.linked_menus} />
+        ) : (
+          <div className="sr-only">
+            <InternationalizationProvider locale="ko-KR" messages={{ "ko-KR": koKR }}>
+              <Pagination
+                label="식자재 목록 페이지"
+                page={page}
+                totalPages={pageCount}
+                size="sm"
+                variant="compact"
+                isDisabled={
+                  listQuery.isLoading || listQuery.isError || filteredIngredients.length === 0
+                }
+                onChange={(next) => setPagination({ filterKey, page: next })}
+              />
+            </InternationalizationProvider>
           </div>
+        )}
+      </section>
 
-          <section className="flex flex-col gap-3 rounded-2xl bg-accent-50 p-5">
-            <div className="flex items-start justify-between gap-2">
-              <h2 className="text-sm font-semibold text-ink">레시피 미등록 메뉴</h2>
-              <span className="text-2xl leading-none font-semibold tracking-tight text-ink tabular-nums">
-                {unregMenus.length}
-                <small className="ml-0.5 text-xs font-normal text-muted">개</small>
-              </span>
-            </div>
-            {insights && unregMenus.length === 0 ? (
-              <p className="text-xs text-muted">모두 등록됨</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-1.5">
-                {unregMenus.slice(0, 6).map((m) => {
-                  const category = menuCategoryById.get(m.menu_id) ?? null;
-                  const toneClass = getMenuCategoryToneClass(category);
-                  return (
-                    <button
-                      key={m.menu_id}
-                      type="button"
-                      title={m.name}
-                      className={`pill pill-sm w-full min-w-0 justify-center !px-2.5 ${toneClass}`}
-                      onClick={() => setRecipeTarget({ id: m.menu_id, name: m.name })}
-                    >
-                      <span className="truncate">{m.name}</span>
-                    </button>
-                  );
-                })}
+      {valuationModalOpen && (
+        <Dialog label="재고 평가금액 전체 보기" onClose={() => setValuationModalOpen(false)}>
+          <div className="kpi-detail-modal">
+            <div className="kpi-modal-head">
+              <div>
+                <h2>재고 평가금액 전체</h2>
+                <p className="kpi-modal-sub">
+                  예상 재고 × 최근 입고 단가 · 합계 {kpi.totalEvaluationManWon}만원 (
+                  {kpi.totalEvaluationWon.toLocaleString("ko-KR")}원)
+                </p>
               </div>
-            )}
-          </section>
-        </div>
-      </div>
+              <button
+                type="button"
+                className="pill pill-sm pill-soft"
+                onClick={() => setValuationModalOpen(false)}
+              >
+                닫기
+              </button>
+            </div>
+            <table className="kpi-table">
+              <thead>
+                <tr>
+                  <th>식자재</th>
+                  <th className="n">예상 재고</th>
+                  <th className="n">최근 단가</th>
+                  <th className="n">평가금액</th>
+                  <th className="n">비중</th>
+                </tr>
+              </thead>
+              <tbody>
+                {kpi.allValuationItems.map((item) => (
+                  <tr key={item.ingredientId}>
+                    <td>{item.name}</td>
+                    <td className="n">
+                      {fmt(item.estimatedQuantity)}
+                      {unitLabel(item.baseUnit)}
+                    </td>
+                    <td className="n">
+                      {item.unitCostPerPurchase.toLocaleString("ko-KR")}원/
+                      {unitLabel(item.purchaseUnit)}
+                    </td>
+                    <td className="n">{item.evaluationWon.toLocaleString("ko-KR")}원</td>
+                    <td className="n">{item.sharePercent.toFixed(1)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Dialog>
+      )}
 
-      <Dialog
+      {adjustTarget && (
+        <StockAdjustmentModal
+          store={store}
+          ingredient={adjustTarget}
+          onClose={() => setAdjustTarget(null)}
+          onSaved={(summaryText) => {
+            setAdjustTarget(null);
+            toast({ body: `${summaryText} 완료`, type: "info" });
+            refresh();
+          }}
+        />
+      )}
+
+      <AstryxDialog
         isOpen={form !== null}
         onOpenChange={(open) => !open && setForm(null)}
         purpose="form"
@@ -535,16 +1116,24 @@ function IngredientManagement({ store }: Props) {
             </div>
           </form>
         )}
-      </Dialog>
+      </AstryxDialog>
 
-      <RecipeEditorModal
-        open={recipeTarget !== null}
-        storeId={store.id}
-        menuId={recipeTarget?.id ?? null}
-        menuName={recipeTarget?.name ?? ""}
-        onClose={() => setRecipeTarget(null)}
-        onSaved={refresh}
-      />
+      {inventoryAction && (
+        <ActionDialog
+          key={`${inventoryAction.item.ingredient_id}:${inventoryAction.action}`}
+          store={store}
+          item={inventoryAction.item}
+          items={allInventoryItems}
+          action={inventoryAction.action}
+          onSelect={(item) => setInventoryAction({ item, action: inventoryAction.action })}
+          onClose={() => setInventoryAction(null)}
+          onDone={(text) => {
+            setInventoryAction(null);
+            toast({ body: `${text} 완료`, type: "info" });
+            refresh();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -608,56 +1197,6 @@ export function RestockHeroCard({
                   {unitLabel(it.unit)}
                 </small>
               </span>
-            </li>
-          ))}
-        </ol>
-      )}
-    </section>
-  );
-}
-
-function RankBlock({
-  title,
-  items,
-  showBar = false,
-}: {
-  title: string;
-  items?: IngredientRankItem[];
-  showBar?: boolean;
-}) {
-  const maxVal = Math.max(1, ...(items ?? []).map((it) => Number(it.value)));
-  return (
-    <section className="min-w-0">
-      <div className="card-head !mb-3">
-        <h2>{title}</h2>
-      </div>
-      {items && items.length === 0 ? (
-        <p className="text-xs text-muted">기록 없음</p>
-      ) : (
-        <ol className="flex flex-col gap-3">
-          {items?.map((it, idx) => (
-            <li
-              key={it.ingredient_id}
-              className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1"
-            >
-              <span className="text-xs text-muted tabular-nums">
-                {String(idx + 1).padStart(2, "0")}
-              </span>
-              <span className="truncate text-xs font-medium text-ink">{it.name}</span>
-              <span className="text-sm font-semibold text-ink tabular-nums">
-                {fmt(it.value)}
-                <small className="ml-0.5 text-[11px] font-normal text-muted">
-                  {unitLabel(it.unit)}
-                </small>
-              </span>
-              {showBar && (
-                <span className="col-start-2 h-[5px] overflow-hidden rounded-full bg-ground">
-                  <span
-                    className="block h-full rounded-full bg-accent-300"
-                    style={{ width: `${Math.round((Number(it.value) / maxVal) * 100)}%` }}
-                  />
-                </span>
-              )}
             </li>
           ))}
         </ol>

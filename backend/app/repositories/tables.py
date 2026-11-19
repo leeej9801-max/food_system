@@ -5,6 +5,12 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.db.models import StoreTable, VisitSession
 
+# 화면은 열린 방문만 쓴다. 지난 방문 이력 전체(수천 건)를 매번 읽지 않는다.
+OPEN_VISIT_STATUSES = ("SEATED", "PAID")
+_OPEN_VISITS = selectinload(
+    StoreTable.visit_sessions.and_(VisitSession.status.in_(OPEN_VISIT_STATUSES))
+).selectinload(VisitSession.slots)
+
 
 def list_with_visits(
     db: Session, store_id: UUID, *, include_inactive: bool = False
@@ -12,7 +18,7 @@ def list_with_visits(
     """방문·자리까지 불러온다. 격자 위치 순."""
     stmt = (
         select(StoreTable)
-        .options(selectinload(StoreTable.visit_sessions).selectinload(VisitSession.slots))
+        .options(_OPEN_VISITS)
         .where(StoreTable.store_id == store_id)
         .execution_options(populate_existing=True)
     )
@@ -25,7 +31,7 @@ def list_with_visits(
 def find_with_visits(db: Session, store_id: UUID, table_id: UUID) -> StoreTable | None:
     return db.scalars(
         select(StoreTable)
-        .options(selectinload(StoreTable.visit_sessions).selectinload(VisitSession.slots))
+        .options(_OPEN_VISITS)
         .where(StoreTable.id == table_id, StoreTable.store_id == store_id)
         .execution_options(populate_existing=True)
     ).first()

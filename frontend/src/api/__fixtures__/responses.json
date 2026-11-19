@@ -1,47 +1,49 @@
 {
  "storeSchema": [
   {
-   "id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "표본 매장",
    "timezone": "Asia/Seoul",
    "business_days": "월,화,수,목,금,토",
    "opening_hours": "11:00-21:00",
    "floor_fixtures": [],
-   "created_at": "2026-11-16T14:08:57.874585Z",
-   "updated_at": "2026-11-16T14:08:57.874585Z"
+   "created_at": "2026-11-18T19:03:10.884419Z",
+   "updated_at": "2026-11-18T19:03:10.884419Z"
   },
   {
-   "id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "표본 매장",
    "timezone": "Asia/Seoul",
    "business_days": "월,화,수,목,금,토",
    "opening_hours": "11:00-21:00",
    "floor_fixtures": [],
-   "created_at": "2026-11-16T14:08:57.874585Z",
-   "updated_at": "2026-11-16T14:08:57.874585Z"
+   "created_at": "2026-11-18T19:03:10.884419Z",
+   "updated_at": "2026-11-18T19:03:10.884419Z"
   },
   {
-   "id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "표본 매장",
    "timezone": "Asia/Seoul",
    "business_days": "월,화,수,목,금,토",
    "opening_hours": "11:00-21:00",
    "floor_fixtures": [],
-   "created_at": "2026-11-16T14:08:57.874585Z",
-   "updated_at": "2026-11-16T14:08:57.874585Z"
+   "created_at": "2026-11-18T19:03:10.884419Z",
+   "updated_at": "2026-11-18T19:03:10.884419Z"
   }
  ],
  "seedResultSchema": [
   {
    "ingredients_created": 5,
    "menus_created": 4,
-   "receipts_created": 5
+   "receipts_created": 870,
+   "orders_created": 3905,
+   "visits_created": 3905
   }
  ],
  "storeTableSchema": [
   {
-   "id": "01a1e4b0-949d-7d1d-aa68-1b7bec70a4e3",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00b-24ff-7109-8a76-a9590bdec19b",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "T1",
    "seats": 4,
    "grid_x": 0,
@@ -49,12 +51,12 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": null,
-   "created_at": "2026-11-16T14:09:00.061247Z",
-   "updated_at": "2026-11-16T14:09:00.061247Z"
+   "created_at": "2026-11-18T19:03:44.639572Z",
+   "updated_at": "2026-11-18T19:03:44.639572Z"
   },
   {
-   "id": "01a1e4b0-949d-7d1d-aa68-1b7bec70a4e3",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00b-24ff-7109-8a76-a9590bdec19b",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "T1",
    "seats": 4,
    "grid_x": 0,
@@ -62,14 +64,14 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": {
-    "id": "01a1e4b0-954e-7592-9e72-e7b1ca149484",
-    "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-    "table_id": "01a1e4b0-949d-7d1d-aa68-1b7bec70a4e3",
+    "id": "01a1f00b-25a6-7fca-b6ad-e6fda6e77961",
+    "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+    "table_id": "01a1f00b-24ff-7109-8a76-a9590bdec19b",
     "table_name": "T1",
     "party_size": 2,
     "age_band": "30S",
     "status": "SEATED",
-    "seated_at": "2026-11-16T14:09:00.233282Z",
+    "seated_at": "2026-11-18T19:03:44.800452Z",
     "paid_at": null,
     "left_at": null,
     "source": "manual",
@@ -99,12 +101,12 @@
      }
     ]
    },
-   "created_at": "2026-11-16T14:09:00.061247Z",
-   "updated_at": "2026-11-16T14:09:00.061247Z"
+   "created_at": "2026-11-18T19:03:44.639572Z",
+   "updated_at": "2026-11-18T19:03:44.639572Z"
   },
   {
-   "id": "01a1e4b0-8c39-74cd-a7bd-37cb36f89238",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00a-a146-74bc-a441-2b18de6e8771",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "T1",
    "seats": 4,
    "grid_x": 0,
@@ -112,12 +114,12 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": null,
-   "created_at": "2026-11-16T14:08:57.913774Z",
-   "updated_at": "2026-11-16T14:08:57.914382Z"
+   "created_at": "2026-11-18T19:03:10.918592Z",
+   "updated_at": "2026-11-18T19:03:10.918592Z"
   },
   {
-   "id": "01a1e4b0-8c3a-7746-a30a-7c1ae82e759b",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00a-a146-7488-a09f-c946884edbc8",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "T2",
    "seats": 4,
    "grid_x": 1,
@@ -125,72 +127,20 @@
    "orientation": "H",
    "is_active": true,
    "active_visit": null,
-   "created_at": "2026-11-16T14:08:57.914382Z",
-   "updated_at": "2026-11-16T14:08:57.914382Z"
-  },
-  {
-   "id": "01a1e4b0-8c3a-77fb-9aea-2fa1fdd3b350",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "name": "T3",
-   "seats": 4,
-   "grid_x": 2,
-   "grid_y": 0,
-   "orientation": "H",
-   "is_active": true,
-   "active_visit": null,
-   "created_at": "2026-11-16T14:08:57.914382Z",
-   "updated_at": "2026-11-16T14:08:57.914382Z"
-  },
-  {
-   "id": "01a1e4b0-8c3a-7896-a617-2e54280ccf3b",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "name": "T4",
-   "seats": 4,
-   "grid_x": 0,
-   "grid_y": 1,
-   "orientation": "H",
-   "is_active": true,
-   "active_visit": null,
-   "created_at": "2026-11-16T14:08:57.914382Z",
-   "updated_at": "2026-11-16T14:08:57.914382Z"
-  },
-  {
-   "id": "01a1e4b0-8c3a-7923-ad75-59df3a0b625e",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "name": "T5",
-   "seats": 4,
-   "grid_x": 1,
-   "grid_y": 1,
-   "orientation": "H",
-   "is_active": true,
-   "active_visit": null,
-   "created_at": "2026-11-16T14:08:57.914382Z",
-   "updated_at": "2026-11-16T14:08:57.914382Z"
-  },
-  {
-   "id": "01a1e4b0-8c3a-7ae8-bf6a-db32b27a1af3",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "name": "T6",
-   "seats": 4,
-   "grid_x": 2,
-   "grid_y": 1,
-   "orientation": "H",
-   "is_active": true,
-   "active_visit": null,
-   "created_at": "2026-11-16T14:08:57.914382Z",
-   "updated_at": "2026-11-16T14:08:57.914382Z"
+   "created_at": "2026-11-18T19:03:10.918592Z",
+   "updated_at": "2026-11-18T19:03:10.918592Z"
   }
  ],
  "visitSessionSchema": [
   {
-   "id": "01a1e4b0-954e-7592-9e72-e7b1ca149484",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "table_id": "01a1e4b0-949d-7d1d-aa68-1b7bec70a4e3",
+   "id": "01a1f00b-25a6-7fca-b6ad-e6fda6e77961",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "table_id": "01a1f00b-24ff-7109-8a76-a9590bdec19b",
    "table_name": "T1",
    "party_size": 2,
    "age_band": "20S",
    "status": "SEATED",
-   "seated_at": "2026-11-16T14:09:00.233282Z",
+   "seated_at": "2026-11-18T19:03:44.800452Z",
    "paid_at": null,
    "left_at": null,
    "source": "manual",
@@ -221,14 +171,14 @@
    ]
   },
   {
-   "id": "01a1e4b0-954e-7592-9e72-e7b1ca149484",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "table_id": "01a1e4b0-949d-7d1d-aa68-1b7bec70a4e3",
+   "id": "01a1f00b-25a6-7fca-b6ad-e6fda6e77961",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "table_id": "01a1f00b-24ff-7109-8a76-a9590bdec19b",
    "table_name": "T1",
    "party_size": 2,
    "age_band": "30S",
    "status": "SEATED",
-   "seated_at": "2026-11-16T14:09:00.233282Z",
+   "seated_at": "2026-11-18T19:03:44.800452Z",
    "paid_at": null,
    "left_at": null,
    "source": "manual",
@@ -263,34 +213,102 @@
   {
    "active_table_count": 1,
    "active_guest_count": 2,
-   "total_visit_count": 1,
-   "total_guest_count": 2,
+   "total_visit_count": 3906,
+   "total_guest_count": 7394,
    "sessions": [
     {
-     "id": "01a1e4b0-954e-7592-9e72-e7b1ca149484",
-     "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-     "table_id": "01a1e4b0-949d-7d1d-aa68-1b7bec70a4e3",
-     "table_name": "T1",
-     "party_size": 2,
-     "age_band": "30S",
-     "status": "SEATED",
-     "seated_at": "2026-11-16T14:09:00.233282Z",
-     "paid_at": null,
-     "left_at": null,
-     "source": "manual",
-     "notes": null,
+     "id": "01a1f00a-b93c-7f32-96ff-7a30babf7c47",
+     "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+     "table_id": "01a1f00a-a146-7ab1-859f-7305eb82e0a7",
+     "table_name": "T4",
+     "party_size": 1,
+     "age_band": "20S",
+     "status": "LEFT",
+     "seated_at": "2026-11-19T10:09:00Z",
+     "paid_at": "2026-11-19T10:54:00Z",
+     "left_at": "2026-11-19T11:04:00Z",
+     "source": "demo:bistro:v2",
+     "notes": "demo:bistro:v2",
      "party_size_source": "STAFF",
      "opened_by": "STAFF",
-     "closed_reason": null,
+     "closed_reason": "CLEARED",
      "purpose": null,
-     "relationship": null,
-     "context_source": null,
+     "relationship": "FRIENDS",
+     "context_source": "STAFF",
      "slots": [
       {
        "slot_no": 1,
        "state": "SILHOUETTE",
        "is_claimed": false,
-       "gender": "FEMALE",
+       "gender": "UNRECORDED",
+       "age_band": "20S",
+       "profile_source": "STAFF"
+      }
+     ]
+    },
+    {
+     "id": "01a1f00a-b93b-7022-b063-6602061b77da",
+     "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+     "table_id": "01a1f00a-a146-7c04-a2b0-2477b05114c7",
+     "table_name": "T3",
+     "party_size": 2,
+     "age_band": "40S",
+     "status": "LEFT",
+     "seated_at": "2026-11-19T10:06:00Z",
+     "paid_at": "2026-11-19T10:51:00Z",
+     "left_at": "2026-11-19T11:01:00Z",
+     "source": "demo:bistro:v2",
+     "notes": "demo:bistro:v2",
+     "party_size_source": "STAFF",
+     "opened_by": "STAFF",
+     "closed_reason": "CLEARED",
+     "purpose": null,
+     "relationship": "FRIENDS",
+     "context_source": "STAFF",
+     "slots": [
+      {
+       "slot_no": 1,
+       "state": "SILHOUETTE",
+       "is_claimed": false,
+       "gender": "UNRECORDED",
+       "age_band": "40S",
+       "profile_source": "STAFF"
+      },
+      {
+       "slot_no": 2,
+       "state": "SILHOUETTE",
+       "is_claimed": false,
+       "gender": "UNRECORDED",
+       "age_band": "40S",
+       "profile_source": "STAFF"
+      }
+     ]
+    },
+    {
+     "id": "01a1f00a-b93a-7f30-859a-58f33c2638fe",
+     "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+     "table_id": "01a1f00a-a146-7488-a09f-c946884edbc8",
+     "table_name": "T2",
+     "party_size": 3,
+     "age_band": "30S",
+     "status": "LEFT",
+     "seated_at": "2026-11-19T10:03:00Z",
+     "paid_at": "2026-11-19T10:48:00Z",
+     "left_at": "2026-11-19T10:58:00Z",
+     "source": "demo:bistro:v2",
+     "notes": "demo:bistro:v2",
+     "party_size_source": "STAFF",
+     "opened_by": "STAFF",
+     "closed_reason": "CLEARED",
+     "purpose": null,
+     "relationship": "FRIENDS",
+     "context_source": "STAFF",
+     "slots": [
+      {
+       "slot_no": 1,
+       "state": "SILHOUETTE",
+       "is_claimed": false,
+       "gender": "UNRECORDED",
        "age_band": "30S",
        "profile_source": "STAFF"
       },
@@ -299,8 +317,16 @@
        "state": "SILHOUETTE",
        "is_claimed": false,
        "gender": "UNRECORDED",
-       "age_band": "UNRECORDED",
-       "profile_source": null
+       "age_band": "30S",
+       "profile_source": "STAFF"
+      },
+      {
+       "slot_no": 3,
+       "state": "SILHOUETTE",
+       "is_claimed": false,
+       "gender": "UNRECORDED",
+       "age_band": "30S",
+       "profile_source": "STAFF"
       }
      ]
     }
@@ -309,93 +335,74 @@
  ],
  "menuItemSchema": [
   {
-   "id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "까르보나라",
    "selling_price": "16000.00",
    "category": "파스타",
    "description": null,
    "is_active": true,
-   "pos_mapping_status": "UNLINKED_PROVISIONAL",
+   "pos_mapping_status": "LINKED",
    "recipe_status": "COMPLETE",
    "recipe_item_count": 3,
-   "created_at": "2026-11-16T14:08:59.122227Z",
-   "updated_at": "2026-11-16T14:08:59.122227Z"
+   "created_at": "2026-11-18T19:03:11.655796Z",
+   "updated_at": "2026-11-18T19:03:11.655796Z"
   },
   {
-   "id": "01a1e4b0-92ed-7c0e-be21-a775f4948a1c",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00a-a5c4-7f01-aaeb-f417457b678f",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "부채살 스테이크",
    "selling_price": "29000.00",
    "category": "스테이크",
    "description": null,
    "is_active": true,
-   "pos_mapping_status": "UNLINKED_PROVISIONAL",
+   "pos_mapping_status": "LINKED",
    "recipe_status": "COMPLETE",
    "recipe_item_count": 2,
-   "created_at": "2026-11-16T14:08:59.629932Z",
-   "updated_at": "2026-11-16T14:08:59.629932Z"
+   "created_at": "2026-11-18T19:03:12.068272Z",
+   "updated_at": "2026-11-18T19:03:12.068272Z"
   },
   {
-   "id": "01a1e4b0-9216-75d6-bdf1-a561ec4896d6",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00a-a502-7685-a977-392ce8e4f039",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "알리오올리오",
    "selling_price": "14000.00",
    "category": "파스타",
    "description": null,
    "is_active": true,
-   "pos_mapping_status": "UNLINKED_PROVISIONAL",
+   "pos_mapping_status": "LINKED",
    "recipe_status": "COMPLETE",
    "recipe_item_count": 3,
-   "created_at": "2026-11-16T14:08:59.414596Z",
-   "updated_at": "2026-11-16T14:08:59.414596Z"
-  },
-  {
-   "id": "01a1e4b0-93cd-7558-9a72-0842c67def46",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "name": "하우스 와인(글라스)",
-   "selling_price": "9000.00",
-   "category": "음료/와인",
-   "description": null,
-   "is_active": true,
-   "pos_mapping_status": "UNLINKED_PROVISIONAL",
-   "recipe_status": "UNREGISTERED",
-   "recipe_item_count": 0,
-   "created_at": "2026-11-16T14:08:59.853227Z",
-   "updated_at": "2026-11-16T14:08:59.853227Z"
+   "created_at": "2026-11-18T19:03:11.874875Z",
+   "updated_at": "2026-11-18T19:03:11.874875Z"
   }
  ],
  "menuCategorySchema": [
   {
-   "id": "01a1e4b0-9818-7b6c-9834-85fa45c02aff",
+   "id": "01a1f00b-293e-79c3-a905-12c8a90033e7",
    "name": "뇨끼",
    "menu_count": 0
   },
   {
-   "id": "01a1e4b0-90e4-7709-a86c-1e20f0715703",
+   "id": "01a1f00a-a41f-79de-9496-92992ecf5be1",
    "name": "파스타",
    "menu_count": 2
   },
   {
-   "id": "01a1e4b0-92e7-732a-8555-630d79dff465",
+   "id": "01a1f00a-a5bf-7d8f-bfad-f3e2eb3d6227",
    "name": "스테이크",
    "menu_count": 1
   },
   {
-   "id": "01a1e4b0-93c5-7b6e-a58d-8a07ee316cce",
+   "id": "01a1f00a-a67d-7fc1-bfbd-dc0c8404948d",
    "name": "음료/와인",
    "menu_count": 1
-  },
-  {
-   "id": "01a1e4b0-9818-7b6c-9834-85fa45c02aff",
-   "name": "뇨끼",
-   "menu_count": 0
   }
  ],
  "ingredientSchema": [
   {
-   "id": "01a1e4b0-8deb-72aa-b3e5-dab67a458d38",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00a-a29b-742c-bb5c-c3bbe7494dd1",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "관찰레(이탈리아산)",
    "base_unit": "g",
    "purchase_unit": "kg",
@@ -405,12 +412,12 @@
    "is_active": true,
    "linked_menu_count": 1,
    "stock_status": "IN_USE",
-   "created_at": "2026-11-16T14:08:58.347994Z",
-   "updated_at": "2026-11-16T14:08:58.347994Z"
+   "created_at": "2026-11-18T19:03:11.259680Z",
+   "updated_at": "2026-11-18T19:03:11.259680Z"
   },
   {
-   "id": "01a1e4b0-8ce1-70a4-ac06-23d7f101cb06",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00a-a1ff-79c1-8f35-c57daff64518",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "스파게티면(데체코)",
    "base_unit": "g",
    "purchase_unit": "kg",
@@ -420,12 +427,12 @@
    "is_active": true,
    "linked_menu_count": 2,
    "stock_status": "IN_USE",
-   "created_at": "2026-11-16T14:08:58.081431Z",
-   "updated_at": "2026-11-16T14:08:58.081431Z"
+   "created_at": "2026-11-18T19:03:11.103090Z",
+   "updated_at": "2026-11-18T19:03:11.103090Z"
   },
   {
-   "id": "01a1e4b0-8f63-71d0-a651-613642461bd1",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00a-a359-7ecf-b98c-62ff058a8529",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "name": "엑스트라버진 올리브오일",
    "base_unit": "ml",
    "purchase_unit": "L",
@@ -435,52 +442,22 @@
    "is_active": true,
    "linked_menu_count": 2,
    "stock_status": "IN_USE",
-   "created_at": "2026-11-16T14:08:58.724347Z",
-   "updated_at": "2026-11-16T14:08:58.724347Z"
-  },
-  {
-   "id": "01a1e4b0-8eb5-7fb1-8cb0-e1a6b436d04d",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "name": "페코리노 로마노 치즈",
-   "base_unit": "g",
-   "purchase_unit": "kg",
-   "conversion_factor": "1000.0000",
-   "safety_stock": "400.000",
-   "notes": null,
-   "is_active": true,
-   "linked_menu_count": 2,
-   "stock_status": "IN_USE",
-   "created_at": "2026-11-16T14:08:58.549668Z",
-   "updated_at": "2026-11-16T14:08:58.549668Z"
-  },
-  {
-   "id": "01a1e4b0-9018-7de1-9db7-8b4d87839c95",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "name": "프라임 부채살",
-   "base_unit": "g",
-   "purchase_unit": "kg",
-   "conversion_factor": "1000.0000",
-   "safety_stock": "1000.000",
-   "notes": null,
-   "is_active": true,
-   "linked_menu_count": 1,
-   "stock_status": "IN_USE",
-   "created_at": "2026-11-16T14:08:58.904413Z",
-   "updated_at": "2026-11-16T14:08:58.904413Z"
+   "created_at": "2026-11-18T19:03:11.449429Z",
+   "updated_at": "2026-11-18T19:03:11.449429Z"
   }
  ],
  "recipeDetailSchema": [
   {
-   "menu_item_id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
+   "menu_item_id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
    "menu_name": "까르보나라",
    "version": 1,
    "status": "COMPLETE",
-   "effective_from": "2026-11-16T14:08:59.240841Z",
-   "updated_at": "2026-11-16T14:08:59.244391Z",
+   "effective_from": "2026-11-18T19:03:11.751826Z",
+   "updated_at": "2026-11-18T19:03:11.754135Z",
    "items": [
     {
-     "id": "01a1e4b0-918e-72a7-9e49-471904a65a45",
-     "ingredient_id": "01a1e4b0-8ce1-70a4-ac06-23d7f101cb06",
+     "id": "01a1f00a-a49c-7d10-ab7c-53624b697754",
+     "ingredient_id": "01a1f00a-a1ff-79c1-8f35-c57daff64518",
      "ingredient_name": "스파게티면(데체코)",
      "ingredient_is_active": true,
      "quantity": "120.000",
@@ -488,8 +465,8 @@
      "notes": null
     },
     {
-     "id": "01a1e4b0-918e-7ad3-98ee-d904d1713653",
-     "ingredient_id": "01a1e4b0-8deb-72aa-b3e5-dab67a458d38",
+     "id": "01a1f00a-a49c-75a0-9eac-d70d41c03e6c",
+     "ingredient_id": "01a1f00a-a29b-742c-bb5c-c3bbe7494dd1",
      "ingredient_name": "관찰레(이탈리아산)",
      "ingredient_is_active": true,
      "quantity": "50.000",
@@ -497,8 +474,8 @@
      "notes": null
     },
     {
-     "id": "01a1e4b0-918e-765d-bda3-a9ed54eb3c5b",
-     "ingredient_id": "01a1e4b0-8eb5-7fb1-8cb0-e1a6b436d04d",
+     "id": "01a1f00a-a49c-707d-ab7b-be559234c2ae",
+     "ingredient_id": "01a1f00a-a2fc-7aef-b712-835b786d88a3",
      "ingredient_name": "페코리노 로마노 치즈",
      "ingredient_is_active": true,
      "quantity": "30.000",
@@ -510,7 +487,7 @@
  ],
  "ingredientUsageSchema": [
   {
-   "menu_item_id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
+   "menu_item_id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
    "menu_name": "까르보나라",
    "menu_is_active": true,
    "quantity": "50.000",
@@ -520,22 +497,41 @@
  ],
  "ingredientInsightsSchema": [
   {
-   "recent_usage": [],
+   "recent_usage": [
+    {
+     "ingredient_id": "01a1f00a-a1ff-79c1-8f35-c57daff64518",
+     "name": "스파게티면(데체코)",
+     "value": "28800.000",
+     "unit": "g"
+    },
+    {
+     "ingredient_id": "01a1f00a-a3b3-7832-9d4f-e777a4c93802",
+     "name": "프라임 부채살",
+     "value": "13420.000",
+     "unit": "g"
+    },
+    {
+     "ingredient_id": "01a1f00a-a29b-742c-bb5c-c3bbe7494dd1",
+     "name": "관찰레(이탈리아산)",
+     "value": "7000.000",
+     "unit": "g"
+    }
+   ],
    "linked_menus": [
     {
-     "ingredient_id": "01a1e4b0-8ce1-70a4-ac06-23d7f101cb06",
+     "ingredient_id": "01a1f00a-a1ff-79c1-8f35-c57daff64518",
      "name": "스파게티면(데체코)",
      "value": "2",
      "unit": "개"
     },
     {
-     "ingredient_id": "01a1e4b0-8f63-71d0-a651-613642461bd1",
+     "ingredient_id": "01a1f00a-a359-7ecf-b98c-62ff058a8529",
      "name": "엑스트라버진 올리브오일",
      "value": "2",
      "unit": "개"
     },
     {
-     "ingredient_id": "01a1e4b0-8eb5-7fb1-8cb0-e1a6b436d04d",
+     "ingredient_id": "01a1f00a-a2fc-7aef-b712-835b786d88a3",
      "name": "페코리노 로마노 치즈",
      "value": "2",
      "unit": "개"
@@ -543,7 +539,7 @@
    ],
    "menus_without_recipe": [
     {
-     "menu_id": "01a1e4b0-93cd-7558-9a72-0842c67def46",
+     "menu_id": "01a1f00a-a683-72be-95c4-109c97bb90bc",
      "name": "하우스 와인(글라스)"
     }
    ]
@@ -551,27 +547,27 @@
  ],
  "integrationStatusSchema": [
   {
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "mode": "CSV_UPLOAD",
    "connection_status": "READY_CSV",
    "is_realtime": false,
    "last_synced_at": null,
    "latest_data_time": null,
-   "total_orders_count": 0,
-   "net_sales_amount": "0.00",
-   "net_items_quantity": 0,
+   "total_orders_count": 3905,
+   "net_sales_amount": "142595000.00",
+   "net_items_quantity": 8550,
    "unmapped_products": []
   },
   {
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "mode": "CSV_UPLOAD",
    "connection_status": "READY_CSV",
    "is_realtime": false,
-   "last_synced_at": "2026-11-16T14:09:02.704488Z",
+   "last_synced_at": "2026-11-18T19:03:51.670584Z",
    "latest_data_time": "2026-11-01T12:10:00Z",
-   "total_orders_count": 1,
-   "net_sales_amount": "18000.00",
-   "net_items_quantity": 2,
+   "total_orders_count": 3906,
+   "net_sales_amount": "142613000.00",
+   "net_items_quantity": 8552,
    "unmapped_products": []
   }
  ],
@@ -583,7 +579,7 @@
  ],
  "csvPreviewSchema": [
   {
-   "batch_id": "01a1e4b0-9e6e-7ca7-aa36-3dad035f4548",
+   "batch_id": "01a1f00b-4004-735b-9c27-400c8c4d46b2",
    "file_name": "sample.csv",
    "status": "PREVIEWED",
    "duplicate_file_warning": false,
@@ -639,7 +635,7 @@
  ],
  "csvCommitSchema": [
   {
-   "batch_id": "01a1e4b0-9e6e-7ca7-aa36-3dad035f4548",
+   "batch_id": "01a1f00b-4004-735b-9c27-400c8c4d46b2",
    "status": "COMMITTED",
    "orders_upserted": 2,
    "items_recorded": 2,
@@ -649,45 +645,88 @@
  ],
  "productMappingSchema": [
   {
-   "id": "01a1e4b0-9fc5-72e3-ac06-141b20907aab",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00b-4121-74c3-a647-2ddb640c4b74",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "external_product_name": "없는메뉴",
-   "menu_item_id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
+   "menu_item_id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
    "menu_name": "까르보나라",
    "retroactive_updated_items": 2
   },
   {
-   "id": "01a1e4b0-9fc5-72e3-ac06-141b20907aab",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "id": "01a1f00b-4121-74c3-a647-2ddb640c4b74",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "external_product_name": "없는메뉴",
-   "menu_item_id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
+   "menu_item_id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
    "menu_name": "까르보나라",
    "retroactive_updated_items": 0
   }
  ],
  "salesOrdersListSchema": [
   {
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "pos_mode": "CSV_UPLOAD",
    "can_manual_edit": true,
    "mode_notice": "CSV/수동 수집 모드: 현장에서 주문 수량 변경·환불(취소) 전환·수동 주문 추가 시 재고 및 매출 파이프라인에 즉시 반영됩니다.",
    "orders": [
     {
-     "id": "01a1e4b0-9f03-7545-b2f6-df6de6ab03b1",
-     "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-     "external_order_id": "S-2",
-     "ordered_at": "2026-11-01T00:00:00Z",
-     "time_basis": "date_only",
-     "order_status": "CANCELLED",
+     "id": "01a1f00a-c2b7-7644-8318-7693ef2ed8e0",
+     "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+     "external_order_id": "demo:bistro:v2:2026-11-19:21",
+     "ordered_at": "2026-11-19T10:09:00Z",
+     "time_basis": "order_time",
+     "order_status": "COMPLETED",
      "total_quantity": 1,
-     "total_amount": "9000.00",
-     "source_mode": "CSV_UPLOAD",
+     "total_amount": "29000.00",
+     "source_mode": "demo:bistro:v2",
      "items": [
       {
-       "id": "01a1e4b0-9f3a-7301-827b-cb5bf9ba0f9e",
-       "raw_product_name": "없는메뉴",
-       "menu_item_id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
+       "id": "01a1f00a-e4b0-7543-bc8b-69033f0b439e",
+       "raw_product_name": "부채살 스테이크",
+       "menu_item_id": "01a1f00a-a5c4-7f01-aaeb-f417457b678f",
+       "menu_name": "부채살 스테이크",
+       "mapping_status": "MAPPED",
+       "quantity": 1,
+       "unit_price": "29000.00",
+       "line_amount": "29000.00"
+      }
+     ]
+    },
+    {
+     "id": "01a1f00a-c2b7-7571-856a-9b5eaffdca1b",
+     "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+     "external_order_id": "demo:bistro:v2:2026-11-19:20",
+     "ordered_at": "2026-11-19T10:06:00Z",
+     "time_basis": "order_time",
+     "order_status": "COMPLETED",
+     "total_quantity": 3,
+     "total_amount": "39000.00",
+     "source_mode": "demo:bistro:v2",
+     "items": [
+      {
+       "id": "01a1f00a-e4b0-7990-9fd5-6acf64a52210",
+       "raw_product_name": "알리오올리오",
+       "menu_item_id": "01a1f00a-a502-7685-a977-392ce8e4f039",
+       "menu_name": "알리오올리오",
+       "mapping_status": "MAPPED",
+       "quantity": 1,
+       "unit_price": "14000.00",
+       "line_amount": "14000.00"
+      },
+      {
+       "id": "01a1f00a-e4b0-70e6-9991-fe85feb7b053",
+       "raw_product_name": "까르보나라",
+       "menu_item_id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
        "menu_name": "까르보나라",
+       "mapping_status": "MAPPED",
+       "quantity": 1,
+       "unit_price": "16000.00",
+       "line_amount": "16000.00"
+      },
+      {
+       "id": "01a1f00a-e4b0-7617-87e1-49b700baad9c",
+       "raw_product_name": "하우스 와인(글라스)",
+       "menu_item_id": "01a1f00a-a683-72be-95c4-109c97bb90bc",
+       "menu_name": "하우스 와인(글라스)",
        "mapping_status": "MAPPED",
        "quantity": 1,
        "unit_price": "9000.00",
@@ -696,25 +735,45 @@
      ]
     },
     {
-     "id": "01a1e4b0-9ef3-706c-9533-e9a3e5247867",
-     "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-     "external_order_id": "S-1",
-     "ordered_at": "2026-11-01T12:10:00Z",
+     "id": "01a1f00a-c2b7-7529-b02c-61e0b1b8f8d2",
+     "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+     "external_order_id": "demo:bistro:v2:2026-11-19:19",
+     "ordered_at": "2026-11-19T10:03:00Z",
      "time_basis": "order_time",
      "order_status": "COMPLETED",
-     "total_quantity": 2,
-     "total_amount": "18000.00",
-     "source_mode": "CSV_UPLOAD",
+     "total_quantity": 3,
+     "total_amount": "44000.00",
+     "source_mode": "demo:bistro:v2",
      "items": [
       {
-       "id": "01a1e4b0-9f0c-75d8-ba3c-2d426400256b",
-       "raw_product_name": "없는메뉴",
-       "menu_item_id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
+       "id": "01a1f00a-e4b0-769f-a73f-9fa583dd104a",
+       "raw_product_name": "알리오올리오",
+       "menu_item_id": "01a1f00a-a502-7685-a977-392ce8e4f039",
+       "menu_name": "알리오올리오",
+       "mapping_status": "MAPPED",
+       "quantity": 1,
+       "unit_price": "14000.00",
+       "line_amount": "14000.00"
+      },
+      {
+       "id": "01a1f00a-e4b0-74d1-99e4-e094e035398a",
+       "raw_product_name": "알리오올리오",
+       "menu_item_id": "01a1f00a-a502-7685-a977-392ce8e4f039",
+       "menu_name": "알리오올리오",
+       "mapping_status": "MAPPED",
+       "quantity": 1,
+       "unit_price": "14000.00",
+       "line_amount": "14000.00"
+      },
+      {
+       "id": "01a1f00a-e4b0-72f5-a9fc-523a5be14c62",
+       "raw_product_name": "까르보나라",
+       "menu_item_id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
        "menu_name": "까르보나라",
        "mapping_status": "MAPPED",
-       "quantity": 2,
-       "unit_price": "9000.00",
-       "line_amount": "18000.00"
+       "quantity": 1,
+       "unit_price": "16000.00",
+       "line_amount": "16000.00"
       }
      ]
     }
@@ -723,21 +782,64 @@
  ],
  "salesOrderSchema": [
   {
-   "id": "01a1e4b0-9f03-7545-b2f6-df6de6ab03b1",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "external_order_id": "S-2",
-   "ordered_at": "2026-11-01T00:00:00Z",
-   "time_basis": "date_only",
-   "order_status": "CANCELLED",
+   "id": "01a1f00a-c2b7-7644-8318-7693ef2ed8e0",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "external_order_id": "demo:bistro:v2:2026-11-19:21",
+   "ordered_at": "2026-11-19T10:09:00Z",
+   "time_basis": "order_time",
+   "order_status": "COMPLETED",
    "total_quantity": 1,
-   "total_amount": "9000.00",
-   "source_mode": "CSV_UPLOAD",
+   "total_amount": "29000.00",
+   "source_mode": "demo:bistro:v2",
    "items": [
     {
-     "id": "01a1e4b0-9f3a-7301-827b-cb5bf9ba0f9e",
-     "raw_product_name": "없는메뉴",
-     "menu_item_id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
+     "id": "01a1f00a-e4b0-7543-bc8b-69033f0b439e",
+     "raw_product_name": "부채살 스테이크",
+     "menu_item_id": "01a1f00a-a5c4-7f01-aaeb-f417457b678f",
+     "menu_name": "부채살 스테이크",
+     "mapping_status": "MAPPED",
+     "quantity": 1,
+     "unit_price": "29000.00",
+     "line_amount": "29000.00"
+    }
+   ]
+  },
+  {
+   "id": "01a1f00a-c2b7-7571-856a-9b5eaffdca1b",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "external_order_id": "demo:bistro:v2:2026-11-19:20",
+   "ordered_at": "2026-11-19T10:06:00Z",
+   "time_basis": "order_time",
+   "order_status": "COMPLETED",
+   "total_quantity": 3,
+   "total_amount": "39000.00",
+   "source_mode": "demo:bistro:v2",
+   "items": [
+    {
+     "id": "01a1f00a-e4b0-7990-9fd5-6acf64a52210",
+     "raw_product_name": "알리오올리오",
+     "menu_item_id": "01a1f00a-a502-7685-a977-392ce8e4f039",
+     "menu_name": "알리오올리오",
+     "mapping_status": "MAPPED",
+     "quantity": 1,
+     "unit_price": "14000.00",
+     "line_amount": "14000.00"
+    },
+    {
+     "id": "01a1f00a-e4b0-70e6-9991-fe85feb7b053",
+     "raw_product_name": "까르보나라",
+     "menu_item_id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
      "menu_name": "까르보나라",
+     "mapping_status": "MAPPED",
+     "quantity": 1,
+     "unit_price": "16000.00",
+     "line_amount": "16000.00"
+    },
+    {
+     "id": "01a1f00a-e4b0-7617-87e1-49b700baad9c",
+     "raw_product_name": "하우스 와인(글라스)",
+     "menu_item_id": "01a1f00a-a683-72be-95c4-109c97bb90bc",
+     "menu_name": "하우스 와인(글라스)",
      "mapping_status": "MAPPED",
      "quantity": 1,
      "unit_price": "9000.00",
@@ -746,34 +848,54 @@
    ]
   },
   {
-   "id": "01a1e4b0-9ef3-706c-9533-e9a3e5247867",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "external_order_id": "S-1",
-   "ordered_at": "2026-11-01T12:10:00Z",
+   "id": "01a1f00a-c2b7-7529-b02c-61e0b1b8f8d2",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "external_order_id": "demo:bistro:v2:2026-11-19:19",
+   "ordered_at": "2026-11-19T10:03:00Z",
    "time_basis": "order_time",
    "order_status": "COMPLETED",
-   "total_quantity": 2,
-   "total_amount": "18000.00",
-   "source_mode": "CSV_UPLOAD",
+   "total_quantity": 3,
+   "total_amount": "44000.00",
+   "source_mode": "demo:bistro:v2",
    "items": [
     {
-     "id": "01a1e4b0-9f0c-75d8-ba3c-2d426400256b",
-     "raw_product_name": "없는메뉴",
-     "menu_item_id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
+     "id": "01a1f00a-e4b0-769f-a73f-9fa583dd104a",
+     "raw_product_name": "알리오올리오",
+     "menu_item_id": "01a1f00a-a502-7685-a977-392ce8e4f039",
+     "menu_name": "알리오올리오",
+     "mapping_status": "MAPPED",
+     "quantity": 1,
+     "unit_price": "14000.00",
+     "line_amount": "14000.00"
+    },
+    {
+     "id": "01a1f00a-e4b0-74d1-99e4-e094e035398a",
+     "raw_product_name": "알리오올리오",
+     "menu_item_id": "01a1f00a-a502-7685-a977-392ce8e4f039",
+     "menu_name": "알리오올리오",
+     "mapping_status": "MAPPED",
+     "quantity": 1,
+     "unit_price": "14000.00",
+     "line_amount": "14000.00"
+    },
+    {
+     "id": "01a1f00a-e4b0-72f5-a9fc-523a5be14c62",
+     "raw_product_name": "까르보나라",
+     "menu_item_id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
      "menu_name": "까르보나라",
      "mapping_status": "MAPPED",
-     "quantity": 2,
-     "unit_price": "9000.00",
-     "line_amount": "18000.00"
+     "quantity": 1,
+     "unit_price": "16000.00",
+     "line_amount": "16000.00"
     }
    ]
   }
  ],
  "inventoryReceiptSchema": [
   {
-   "id": "01a1e4b0-a15a-77c4-baea-56ae09465b30",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "ingredient_id": "01a1e4b0-8deb-72aa-b3e5-dab67a458d38",
+   "id": "01a1f00b-4d74-7594-bc79-c30940c290ca",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "ingredient_id": "01a1f00a-a29b-742c-bb5c-c3bbe7494dd1",
    "ingredient_name": "관찰레(이탈리아산)",
    "purchase_quantity": "1.000",
    "purchase_unit": "kg",
@@ -784,244 +906,178 @@
    "unit_cost_per_base": "10.0000",
    "supplier_name": null,
    "notes": null,
-   "received_at": "2026-11-16T14:09:03.322187Z"
+   "received_at": "2026-11-18T19:03:54.993771Z"
   },
   {
-   "id": "01a1e4b0-a15a-77c4-baea-56ae09465b30",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "ingredient_id": "01a1e4b0-8deb-72aa-b3e5-dab67a458d38",
+   "id": "01a1f00a-bccc-7b6a-ae6c-fcca47eda246",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "ingredient_id": "01a1f00a-a29b-742c-bb5c-c3bbe7494dd1",
    "ingredient_name": "관찰레(이탈리아산)",
-   "purchase_quantity": "1.000",
+   "purchase_quantity": "1.050",
    "purchase_unit": "kg",
-   "base_quantity": "1000.000",
+   "base_quantity": "1050.000",
    "base_unit": "g",
-   "total_cost": "10000.00",
-   "unit_cost_per_purchase": "10000.00",
-   "unit_cost_per_base": "10.0000",
-   "supplier_name": null,
-   "notes": null,
-   "received_at": "2026-11-16T14:09:03.322187Z"
+   "total_cost": "43635.00",
+   "unit_cost_per_purchase": "41557.14",
+   "unit_cost_per_base": "41.5571",
+   "supplier_name": "샘플 식자재 공급처",
+   "notes": "demo:bistro:v2",
+   "received_at": "2026-11-19T00:00:00Z"
   },
   {
-   "id": "01a1e4b0-9090-7734-98cd-0e31264f1d69",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "ingredient_id": "01a1e4b0-9018-7de1-9db7-8b4d87839c95",
-   "ingredient_name": "프라임 부채살",
-   "purchase_quantity": "2.000",
-   "purchase_unit": "kg",
-   "base_quantity": "2000.000",
-   "base_unit": "g",
-   "total_cost": "84000.00",
-   "unit_cost_per_purchase": "42000.00",
-   "unit_cost_per_base": "42.0000",
-   "supplier_name": "유로푸드 파트너스(프로토타입)",
-   "notes": "프로토타입 초기 입고 단가",
-   "received_at": "2026-11-16T14:08:59.024247Z"
-  },
-  {
-   "id": "01a1e4b0-8fe0-7a91-853c-8904a444b97a",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "ingredient_id": "01a1e4b0-8f63-71d0-a651-613642461bd1",
-   "ingredient_name": "엑스트라버진 올리브오일",
-   "purchase_quantity": "2.000",
-   "purchase_unit": "L",
-   "base_quantity": "2000.000",
-   "base_unit": "ml",
-   "total_cost": "36000.00",
-   "unit_cost_per_purchase": "18000.00",
-   "unit_cost_per_base": "18.0000",
-   "supplier_name": "유로푸드 파트너스(프로토타입)",
-   "notes": "프로토타입 초기 입고 단가",
-   "received_at": "2026-11-16T14:08:58.847472Z"
-  },
-  {
-   "id": "01a1e4b0-8f2b-7390-8df3-765e3cf1c005",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "ingredient_id": "01a1e4b0-8eb5-7fb1-8cb0-e1a6b436d04d",
+   "id": "01a1f00a-bccc-76fd-b14c-240185583128",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "ingredient_id": "01a1f00a-a2fc-7aef-b712-835b786d88a3",
    "ingredient_name": "페코리노 로마노 치즈",
-   "purchase_quantity": "1.000",
+   "purchase_quantity": "0.810",
    "purchase_unit": "kg",
-   "base_quantity": "1000.000",
+   "base_quantity": "810.000",
    "base_unit": "g",
-   "total_cost": "45000.00",
-   "unit_cost_per_purchase": "45000.00",
-   "unit_cost_per_base": "45.0000",
-   "supplier_name": "유로푸드 파트너스(프로토타입)",
-   "notes": "프로토타입 초기 입고 단가",
-   "received_at": "2026-11-16T14:08:58.667087Z"
+   "total_cost": "47336.00",
+   "unit_cost_per_purchase": "58439.51",
+   "unit_cost_per_base": "58.4395",
+   "supplier_name": "샘플 식자재 공급처",
+   "notes": "demo:bistro:v2",
+   "received_at": "2026-11-19T00:00:00Z"
   },
   {
-   "id": "01a1e4b0-8e73-779d-993e-1b2c1518df66",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "ingredient_id": "01a1e4b0-8deb-72aa-b3e5-dab67a458d38",
-   "ingredient_name": "관찰레(이탈리아산)",
-   "purchase_quantity": "1.000",
-   "purchase_unit": "kg",
-   "base_quantity": "1000.000",
-   "base_unit": "g",
-   "total_cost": "32000.00",
-   "unit_cost_per_purchase": "32000.00",
-   "unit_cost_per_base": "32.0000",
-   "supplier_name": "유로푸드 파트너스(프로토타입)",
-   "notes": "프로토타입 초기 입고 단가",
-   "received_at": "2026-11-16T14:08:58.483306Z"
-  },
-  {
-   "id": "01a1e4b0-8d94-7a62-9f11-59e6131ddd73",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "ingredient_id": "01a1e4b0-8ce1-70a4-ac06-23d7f101cb06",
-   "ingredient_name": "스파게티면(데체코)",
-   "purchase_quantity": "3.000",
-   "purchase_unit": "kg",
-   "base_quantity": "3000.000",
-   "base_unit": "g",
-   "total_cost": "27000.00",
-   "unit_cost_per_purchase": "9000.00",
-   "unit_cost_per_base": "9.0000",
-   "supplier_name": "유로푸드 파트너스(프로토타입)",
-   "notes": "프로토타입 초기 입고 단가",
-   "received_at": "2026-11-16T14:08:58.257765Z"
+   "id": "01a1f00a-bccc-754e-b87a-d57d96dacca8",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "ingredient_id": "01a1f00a-a359-7ecf-b98c-62ff058a8529",
+   "ingredient_name": "엑스트라버진 올리브오일",
+   "purchase_quantity": "0.720",
+   "purchase_unit": "L",
+   "base_quantity": "720.000",
+   "base_unit": "ml",
+   "total_cost": "16830.00",
+   "unit_cost_per_purchase": "23375.00",
+   "unit_cost_per_base": "23.3750",
+   "supplier_name": "샘플 식자재 공급처",
+   "notes": "demo:bistro:v2",
+   "received_at": "2026-11-19T00:00:00Z"
   }
  ],
  "inventoryCountSchema": [
   {
-   "id": "01a1e4b0-a213-78f3-bc21-c620b31716cc",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "ingredient_id": "01a1e4b0-8deb-72aa-b3e5-dab67a458d38",
+   "id": "01a1f00b-4ecd-7230-9a9d-526099607847",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "ingredient_id": "01a1f00a-a29b-742c-bb5c-c3bbe7494dd1",
    "ingredient_name": "관찰레(이탈리아산)",
    "actual_quantity": "500.000",
    "base_unit": "g",
    "notes": null,
-   "counted_at": "2026-11-16T14:09:03.505007Z"
+   "counted_at": "2026-11-18T19:03:55.335112Z"
   },
   {
-   "id": "01a1e4b0-a213-78f3-bc21-c620b31716cc",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "ingredient_id": "01a1e4b0-8deb-72aa-b3e5-dab67a458d38",
-   "ingredient_name": "관찰레(이탈리아산)",
-   "actual_quantity": "500.000",
+   "id": "01a1f00a-bc38-7e19-874c-976d1c8a8abe",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "ingredient_id": "01a1f00a-a1ff-79c1-8f35-c57daff64518",
+   "ingredient_name": "스파게티면(데체코)",
+   "actual_quantity": "3000.000",
    "base_unit": "g",
-   "notes": null,
-   "counted_at": "2026-11-16T14:09:03.505007Z"
+   "notes": "demo:bistro:v2",
+   "counted_at": "2026-11-19T14:00:00Z"
+  },
+  {
+   "id": "01a1f00a-bc38-7c37-8678-5b81ef77f3cb",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "ingredient_id": "01a1f00a-a359-7ecf-b98c-62ff058a8529",
+   "ingredient_name": "엑스트라버진 올리브오일",
+   "actual_quantity": "1000.000",
+   "base_unit": "ml",
+   "notes": "demo:bistro:v2",
+   "counted_at": "2026-11-19T14:00:00Z"
+  },
+  {
+   "id": "01a1f00a-bc38-7628-99ac-ab72ca8ae4de",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "ingredient_id": "01a1f00a-a2fc-7aef-b712-835b786d88a3",
+   "ingredient_name": "페코리노 로마노 치즈",
+   "actual_quantity": "800.000",
+   "base_unit": "g",
+   "notes": "demo:bistro:v2",
+   "counted_at": "2026-11-19T14:00:00Z"
   }
  ],
  "inventoryAdjustmentSchema": [
   {
-   "id": "01a1e4b0-a2dd-770a-8400-33599569f078",
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "ingredient_id": "01a1e4b0-8deb-72aa-b3e5-dab67a458d38",
+   "id": "01a1f00b-4fc6-7f41-9a75-a25fb3d0b87f",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "ingredient_id": "01a1f00a-a29b-742c-bb5c-c3bbe7494dd1",
    "ingredient_name": "관찰레(이탈리아산)",
    "quantity_delta": "-10.000",
    "base_unit": "g",
    "reason": "WASTE",
    "notes": null,
-   "occurred_at": "2026-11-16T14:09:03.707319Z"
+   "occurred_at": "2026-11-18T19:03:55.582798Z"
   }
  ],
  "inventoryItemSchema": [
   {
-   "ingredient_id": "01a1e4b0-8deb-72aa-b3e5-dab67a458d38",
+   "ingredient_id": "01a1f00a-a29b-742c-bb5c-c3bbe7494dd1",
    "ingredient_name": "관찰레(이탈리아산)",
    "is_active": true,
    "base_unit": "g",
    "purchase_unit": "kg",
    "conversion_factor": "1000.0000",
    "safety_stock": "500.000",
-   "latest_unit_cost_per_purchase": "10000.00",
-   "latest_unit_cost_per_base": "10.0000",
+   "latest_unit_cost_per_purchase": "41557.14",
+   "latest_unit_cost_per_base": "41.5571",
    "cost_basis_label": "최근 입고 단가 기준 (PROVISIONAL P-12)",
-   "last_actual_quantity": "500.000",
-   "last_counted_at": "2026-11-16T14:09:03.505007Z",
+   "last_actual_quantity": "1000.000",
+   "last_counted_at": "2026-11-19T14:00:00Z",
    "receipts_since_count_base": "0.000",
    "theoretical_consumption_base": "0.000",
-   "adjustments_since_count_base": "-10.000",
-   "estimated_quantity": "490.000",
-   "stock_status": "LOW_STOCK"
+   "adjustments_since_count_base": "0.000",
+   "estimated_quantity": "1000.000",
+   "stock_status": "OK"
   },
   {
-   "ingredient_id": "01a1e4b0-8ce1-70a4-ac06-23d7f101cb06",
+   "ingredient_id": "01a1f00a-a1ff-79c1-8f35-c57daff64518",
    "ingredient_name": "스파게티면(데체코)",
    "is_active": true,
    "base_unit": "g",
    "purchase_unit": "kg",
    "conversion_factor": "1000.0000",
    "safety_stock": "1500.000",
-   "latest_unit_cost_per_purchase": "9000.00",
-   "latest_unit_cost_per_base": "9.0000",
+   "latest_unit_cost_per_purchase": "11687.88",
+   "latest_unit_cost_per_base": "11.6879",
    "cost_basis_label": "최근 입고 단가 기준 (PROVISIONAL P-12)",
-   "last_actual_quantity": null,
-   "last_counted_at": null,
-   "receipts_since_count_base": "3000.000",
-   "theoretical_consumption_base": "240.000",
+   "last_actual_quantity": "3000.000",
+   "last_counted_at": "2026-11-19T14:00:00Z",
+   "receipts_since_count_base": "0.000",
+   "theoretical_consumption_base": "0.000",
    "adjustments_since_count_base": "0.000",
-   "estimated_quantity": "2760.000",
+   "estimated_quantity": "3000.000",
    "stock_status": "OK"
   },
   {
-   "ingredient_id": "01a1e4b0-8f63-71d0-a651-613642461bd1",
+   "ingredient_id": "01a1f00a-a359-7ecf-b98c-62ff058a8529",
    "ingredient_name": "엑스트라버진 올리브오일",
    "is_active": true,
    "base_unit": "ml",
    "purchase_unit": "L",
    "conversion_factor": "1000.0000",
    "safety_stock": "500.000",
-   "latest_unit_cost_per_purchase": "18000.00",
-   "latest_unit_cost_per_base": "18.0000",
+   "latest_unit_cost_per_purchase": "23375.00",
+   "latest_unit_cost_per_base": "23.3750",
    "cost_basis_label": "최근 입고 단가 기준 (PROVISIONAL P-12)",
-   "last_actual_quantity": null,
-   "last_counted_at": null,
-   "receipts_since_count_base": "2000.000",
+   "last_actual_quantity": "1000.000",
+   "last_counted_at": "2026-11-19T14:00:00Z",
+   "receipts_since_count_base": "0.000",
    "theoretical_consumption_base": "0.000",
    "adjustments_since_count_base": "0.000",
-   "estimated_quantity": "2000.000",
-   "stock_status": "OK"
-  },
-  {
-   "ingredient_id": "01a1e4b0-8eb5-7fb1-8cb0-e1a6b436d04d",
-   "ingredient_name": "페코리노 로마노 치즈",
-   "is_active": true,
-   "base_unit": "g",
-   "purchase_unit": "kg",
-   "conversion_factor": "1000.0000",
-   "safety_stock": "400.000",
-   "latest_unit_cost_per_purchase": "45000.00",
-   "latest_unit_cost_per_base": "45.0000",
-   "cost_basis_label": "최근 입고 단가 기준 (PROVISIONAL P-12)",
-   "last_actual_quantity": null,
-   "last_counted_at": null,
-   "receipts_since_count_base": "1000.000",
-   "theoretical_consumption_base": "60.000",
-   "adjustments_since_count_base": "0.000",
-   "estimated_quantity": "940.000",
-   "stock_status": "OK"
-  },
-  {
-   "ingredient_id": "01a1e4b0-9018-7de1-9db7-8b4d87839c95",
-   "ingredient_name": "프라임 부채살",
-   "is_active": true,
-   "base_unit": "g",
-   "purchase_unit": "kg",
-   "conversion_factor": "1000.0000",
-   "safety_stock": "1000.000",
-   "latest_unit_cost_per_purchase": "42000.00",
-   "latest_unit_cost_per_base": "42.0000",
-   "cost_basis_label": "최근 입고 단가 기준 (PROVISIONAL P-12)",
-   "last_actual_quantity": null,
-   "last_counted_at": null,
-   "receipts_since_count_base": "2000.000",
-   "theoretical_consumption_base": "0.000",
-   "adjustments_since_count_base": "0.000",
-   "estimated_quantity": "2000.000",
+   "estimated_quantity": "1000.000",
    "stock_status": "OK"
   }
  ],
  "salesAnalyticsSchema": [
   {
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "total_completed_orders": 1,
-   "total_quantity": 2,
-   "total_net_sales": "18000.00",
-   "known_hour_quantity": 2,
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "total_completed_orders": 3906,
+   "total_quantity": 8552,
+   "total_net_sales": "142613000.00",
+   "known_hour_quantity": 8552,
    "unknown_hour_quantity": 0,
    "hourly_buckets": [
     {
@@ -1036,18 +1092,18 @@
     },
     {
      "hour": 2,
-     "quantity": 0,
-     "sales_amount": "0.00"
+     "quantity": 2298,
+     "sales_amount": "38277000.00"
     },
     {
      "hour": 3,
-     "quantity": 0,
-     "sales_amount": "0.00"
+     "quantity": 2315,
+     "sales_amount": "38432000.00"
     },
     {
      "hour": 4,
-     "quantity": 0,
-     "sales_amount": "0.00"
+     "quantity": 357,
+     "sales_amount": "6026000.00"
     },
     {
      "hour": 5,
@@ -1071,13 +1127,13 @@
     },
     {
      "hour": 9,
-     "quantity": 0,
-     "sales_amount": "0.00"
+     "quantity": 2273,
+     "sales_amount": "38053000.00"
     },
     {
      "hour": 10,
-     "quantity": 0,
-     "sales_amount": "0.00"
+     "quantity": 1307,
+     "sales_amount": "21807000.00"
     },
     {
      "hour": 11,
@@ -1147,26 +1203,55 @@
    ],
    "menu_rankings": [
     {
-     "menu_item_id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
+     "menu_item_id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
      "menu_name": "까르보나라",
      "mapping_status": "MAPPED",
-     "quantity": 2,
-     "sales_amount": "18000.00"
+     "quantity": 3387,
+     "sales_amount": "54178000.00"
+    },
+    {
+     "menu_item_id": "01a1f00a-a502-7685-a977-392ce8e4f039",
+     "menu_name": "알리오올리오",
+     "mapping_status": "MAPPED",
+     "quantity": 2546,
+     "sales_amount": "35644000.00"
+    },
+    {
+     "menu_item_id": "01a1f00a-a5c4-7f01-aaeb-f417457b678f",
+     "menu_name": "부채살 스테이크",
+     "mapping_status": "MAPPED",
+     "quantity": 1461,
+     "sales_amount": "42369000.00"
+    },
+    {
+     "menu_item_id": "01a1f00a-a683-72be-95c4-109c97bb90bc",
+     "menu_name": "하우스 와인(글라스)",
+     "mapping_status": "MAPPED",
+     "quantity": 1158,
+     "sales_amount": "10422000.00"
     }
    ]
   }
  ],
  "guestAnalyticsSchema": [
   {
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
-   "visit_count": 1,
-   "guest_count": 2,
-   "profiled_person_count": 1,
-   "avg_stay_minutes": null,
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "visit_count": 3906,
+   "guest_count": 7394,
+   "profiled_person_count": 7393,
+   "avg_stay_minutes": 55,
    "age_bands": [
     {
+     "key": "20S",
+     "count": 2545
+    },
+    {
      "key": "30S",
-     "count": 1
+     "count": 2433
+    },
+    {
+     "key": "40S",
+     "count": 2415
     }
    ],
    "genders": [
@@ -1175,19 +1260,150 @@
      "count": 1
     }
    ],
-   "relationships": [],
+   "relationships": [
+    {
+     "key": "COUPLE",
+     "count": 1323
+    },
+    {
+     "key": "FAMILY",
+     "count": 1304
+    },
+    {
+     "key": "FRIENDS",
+     "count": 1278
+    }
+   ],
    "purposes": [],
    "party_sizes": [
     {
+     "key": "1",
+     "count": 778
+    },
+    {
      "key": "2",
-     "count": 1
+     "count": 2768
+    },
+    {
+     "key": "3",
+     "count": 360
     }
    ],
-   "matched_order_count": 0,
-   "ambiguous_order_count": 0,
+   "matched_order_count": 348,
+   "ambiguous_order_count": 3557,
    "unmatched_order_count": 1,
-   "menu_by_relationship": [],
-   "menu_by_age_band": [],
+   "menu_by_relationship": [
+    {
+     "key": "FRIENDS",
+     "visit_count": 123,
+     "top_menus": [
+      {
+       "menu_name": "까르보나라",
+       "quantity": 104
+      },
+      {
+       "menu_name": "알리오올리오",
+       "quantity": 85
+      },
+      {
+       "menu_name": "부채살 스테이크",
+       "quantity": 47
+      }
+     ]
+    },
+    {
+     "key": "FAMILY",
+     "visit_count": 117,
+     "top_menus": [
+      {
+       "menu_name": "까르보나라",
+       "quantity": 99
+      },
+      {
+       "menu_name": "알리오올리오",
+       "quantity": 77
+      },
+      {
+       "menu_name": "부채살 스테이크",
+       "quantity": 39
+      }
+     ]
+    },
+    {
+     "key": "COUPLE",
+     "visit_count": 108,
+     "top_menus": [
+      {
+       "menu_name": "까르보나라",
+       "quantity": 89
+      },
+      {
+       "menu_name": "알리오올리오",
+       "quantity": 80
+      },
+      {
+       "menu_name": "부채살 스테이크",
+       "quantity": 36
+      }
+     ]
+    }
+   ],
+   "menu_by_age_band": [
+    {
+     "key": "30S",
+     "visit_count": 129,
+     "top_menus": [
+      {
+       "menu_name": "까르보나라",
+       "quantity": 102
+      },
+      {
+       "menu_name": "알리오올리오",
+       "quantity": 88
+      },
+      {
+       "menu_name": "부채살 스테이크",
+       "quantity": 51
+      }
+     ]
+    },
+    {
+     "key": "40S",
+     "visit_count": 112,
+     "top_menus": [
+      {
+       "menu_name": "까르보나라",
+       "quantity": 106
+      },
+      {
+       "menu_name": "알리오올리오",
+       "quantity": 75
+      },
+      {
+       "menu_name": "하우스 와인(글라스)",
+       "quantity": 32
+      }
+     ]
+    },
+    {
+     "key": "20S",
+     "visit_count": 107,
+     "top_menus": [
+      {
+       "menu_name": "까르보나라",
+       "quantity": 84
+      },
+      {
+       "menu_name": "알리오올리오",
+       "quantity": 79
+      },
+      {
+       "menu_name": "부채살 스테이크",
+       "quantity": 46
+      }
+     ]
+    }
+   ],
    "weather_station_configured": true,
    "weather_days": [],
    "weather_groups": []
@@ -1513,146 +1729,146 @@
  ],
  "costSimulationSchema": [
   {
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "cost_basis_label": "최근 입고 단가 기준 (PROVISIONAL P-12 · 비파괴 시뮬레이션)",
    "global_change_percent": "10.00",
    "menus": [
     {
-     "menu_item_id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
+     "menu_item_id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
      "menu_name": "까르보나라",
      "category": "파스타",
      "selling_price": "16000.00",
      "cost_status": "COMPLETE",
      "missing_cost_ingredients": [],
-     "base_recipe_cost": "2930.00",
-     "simulated_recipe_cost": "3223.00",
-     "cost_delta": "293.00",
-     "base_margin": "13070.00",
-     "simulated_margin": "12777.00",
-     "base_cost_ratio_percent": "18.31",
-     "simulated_cost_ratio_percent": "20.14",
-     "high_cost_warning": false,
+     "base_recipe_cost": "5233.59",
+     "simulated_recipe_cost": "5756.94",
+     "cost_delta": "523.35",
+     "base_margin": "10766.41",
+     "simulated_margin": "10243.06",
+     "base_cost_ratio_percent": "32.71",
+     "simulated_cost_ratio_percent": "35.98",
+     "high_cost_warning": true,
      "breakdown": [
       {
-       "ingredient_id": "01a1e4b0-8ce1-70a4-ac06-23d7f101cb06",
+       "ingredient_id": "01a1f00a-a1ff-79c1-8f35-c57daff64518",
        "ingredient_name": "스파게티면(데체코)",
        "quantity": "120.000",
        "base_unit": "g",
-       "base_unit_cost": "9.0000",
-       "simulated_unit_cost": "9.9000",
-       "base_line_cost": "1080.00",
-       "simulated_line_cost": "1188.00"
+       "base_unit_cost": "11.6879",
+       "simulated_unit_cost": "12.8567",
+       "base_line_cost": "1402.55",
+       "simulated_line_cost": "1542.80"
       },
       {
-       "ingredient_id": "01a1e4b0-8deb-72aa-b3e5-dab67a458d38",
+       "ingredient_id": "01a1f00a-a29b-742c-bb5c-c3bbe7494dd1",
        "ingredient_name": "관찰레(이탈리아산)",
        "quantity": "50.000",
        "base_unit": "g",
-       "base_unit_cost": "10.0000",
-       "simulated_unit_cost": "11.0000",
-       "base_line_cost": "500.00",
-       "simulated_line_cost": "550.00"
+       "base_unit_cost": "41.5571",
+       "simulated_unit_cost": "45.7128",
+       "base_line_cost": "2077.86",
+       "simulated_line_cost": "2285.64"
       },
       {
-       "ingredient_id": "01a1e4b0-8eb5-7fb1-8cb0-e1a6b436d04d",
+       "ingredient_id": "01a1f00a-a2fc-7aef-b712-835b786d88a3",
        "ingredient_name": "페코리노 로마노 치즈",
        "quantity": "30.000",
        "base_unit": "g",
-       "base_unit_cost": "45.0000",
-       "simulated_unit_cost": "49.5000",
-       "base_line_cost": "1350.00",
-       "simulated_line_cost": "1485.00"
+       "base_unit_cost": "58.4395",
+       "simulated_unit_cost": "64.2834",
+       "base_line_cost": "1753.18",
+       "simulated_line_cost": "1928.50"
       }
      ]
     },
     {
-     "menu_item_id": "01a1e4b0-92ed-7c0e-be21-a775f4948a1c",
+     "menu_item_id": "01a1f00a-a5c4-7f01-aaeb-f417457b678f",
      "menu_name": "부채살 스테이크",
      "category": "스테이크",
      "selling_price": "29000.00",
      "cost_status": "COMPLETE",
      "missing_cost_ingredients": [],
-     "base_recipe_cost": "9600.00",
-     "simulated_recipe_cost": "10560.00",
-     "cost_delta": "960.00",
-     "base_margin": "19400.00",
-     "simulated_margin": "18440.00",
-     "base_cost_ratio_percent": "33.10",
-     "simulated_cost_ratio_percent": "36.41",
+     "base_recipe_cost": "12466.94",
+     "simulated_recipe_cost": "13713.63",
+     "cost_delta": "1246.69",
+     "base_margin": "16533.06",
+     "simulated_margin": "15286.37",
+     "base_cost_ratio_percent": "42.99",
+     "simulated_cost_ratio_percent": "47.29",
      "high_cost_warning": true,
      "breakdown": [
       {
-       "ingredient_id": "01a1e4b0-9018-7de1-9db7-8b4d87839c95",
+       "ingredient_id": "01a1f00a-a3b3-7832-9d4f-e777a4c93802",
        "ingredient_name": "프라임 부채살",
        "quantity": "220.000",
        "base_unit": "g",
-       "base_unit_cost": "42.0000",
-       "simulated_unit_cost": "46.2000",
-       "base_line_cost": "9240.00",
-       "simulated_line_cost": "10164.00"
+       "base_unit_cost": "54.5429",
+       "simulated_unit_cost": "59.9972",
+       "base_line_cost": "11999.44",
+       "simulated_line_cost": "13199.38"
       },
       {
-       "ingredient_id": "01a1e4b0-8f63-71d0-a651-613642461bd1",
+       "ingredient_id": "01a1f00a-a359-7ecf-b98c-62ff058a8529",
        "ingredient_name": "엑스트라버진 올리브오일",
        "quantity": "20.000",
        "base_unit": "ml",
-       "base_unit_cost": "18.0000",
-       "simulated_unit_cost": "19.8000",
-       "base_line_cost": "360.00",
-       "simulated_line_cost": "396.00"
+       "base_unit_cost": "23.3750",
+       "simulated_unit_cost": "25.7125",
+       "base_line_cost": "467.50",
+       "simulated_line_cost": "514.25"
       }
      ]
     },
     {
-     "menu_item_id": "01a1e4b0-9216-75d6-bdf1-a561ec4896d6",
+     "menu_item_id": "01a1f00a-a502-7685-a977-392ce8e4f039",
      "menu_name": "알리오올리오",
      "category": "파스타",
      "selling_price": "14000.00",
      "cost_status": "COMPLETE",
      "missing_cost_ingredients": [],
-     "base_recipe_cost": "2565.00",
-     "simulated_recipe_cost": "2821.50",
-     "cost_delta": "256.50",
-     "base_margin": "11435.00",
-     "simulated_margin": "11178.50",
-     "base_cost_ratio_percent": "18.32",
-     "simulated_cost_ratio_percent": "20.15",
+     "base_recipe_cost": "3331.02",
+     "simulated_recipe_cost": "3664.11",
+     "cost_delta": "333.09",
+     "base_margin": "10668.98",
+     "simulated_margin": "10335.89",
+     "base_cost_ratio_percent": "23.79",
+     "simulated_cost_ratio_percent": "26.17",
      "high_cost_warning": false,
      "breakdown": [
       {
-       "ingredient_id": "01a1e4b0-8ce1-70a4-ac06-23d7f101cb06",
+       "ingredient_id": "01a1f00a-a1ff-79c1-8f35-c57daff64518",
        "ingredient_name": "스파게티면(데체코)",
        "quantity": "120.000",
        "base_unit": "g",
-       "base_unit_cost": "9.0000",
-       "simulated_unit_cost": "9.9000",
-       "base_line_cost": "1080.00",
-       "simulated_line_cost": "1188.00"
+       "base_unit_cost": "11.6879",
+       "simulated_unit_cost": "12.8567",
+       "base_line_cost": "1402.55",
+       "simulated_line_cost": "1542.80"
       },
       {
-       "ingredient_id": "01a1e4b0-8f63-71d0-a651-613642461bd1",
+       "ingredient_id": "01a1f00a-a359-7ecf-b98c-62ff058a8529",
        "ingredient_name": "엑스트라버진 올리브오일",
        "quantity": "45.000",
        "base_unit": "ml",
-       "base_unit_cost": "18.0000",
-       "simulated_unit_cost": "19.8000",
-       "base_line_cost": "810.00",
-       "simulated_line_cost": "891.00"
+       "base_unit_cost": "23.3750",
+       "simulated_unit_cost": "25.7125",
+       "base_line_cost": "1051.88",
+       "simulated_line_cost": "1157.06"
       },
       {
-       "ingredient_id": "01a1e4b0-8eb5-7fb1-8cb0-e1a6b436d04d",
+       "ingredient_id": "01a1f00a-a2fc-7aef-b712-835b786d88a3",
        "ingredient_name": "페코리노 로마노 치즈",
        "quantity": "15.000",
        "base_unit": "g",
-       "base_unit_cost": "45.0000",
-       "simulated_unit_cost": "49.5000",
-       "base_line_cost": "675.00",
-       "simulated_line_cost": "742.50"
+       "base_unit_cost": "58.4395",
+       "simulated_unit_cost": "64.2834",
+       "base_line_cost": "876.59",
+       "simulated_line_cost": "964.25"
       }
      ]
     },
     {
-     "menu_item_id": "01a1e4b0-93cd-7558-9a72-0842c67def46",
+     "menu_item_id": "01a1f00a-a683-72be-95c4-109c97bb90bc",
      "menu_name": "하우스 와인(글라스)",
      "category": "음료/와인",
      "selling_price": "9000.00",
@@ -1673,15 +1889,15 @@
  ],
  "pnlSchema": [
   {
-   "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
    "month": "2026-10",
    "card_fee_percent": "2.00",
    "revenue": {
     "code": "revenue",
     "label": "총매출",
-    "amount": 0,
+    "amount": 22093000,
     "source": "auto",
-    "ratio_percent": null
+    "ratio_percent": "100.0"
    },
    "expenses": [
     {
@@ -1689,212 +1905,212 @@
      "label": "임대료(부가세 포함)",
      "amount": 1000,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "liquor",
      "label": "주류 사입비",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "ingredients",
      "label": "식자재 사입비",
-     "amount": 0,
+     "amount": 7069760,
      "source": "auto",
-     "ratio_percent": null
+     "ratio_percent": "32.0"
     },
     {
      "code": "building",
      "label": "건물관리비",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "labor",
      "label": "직원인건비",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "social_insurance",
      "label": "4대보험비",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "delivery_app_fee",
      "label": "배민·요기요·쿠팡 수수료",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "delivery_cost",
      "label": "지출된 배달비용",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "packaging",
      "label": "포장비용 일체",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "electricity",
      "label": "전기세",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "water",
      "label": "수도세",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "gas",
      "label": "가스비",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "water_purifier",
      "label": "정수기",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "security",
      "label": "CCTV·캡스",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "internet",
      "label": "인터넷",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "phone",
      "label": "전화비",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "pos",
      "label": "포스기",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "bookkeeping",
      "label": "세무기장료",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "advertising",
      "label": "광고비",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "vat",
      "label": "부가세",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "fire_insurance",
      "label": "화재보험",
      "amount": 0,
      "source": "manual",
-     "ratio_percent": null
+     "ratio_percent": "0.0"
     },
     {
      "code": "card_fee",
      "label": "카드수수료",
-     "amount": 0,
+     "amount": 441860,
      "source": "auto",
-     "ratio_percent": null
+     "ratio_percent": "2.0"
     }
    ],
-   "total_expenses": 1000,
-   "operating_profit": -1000,
-   "operating_margin_percent": null,
+   "total_expenses": 7512620,
+   "operating_profit": 14580380,
+   "operating_margin_percent": "66.0",
    "trend": [
     {
      "month": "2026-05",
-     "revenue": 0,
-     "total_expenses": 0,
-     "operating_profit": 0
+     "revenue": 21454000,
+     "total_expenses": 18337815,
+     "operating_profit": 3116185
     },
     {
      "month": "2026-06",
-     "revenue": 0,
-     "total_expenses": 0,
-     "operating_profit": 0
+     "revenue": 21163000,
+     "total_expenses": 18238875,
+     "operating_profit": 2924125
     },
     {
      "month": "2026-07",
-     "revenue": 0,
-     "total_expenses": 0,
-     "operating_profit": 0
+     "revenue": 22691000,
+     "total_expenses": 18758395,
+     "operating_profit": 3932605
     },
     {
      "month": "2026-08",
-     "revenue": 0,
-     "total_expenses": 0,
-     "operating_profit": 0
+     "revenue": 21159000,
+     "total_expenses": 18237515,
+     "operating_profit": 2921485
     },
     {
      "month": "2026-09",
-     "revenue": 0,
-     "total_expenses": 0,
-     "operating_profit": 0
+     "revenue": 21363000,
+     "total_expenses": 18306875,
+     "operating_profit": 3056125
     },
     {
      "month": "2026-10",
-     "revenue": 0,
-     "total_expenses": 1000,
-     "operating_profit": -1000
+     "revenue": 22093000,
+     "total_expenses": 7512620,
+     "operating_profit": 14580380
     }
    ],
    "daily": [
     {
      "date": "2026-10-01",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 756000,
+     "expenses": 257040
     },
     {
      "date": "2026-10-02",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 930000,
+     "expenses": 316200
     },
     {
      "date": "2026-10-03",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 784000,
+     "expenses": 266560
     },
     {
      "date": "2026-10-04",
@@ -1903,33 +2119,33 @@
     },
     {
      "date": "2026-10-05",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 644000,
+     "expenses": 218960
     },
     {
      "date": "2026-10-06",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 774000,
+     "expenses": 263160
     },
     {
      "date": "2026-10-07",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 805000,
+     "expenses": 273700
     },
     {
      "date": "2026-10-08",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 636000,
+     "expenses": 216240
     },
     {
      "date": "2026-10-09",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 875000,
+     "expenses": 297500
     },
     {
      "date": "2026-10-10",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 1079000,
+     "expenses": 366860
     },
     {
      "date": "2026-10-11",
@@ -1938,33 +2154,33 @@
     },
     {
      "date": "2026-10-12",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 806000,
+     "expenses": 274040
     },
     {
      "date": "2026-10-13",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 713000,
+     "expenses": 242420
     },
     {
      "date": "2026-10-14",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 745000,
+     "expenses": 253300
     },
     {
      "date": "2026-10-15",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 826000,
+     "expenses": 280840
     },
     {
      "date": "2026-10-16",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 1116000,
+     "expenses": 379440
     },
     {
      "date": "2026-10-17",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 1054000,
+     "expenses": 358360
     },
     {
      "date": "2026-10-18",
@@ -1973,33 +2189,33 @@
     },
     {
      "date": "2026-10-19",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 555000,
+     "expenses": 188700
     },
     {
      "date": "2026-10-20",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 739000,
+     "expenses": 251260
     },
     {
      "date": "2026-10-21",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 712000,
+     "expenses": 242080
     },
     {
      "date": "2026-10-22",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 941000,
+     "expenses": 319940
     },
     {
      "date": "2026-10-23",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 968000,
+     "expenses": 329120
     },
     {
      "date": "2026-10-24",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 874000,
+     "expenses": 297160
     },
     {
      "date": "2026-10-25",
@@ -2008,33 +2224,676 @@
     },
     {
      "date": "2026-10-26",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 677000,
+     "expenses": 230180
     },
     {
      "date": "2026-10-27",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 750000,
+     "expenses": 255000
     },
     {
      "date": "2026-10-28",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 866000,
+     "expenses": 294440
     },
     {
      "date": "2026-10-29",
-     "revenue": 0,
-     "expenses": 0
+     "revenue": 682000,
+     "expenses": 231880
     },
     {
      "date": "2026-10-30",
+     "revenue": 877000,
+     "expenses": 298180
+    },
+    {
+     "date": "2026-10-31",
+     "revenue": 909000,
+     "expenses": 309060
+    }
+   ],
+   "comparison": {
+    "previous_month": {
+     "month": "2026-09",
+     "revenue": 21363000,
+     "total_expenses": 18306875,
+     "operating_profit": 3056125
+    },
+    "to_date": {
+     "start": "2026-10-01",
+     "end": "2026-10-15",
+     "revenue": 10373000,
+     "expenses": 3526820,
+     "operating_profit": 6846180
+    },
+    "previous_to_date": {
+     "start": "2026-09-01",
+     "end": "2026-09-15",
+     "revenue": 10466000,
+     "expenses": 3558440,
+     "operating_profit": 6907560
+    },
+    "weekly": {
+     "current": {
+      "start": "2026-10-12",
+      "end": "2026-10-15",
+      "revenue": 3090000,
+      "expenses": 1050729,
+      "operating_profit": 2039271
+     },
+     "baseline": {
+      "start": "2026-10-05",
+      "end": "2026-10-08",
+      "revenue": 2859000,
+      "expenses": 972189,
+      "operating_profit": 1886811
+     },
+     "baseline_count": 1
+    },
+    "monthly_average": {
+     "current": {
+      "start": "2026-10-01",
+      "end": "2026-10-15",
+      "revenue": 22093000,
+      "expenses": 7512620,
+      "operating_profit": 14580380
+     },
+     "baseline": {
+      "start": "2026-07-01",
+      "end": "2026-09-30",
+      "revenue": 21737667,
+      "expenses": 18434262,
+      "operating_profit": 3303405
+     },
+     "baseline_count": 3
+    },
+    "weekly_average": {
+     "current": {
+      "start": "2026-10-12",
+      "end": "2026-10-15",
+      "revenue": 3090000,
+      "expenses": 1050729,
+      "operating_profit": 2039271
+     },
+     "baseline": {
+      "start": "2026-09-14",
+      "end": "2026-10-11",
+      "revenue": 4869500,
+      "expenses": 3220208,
+      "operating_profit": 1649292
+     },
+     "baseline_count": 4
+    },
+    "average_months": 3
+   },
+   "goal": {
+    "revenue_target": null,
+    "profit_target": null,
+    "inherited_from": null
+   },
+   "kpi": {
+    "order_count": 606,
+    "previous_order_count": 583,
+    "to_date_order_count": 287,
+    "previous_to_date_order_count": 285,
+    "previous_has_data": true,
+    "previous_to_date_has_data": true,
+    "today": {
+     "date": "2026-10-15",
+     "revenue": 826000,
+     "order_count": 22
+    },
+    "yesterday": {
+     "date": "2026-10-14",
+     "revenue": 745000,
+     "order_count": 19
+    }
+   }
+  },
+  {
+   "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
+   "month": "2026-10",
+   "card_fee_percent": "2.00",
+   "revenue": {
+    "code": "revenue",
+    "label": "총매출",
+    "amount": 22093000,
+    "source": "auto",
+    "ratio_percent": "100.0"
+   },
+   "expenses": [
+    {
+     "code": "rent",
+     "label": "임대료(부가세 포함)",
+     "amount": 1000,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "liquor",
+     "label": "주류 사입비",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "ingredients",
+     "label": "식자재 사입비",
+     "amount": 7069760,
+     "source": "auto",
+     "ratio_percent": "32.0"
+    },
+    {
+     "code": "building",
+     "label": "건물관리비",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "labor",
+     "label": "직원인건비",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "social_insurance",
+     "label": "4대보험비",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "delivery_app_fee",
+     "label": "배민·요기요·쿠팡 수수료",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "delivery_cost",
+     "label": "지출된 배달비용",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "packaging",
+     "label": "포장비용 일체",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "electricity",
+     "label": "전기세",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "water",
+     "label": "수도세",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "gas",
+     "label": "가스비",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "water_purifier",
+     "label": "정수기",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "security",
+     "label": "CCTV·캡스",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "internet",
+     "label": "인터넷",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "phone",
+     "label": "전화비",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "pos",
+     "label": "포스기",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "bookkeeping",
+     "label": "세무기장료",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "advertising",
+     "label": "광고비",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "vat",
+     "label": "부가세",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "fire_insurance",
+     "label": "화재보험",
+     "amount": 0,
+     "source": "manual",
+     "ratio_percent": "0.0"
+    },
+    {
+     "code": "card_fee",
+     "label": "카드수수료",
+     "amount": 441860,
+     "source": "auto",
+     "ratio_percent": "2.0"
+    }
+   ],
+   "total_expenses": 7512620,
+   "operating_profit": 14580380,
+   "operating_margin_percent": "66.0",
+   "trend": [
+    {
+     "month": "2026-05",
+     "revenue": 21454000,
+     "total_expenses": 18337815,
+     "operating_profit": 3116185
+    },
+    {
+     "month": "2026-06",
+     "revenue": 21163000,
+     "total_expenses": 18238875,
+     "operating_profit": 2924125
+    },
+    {
+     "month": "2026-07",
+     "revenue": 22691000,
+     "total_expenses": 18758395,
+     "operating_profit": 3932605
+    },
+    {
+     "month": "2026-08",
+     "revenue": 21159000,
+     "total_expenses": 18237515,
+     "operating_profit": 2921485
+    },
+    {
+     "month": "2026-09",
+     "revenue": 21363000,
+     "total_expenses": 18306875,
+     "operating_profit": 3056125
+    },
+    {
+     "month": "2026-10",
+     "revenue": 22093000,
+     "total_expenses": 7512620,
+     "operating_profit": 14580380
+    }
+   ],
+   "daily": [
+    {
+     "date": "2026-10-01",
+     "revenue": 756000,
+     "expenses": 257040
+    },
+    {
+     "date": "2026-10-02",
+     "revenue": 930000,
+     "expenses": 316200
+    },
+    {
+     "date": "2026-10-03",
+     "revenue": 784000,
+     "expenses": 266560
+    },
+    {
+     "date": "2026-10-04",
      "revenue": 0,
      "expenses": 0
     },
     {
-     "date": "2026-10-31",
+     "date": "2026-10-05",
+     "revenue": 644000,
+     "expenses": 218960
+    },
+    {
+     "date": "2026-10-06",
+     "revenue": 774000,
+     "expenses": 263160
+    },
+    {
+     "date": "2026-10-07",
+     "revenue": 805000,
+     "expenses": 273700
+    },
+    {
+     "date": "2026-10-08",
+     "revenue": 636000,
+     "expenses": 216240
+    },
+    {
+     "date": "2026-10-09",
+     "revenue": 875000,
+     "expenses": 297500
+    },
+    {
+     "date": "2026-10-10",
+     "revenue": 1079000,
+     "expenses": 366860
+    },
+    {
+     "date": "2026-10-11",
      "revenue": 0,
      "expenses": 0
+    },
+    {
+     "date": "2026-10-12",
+     "revenue": 806000,
+     "expenses": 274040
+    },
+    {
+     "date": "2026-10-13",
+     "revenue": 713000,
+     "expenses": 242420
+    },
+    {
+     "date": "2026-10-14",
+     "revenue": 745000,
+     "expenses": 253300
+    },
+    {
+     "date": "2026-10-15",
+     "revenue": 826000,
+     "expenses": 280840
+    },
+    {
+     "date": "2026-10-16",
+     "revenue": 1116000,
+     "expenses": 379440
+    },
+    {
+     "date": "2026-10-17",
+     "revenue": 1054000,
+     "expenses": 358360
+    },
+    {
+     "date": "2026-10-18",
+     "revenue": 0,
+     "expenses": 0
+    },
+    {
+     "date": "2026-10-19",
+     "revenue": 555000,
+     "expenses": 188700
+    },
+    {
+     "date": "2026-10-20",
+     "revenue": 739000,
+     "expenses": 251260
+    },
+    {
+     "date": "2026-10-21",
+     "revenue": 712000,
+     "expenses": 242080
+    },
+    {
+     "date": "2026-10-22",
+     "revenue": 941000,
+     "expenses": 319940
+    },
+    {
+     "date": "2026-10-23",
+     "revenue": 968000,
+     "expenses": 329120
+    },
+    {
+     "date": "2026-10-24",
+     "revenue": 874000,
+     "expenses": 297160
+    },
+    {
+     "date": "2026-10-25",
+     "revenue": 0,
+     "expenses": 0
+    },
+    {
+     "date": "2026-10-26",
+     "revenue": 677000,
+     "expenses": 230180
+    },
+    {
+     "date": "2026-10-27",
+     "revenue": 750000,
+     "expenses": 255000
+    },
+    {
+     "date": "2026-10-28",
+     "revenue": 866000,
+     "expenses": 294440
+    },
+    {
+     "date": "2026-10-29",
+     "revenue": 682000,
+     "expenses": 231880
+    },
+    {
+     "date": "2026-10-30",
+     "revenue": 877000,
+     "expenses": 298180
+    },
+    {
+     "date": "2026-10-31",
+     "revenue": 909000,
+     "expenses": 309060
+    }
+   ],
+   "comparison": {
+    "previous_month": {
+     "month": "2026-09",
+     "revenue": 21363000,
+     "total_expenses": 18306875,
+     "operating_profit": 3056125
+    },
+    "to_date": {
+     "start": "2026-10-01",
+     "end": "2026-10-15",
+     "revenue": 10373000,
+     "expenses": 3526820,
+     "operating_profit": 6846180
+    },
+    "previous_to_date": {
+     "start": "2026-09-01",
+     "end": "2026-09-15",
+     "revenue": 10466000,
+     "expenses": 3558440,
+     "operating_profit": 6907560
+    },
+    "weekly": {
+     "current": {
+      "start": "2026-10-12",
+      "end": "2026-10-15",
+      "revenue": 3090000,
+      "expenses": 1050729,
+      "operating_profit": 2039271
+     },
+     "baseline": {
+      "start": "2026-10-05",
+      "end": "2026-10-08",
+      "revenue": 2859000,
+      "expenses": 972189,
+      "operating_profit": 1886811
+     },
+     "baseline_count": 1
+    },
+    "monthly_average": {
+     "current": {
+      "start": "2026-10-01",
+      "end": "2026-10-15",
+      "revenue": 22093000,
+      "expenses": 7512620,
+      "operating_profit": 14580380
+     },
+     "baseline": {
+      "start": "2026-07-01",
+      "end": "2026-09-30",
+      "revenue": 21737667,
+      "expenses": 18434262,
+      "operating_profit": 3303405
+     },
+     "baseline_count": 3
+    },
+    "weekly_average": {
+     "current": {
+      "start": "2026-10-12",
+      "end": "2026-10-15",
+      "revenue": 3090000,
+      "expenses": 1050729,
+      "operating_profit": 2039271
+     },
+     "baseline": {
+      "start": "2026-09-14",
+      "end": "2026-10-11",
+      "revenue": 4869500,
+      "expenses": 3220208,
+      "operating_profit": 1649292
+     },
+     "baseline_count": 4
+    },
+    "average_months": 3
+   },
+   "goal": {
+    "revenue_target": 38000000,
+    "profit_target": 6000000,
+    "inherited_from": null
+   },
+   "kpi": {
+    "order_count": 606,
+    "previous_order_count": 583,
+    "to_date_order_count": 287,
+    "previous_to_date_order_count": 285,
+    "previous_has_data": true,
+    "previous_to_date_has_data": true,
+    "today": {
+     "date": "2026-10-15",
+     "revenue": 826000,
+     "order_count": 22
+    },
+    "yesterday": {
+     "date": "2026-10-14",
+     "revenue": 745000,
+     "order_count": 19
+    }
+   }
+  }
+ ],
+ "pnlDayDetailSchema": [
+  {
+   "date": "2026-10-15",
+   "revenue": 826000,
+   "expenses": 280840,
+   "operating_profit": 545160,
+   "card_fee": 16520,
+   "card_fee_percent": "2.00",
+   "sales": [
+    {
+     "menu_item_id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
+     "name": "까르보나라",
+     "quantity": 18,
+     "amount": 288000
+    },
+    {
+     "menu_item_id": "01a1f00a-a502-7685-a977-392ce8e4f039",
+     "name": "알리오올리오",
+     "quantity": 18,
+     "amount": 252000
+    },
+    {
+     "menu_item_id": "01a1f00a-a5c4-7f01-aaeb-f417457b678f",
+     "name": "부채살 스테이크",
+     "quantity": 8,
+     "amount": 232000
+    },
+    {
+     "menu_item_id": "01a1f00a-a683-72be-95c4-109c97bb90bc",
+     "name": "하우스 와인(글라스)",
+     "quantity": 6,
+     "amount": 54000
+    }
+   ],
+   "receipts": [
+    {
+     "id": "01a1f00a-bcc9-718e-a9a8-85edd4651787",
+     "ingredient_name": "스파게티면(데체코)",
+     "quantity": "4.320",
+     "unit": "kg",
+     "amount": 52564,
+     "received_at": "2026-10-15T00:00:00Z",
+     "supplier_name": "샘플 식자재 공급처"
+    },
+    {
+     "id": "01a1f00a-bcc9-7881-a48c-eebefd9d7664",
+     "ingredient_name": "관찰레(이탈리아산)",
+     "quantity": "0.900",
+     "unit": "kg",
+     "amount": 38936,
+     "received_at": "2026-10-15T00:00:00Z",
+     "supplier_name": "샘플 식자재 공급처"
+    },
+    {
+     "id": "01a1f00a-bcc9-71cd-8b41-514f871d15b7",
+     "ingredient_name": "페코리노 로마노 치즈",
+     "quantity": "0.810",
+     "unit": "kg",
+     "amount": 49279,
+     "received_at": "2026-10-15T00:00:00Z",
+     "supplier_name": "샘플 식자재 공급처"
+    },
+    {
+     "id": "01a1f00a-bcc9-78f1-a2d2-363229d6631f",
+     "ingredient_name": "엑스트라버진 올리브오일",
+     "quantity": "0.970",
+     "unit": "L",
+     "amount": 23605,
+     "received_at": "2026-10-15T00:00:00Z",
+     "supplier_name": "샘플 식자재 공급처"
+    },
+    {
+     "id": "01a1f00a-bcc9-718f-b46e-29b743ed7fd3",
+     "ingredient_name": "프라임 부채살",
+     "quantity": "1.760",
+     "unit": "kg",
+     "amount": 99936,
+     "received_at": "2026-10-15T00:00:00Z",
+     "supplier_name": "샘플 식자재 공급처"
     }
    ]
   }
@@ -2047,8 +2906,8 @@
   {
    "result": "DEACTIVATED",
    "menu": {
-    "id": "01a1e4b0-90f2-7fb8-a168-af1079a25b8f",
-    "store_id": "01a1e4b0-8c12-74f4-8783-f33116a72966",
+    "id": "01a1f00a-a427-76cc-9045-f6af0f9fadf8",
+    "store_id": "01a1f00a-a124-72b9-8ff7-932d5bfacfdc",
     "name": "까르보나라",
     "selling_price": "16000.00",
     "category": "파스타",
@@ -2057,8 +2916,8 @@
     "pos_mapping_status": "LINKED",
     "recipe_status": "COMPLETE",
     "recipe_item_count": 3,
-    "created_at": "2026-11-16T14:08:59.122227Z",
-    "updated_at": "2026-11-16T14:09:05.708743Z"
+    "created_at": "2026-11-18T19:03:11.655796Z",
+    "updated_at": "2026-11-18T19:04:22.686601Z"
    }
   }
  ],

@@ -517,6 +517,69 @@ export interface PnlResponse {
   operating_margin_percent: string | null;
   trend: { month: string; revenue: number; total_expenses: number; operating_profit: number }[];
   daily: { date: string; revenue: number; expenses: number }[];
+  comparison: PnlComparison;
+  goal: PnlGoal;
+  kpi: {
+    order_count: number;
+    previous_order_count: number;
+    to_date_order_count: number | null;
+    previous_to_date_order_count: number | null;
+    previous_has_data: boolean;
+    previous_to_date_has_data: boolean | null;
+    today: { date: string; revenue: number; order_count: number };
+    yesterday: { date: string; revenue: number; order_count: number };
+  };
+}
+
+export interface PnlPeriod {
+  start: string;
+  end: string;
+  revenue: number;
+  expenses: number;
+  operating_profit: number;
+}
+
+// 지난달 전체, 이번 달 1일~오늘, 지난달 1일~같은 날. 날짜 비교 두 개는 이번 달일 때만 온다.
+export interface PnlComparison {
+  previous_month: { month: string; revenue: number; total_expenses: number; operating_profit: number };
+  to_date: PnlPeriod | null;
+  previous_to_date: PnlPeriod | null;
+  weekly: PnlUnitComparison;
+  monthly_average: PnlUnitComparison;
+  weekly_average: PnlUnitComparison;
+  average_months: number;
+}
+
+export interface PnlUnitComparison {
+  current: PnlPeriod | null;
+  baseline: PnlPeriod | null;
+  baseline_count: number;
+}
+
+// 달력 날짜 상세: 날짜 있는 판매·입고·추정 카드수수료만. 월 단위 수기 항목은 없다.
+export interface PnlDayDetail {
+  date: string;
+  revenue: number;
+  expenses: number;
+  operating_profit: number;
+  card_fee: number;
+  card_fee_percent: string;
+  sales: { menu_item_id: string | null; name: string; quantity: number; amount: number }[];
+  receipts: {
+    id: string;
+    ingredient_name: string;
+    quantity: string;
+    unit: string;
+    amount: number;
+    received_at: string;
+    supplier_name: string | null;
+  }[];
+}
+
+export interface PnlGoal {
+  revenue_target: number | null;
+  profit_target: number | null;
+  inherited_from: string | null;
 }
 
 export interface PnlExpensesUpdate {

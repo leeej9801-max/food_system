@@ -2585,6 +2585,57 @@
         "title": "MenuWithoutRecipe",
         "type": "object"
       },
+      "PnlComparison": {
+        "properties": {
+          "average_months": {
+            "title": "Average Months",
+            "type": "integer"
+          },
+          "monthly_average": {
+            "$ref": "#/components/schemas/PnlUnitComparison"
+          },
+          "previous_month": {
+            "$ref": "#/components/schemas/PnlTrendPoint"
+          },
+          "previous_to_date": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PnlPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "to_date": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PnlPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "weekly": {
+            "$ref": "#/components/schemas/PnlUnitComparison"
+          },
+          "weekly_average": {
+            "$ref": "#/components/schemas/PnlUnitComparison"
+          }
+        },
+        "required": [
+          "previous_month",
+          "to_date",
+          "previous_to_date",
+          "weekly",
+          "monthly_average",
+          "weekly_average",
+          "average_months"
+        ],
+        "title": "PnlComparison",
+        "type": "object"
+      },
       "PnlDay": {
         "description": "하루 매출과 날짜가 있는 지출(식자재 입고 + 카드 수수료). 월 단위 수기 항목은 넣지 않는다.",
         "properties": {
@@ -2608,6 +2659,150 @@
           "expenses"
         ],
         "title": "PnlDay",
+        "type": "object"
+      },
+      "PnlDayDetail": {
+        "description": "하루 상세: 날짜가 있는 기록만(판매·입고·추정 카드수수료). 월 단위 수기 항목은 넣지 않는다.",
+        "properties": {
+          "card_fee": {
+            "title": "Card Fee",
+            "type": "integer"
+          },
+          "card_fee_percent": {
+            "title": "Card Fee Percent",
+            "type": "string"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "expenses": {
+            "title": "Expenses",
+            "type": "integer"
+          },
+          "operating_profit": {
+            "title": "Operating Profit",
+            "type": "integer"
+          },
+          "receipts": {
+            "items": {
+              "$ref": "#/components/schemas/PnlDayReceipt"
+            },
+            "title": "Receipts",
+            "type": "array"
+          },
+          "revenue": {
+            "title": "Revenue",
+            "type": "integer"
+          },
+          "sales": {
+            "items": {
+              "$ref": "#/components/schemas/PnlDaySale"
+            },
+            "title": "Sales",
+            "type": "array"
+          }
+        },
+        "required": [
+          "date",
+          "revenue",
+          "expenses",
+          "operating_profit",
+          "card_fee",
+          "card_fee_percent",
+          "sales",
+          "receipts"
+        ],
+        "title": "PnlDayDetail",
+        "type": "object"
+      },
+      "PnlDayReceipt": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ingredient_name": {
+            "title": "Ingredient Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "string"
+          },
+          "received_at": {
+            "format": "date-time",
+            "title": "Received At",
+            "type": "string"
+          },
+          "supplier_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Name"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ingredient_name",
+          "quantity",
+          "unit",
+          "amount",
+          "received_at",
+          "supplier_name"
+        ],
+        "title": "PnlDayReceipt",
+        "type": "object"
+      },
+      "PnlDaySale": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "menu_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Menu Item Id"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "menu_item_id",
+          "name",
+          "quantity",
+          "amount"
+        ],
+        "title": "PnlDaySale",
         "type": "object"
       },
       "PnlExpenseInput": {
@@ -2675,6 +2870,148 @@
         "title": "PnlExpensesUpdate",
         "type": "object"
       },
+      "PnlGoal": {
+        "properties": {
+          "inherited_from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inherited From"
+          },
+          "profit_target": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profit Target"
+          },
+          "revenue_target": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Target"
+          }
+        },
+        "required": [
+          "revenue_target",
+          "profit_target"
+        ],
+        "title": "PnlGoal",
+        "type": "object"
+      },
+      "PnlGoalUpdate": {
+        "properties": {
+          "profit_target": {
+            "anyOf": [
+              {
+                "maximum": 10000000000.0,
+                "minimum": -10000000000.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profit Target"
+          },
+          "revenue_target": {
+            "anyOf": [
+              {
+                "maximum": 10000000000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Target"
+          }
+        },
+        "title": "PnlGoalUpdate",
+        "type": "object"
+      },
+      "PnlKpi": {
+        "properties": {
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "previous_has_data": {
+            "title": "Previous Has Data",
+            "type": "boolean"
+          },
+          "previous_order_count": {
+            "title": "Previous Order Count",
+            "type": "integer"
+          },
+          "previous_to_date_has_data": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous To Date Has Data"
+          },
+          "previous_to_date_order_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous To Date Order Count"
+          },
+          "to_date_order_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Date Order Count"
+          },
+          "today": {
+            "$ref": "#/components/schemas/PnlSalesDay"
+          },
+          "yesterday": {
+            "$ref": "#/components/schemas/PnlSalesDay"
+          }
+        },
+        "required": [
+          "order_count",
+          "previous_order_count",
+          "to_date_order_count",
+          "previous_to_date_order_count",
+          "previous_has_data",
+          "previous_to_date_has_data",
+          "today",
+          "yesterday"
+        ],
+        "title": "PnlKpi",
+        "type": "object"
+      },
       "PnlLine": {
         "properties": {
           "amount": {
@@ -2719,11 +3056,50 @@
         "title": "PnlLine",
         "type": "object"
       },
+      "PnlPeriod": {
+        "description": "양 끝 포함 기간. 전월 동기는 날짜 실적만, 주 비교는 월 수기 금액 안분도 포함한다.",
+        "properties": {
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "expenses": {
+            "title": "Expenses",
+            "type": "integer"
+          },
+          "operating_profit": {
+            "title": "Operating Profit",
+            "type": "integer"
+          },
+          "revenue": {
+            "title": "Revenue",
+            "type": "integer"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "revenue",
+          "expenses",
+          "operating_profit"
+        ],
+        "title": "PnlPeriod",
+        "type": "object"
+      },
       "PnlResponse": {
         "properties": {
           "card_fee_percent": {
             "title": "Card Fee Percent",
             "type": "string"
+          },
+          "comparison": {
+            "$ref": "#/components/schemas/PnlComparison"
           },
           "daily": {
             "items": {
@@ -2738,6 +3114,12 @@
             },
             "title": "Expenses",
             "type": "array"
+          },
+          "goal": {
+            "$ref": "#/components/schemas/PnlGoal"
+          },
+          "kpi": {
+            "$ref": "#/components/schemas/PnlKpi"
           },
           "month": {
             "title": "Month",
@@ -2788,9 +3170,36 @@
           "operating_profit",
           "operating_margin_percent",
           "trend",
-          "daily"
+          "daily",
+          "comparison",
+          "goal",
+          "kpi"
         ],
         "title": "PnlResponse",
+        "type": "object"
+      },
+      "PnlSalesDay": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "revenue": {
+            "title": "Revenue",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "revenue",
+          "order_count"
+        ],
+        "title": "PnlSalesDay",
         "type": "object"
       },
       "PnlTrendPoint": {
@@ -2819,6 +3228,41 @@
           "operating_profit"
         ],
         "title": "PnlTrendPoint",
+        "type": "object"
+      },
+      "PnlUnitComparison": {
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PnlPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "baseline_count": {
+            "title": "Baseline Count",
+            "type": "integer"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PnlPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "current",
+          "baseline",
+          "baseline_count"
+        ],
+        "title": "PnlUnitComparison",
         "type": "object"
       },
       "PosModeUpdateRequest": {
@@ -7148,9 +7592,21 @@
             "required": true,
             "schema": {
               "description": "YYYY-MM, 매장 시간대 기준",
-              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "pattern": "^20\\d{2}-(0[1-9]|1[0-2])$",
               "title": "Month",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "average_months",
+            "required": false,
+            "schema": {
+              "default": 3,
+              "maximum": 6,
+              "minimum": 1,
+              "title": "Average Months",
+              "type": "integer"
             }
           }
         ],
@@ -7182,6 +7638,59 @@
         ]
       }
     },
+    "/api/v1/stores/{store_id}/pnl/days/{day}": {
+      "get": {
+        "operationId": "get_pnl_day_api_v1_stores__store_id__pnl_days__day__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PnlDayDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Pnl Day",
+        "tags": [
+          "pnl"
+        ]
+      }
+    },
     "/api/v1/stores/{store_id}/pnl/{month}/expenses": {
       "put": {
         "operationId": "put_pnl_expenses_api_v1_stores__store_id__pnl__month__expenses_put",
@@ -7201,7 +7710,7 @@
             "name": "month",
             "required": true,
             "schema": {
-              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "pattern": "^20\\d{2}-(0[1-9]|1[0-2])$",
               "title": "Month",
               "type": "string"
             }
@@ -7240,6 +7749,69 @@
           }
         },
         "summary": "Put Pnl Expenses",
+        "tags": [
+          "pnl"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/pnl/{month}/goal": {
+      "put": {
+        "operationId": "put_pnl_goal_api_v1_stores__store_id__pnl__month__goal_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^20\\d{2}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PnlGoalUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PnlResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Pnl Goal",
         "tags": [
           "pnl"
         ]

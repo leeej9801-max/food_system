@@ -30,7 +30,7 @@ export function LabPage({ store }: LabPageProps) {
   const customIngredientCount = Object.keys(ingredientChanges).length;
 
   return (
-    <div>
+    <div className="lab-page">
       <div className="page-heading">
         <div className="page-title">
           <h1>실험실</h1>

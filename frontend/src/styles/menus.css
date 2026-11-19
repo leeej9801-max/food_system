@@ -1,0 +1,175 @@
+/* 메뉴 관리 시안 v5 화면 전용 스타일 (공통 KPI·탭·표·배지는 kpi.css·components.css 사용) */
+@layer components {
+  .menu-management .kpi-trio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .menu-management .kpi-trio > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .menu-management .kpi-trio strong {
+    font-size: 17px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+
+  .menu-management .kpi-trio strong.is-min {
+    color: #14b8a6;
+  }
+
+  .menu-management .kpi-trio strong.is-avg {
+    color: #2f6bff;
+  }
+
+  .menu-management .kpi-trio strong.is-max {
+    color: #c2410c;
+  }
+
+  .menu-management .kpi-trio span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--kpi-sub);
+    white-space: nowrap;
+  }
+
+  .menu-management .kpi-trio span i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .menu-management .kpi-range {
+    position: relative;
+    height: 36px;
+    margin-top: 4px;
+  }
+
+  .menu-management .kpi-range .track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 10px;
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #b8efe6 0%, #d8e4ff 50%, #ffe2cf 100%);
+  }
+
+  .menu-management .kpi-range .dot {
+    position: absolute;
+    top: 7px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #2f6bff;
+    transform: translateX(-50%);
+  }
+
+  .menu-management .kpi-range .dot.is-min {
+    border-color: #14b8a6;
+  }
+
+  .menu-management .kpi-range .dot.is-avg {
+    border-color: #2f6bff;
+  }
+
+  .menu-management .kpi-range .dot.is-max {
+    border-color: #c2410c;
+  }
+
+  .menu-management .kpi-range .ax {
+    position: absolute;
+    top: 22px;
+    font-size: 11px;
+    color: var(--kpi-sub);
+    white-space: nowrap;
+    max-width: 48%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .menu-management .kpi-share {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .menu-management .kpi-share i {
+    display: block;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--kpi-c1);
+  }
+
+  .menu-management .menu-cat-select {
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--kpi-sub);
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .menu-management .menu-cat-chip-btn {
+    cursor: pointer;
+  }
+
+  .menu-management .menu-cat-chip-btn[aria-pressed="true"] {
+    background: var(--kpi-ink);
+    color: #fff;
+  }
+
+  .menu-management .menu-recipe-chip {
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .menu-management .menu-op-cell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .menu-management .menu-op-switch-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .menu-management .menu-op-toggle {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    color: var(--kpi-ink);
+    cursor: pointer;
+  }
+
+  .menu-management .menu-op-toggle.is-inactive {
+    color: var(--kpi-sub);
+  }
+
+  .menu-management .menu-recipe-chip:focus-visible,
+  .menu-management .menu-cat-chip-btn:focus-visible,
+  .menu-management .menu-cat-select:focus-visible,
+  .menu-management .menu-op-toggle:focus-visible {
+    outline: 2px solid var(--color-accent-600);
+    outline-offset: 2px;
+  }
+}

@@ -445,12 +445,26 @@ export const costSimulationSchema: z.ZodType<T.CostSimulationResponse> = z.objec
   ),
 });
 
+const pnlPeriodSchema = z.object({
+  start: str,
+  end: str,
+  revenue: num,
+  expenses: num,
+  operating_profit: num,
+});
+
 const pnlLineSchema = z.object({
   code: str,
   label: str,
   amount: num,
   source: z.enum(["auto", "manual"]),
   ratio_percent: nstr,
+});
+
+const pnlUnitComparisonSchema = z.object({
+  current: pnlPeriodSchema.nullable(),
+  baseline: pnlPeriodSchema.nullable(),
+  baseline_count: num,
 });
 
 export const pnlSchema: z.ZodType<T.PnlResponse> = z.object({
@@ -466,6 +480,50 @@ export const pnlSchema: z.ZodType<T.PnlResponse> = z.object({
     z.object({ month: str, revenue: num, total_expenses: num, operating_profit: num })
   ),
   daily: z.array(z.object({ date: str, revenue: num, expenses: num })),
+  comparison: z.object({
+    previous_month: z.object({ month: str, revenue: num, total_expenses: num, operating_profit: num }),
+    to_date: pnlPeriodSchema.nullable(),
+    previous_to_date: pnlPeriodSchema.nullable(),
+    weekly: pnlUnitComparisonSchema,
+    monthly_average: pnlUnitComparisonSchema,
+    weekly_average: pnlUnitComparisonSchema,
+    average_months: num,
+  }),
+  goal: z.object({
+    revenue_target: num.nullable(), profit_target: num.nullable(),
+    inherited_from: z.string().nullable(),
+  }),
+  kpi: z.object({
+    order_count: num,
+    previous_order_count: num,
+    to_date_order_count: num.nullable(),
+    previous_to_date_order_count: num.nullable(),
+    previous_has_data: bool,
+    previous_to_date_has_data: bool.nullable(),
+    today: z.object({ date: str, revenue: num, order_count: num }),
+    yesterday: z.object({ date: str, revenue: num, order_count: num }),
+  }),
+});
+
+export const pnlDayDetailSchema: z.ZodType<T.PnlDayDetail> = z.object({
+  date: str,
+  revenue: num,
+  expenses: num,
+  operating_profit: num,
+  card_fee: num,
+  card_fee_percent: str,
+  sales: z.array(z.object({ menu_item_id: nstr, name: str, quantity: num, amount: num })),
+  receipts: z.array(
+    z.object({
+      id: str,
+      ingredient_name: str,
+      quantity: str,
+      unit: str,
+      amount: num,
+      received_at: str,
+      supplier_name: nstr,
+    })
+  ),
 });
 
 export const weatherMonthSchema: z.ZodType<T.WeatherMonthResponse> = z.object({

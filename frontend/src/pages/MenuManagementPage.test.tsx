@@ -6,9 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Switch } from "@astryxdesign/core/Switch";
 import { getMenuPage, MenuManagementPage } from "./MenuManagementPage";
 import { updateMenu } from "../api/menus";
-import type { MenuItem, Store } from "../types";
+import type { CostSimulationResponse, MenuItem, SalesAnalyticsResponse, Store } from "../types";
 
-const controls = vi.hoisted(() => ({ switches: [] as ComponentProps<typeof Switch>[], toast: vi.fn() }));
+const controls = vi.hoisted(() => ({
+  switches: [] as ComponentProps<typeof Switch>[],
+  toast: vi.fn(),
+}));
 
 vi.mock("@astryxdesign/core/Switch", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@astryxdesign/core/Switch")>();
@@ -21,11 +24,11 @@ vi.mock("@astryxdesign/core/Switch", async (importOriginal) => {
   };
 });
 vi.mock("@astryxdesign/core/Toast", async (importOriginal) => ({
-  ...await importOriginal<typeof import("@astryxdesign/core/Toast")>(),
+  ...(await importOriginal<typeof import("@astryxdesign/core/Toast")>()),
   useToast: () => controls.toast,
 }));
 vi.mock("../api/menus", async (importOriginal) => ({
-  ...await importOriginal<typeof import("../api/menus")>(),
+  ...(await importOriginal<typeof import("../api/menus")>()),
   updateMenu: vi.fn(),
 }));
 
@@ -65,7 +68,9 @@ describe("메뉴 페이지 나누기", () => {
     const last = getMenuPage(menus, 3);
     expect(first.rows).toHaveLength(20);
     expect(second.rows).toHaveLength(20);
-    expect(second.rows.map((row) => row.no)).toEqual(Array.from({ length: 20 }, (_, index) => index + 21));
+    expect(second.rows.map((row) => row.no)).toEqual(
+      Array.from({ length: 20 }, (_, index) => index + 21),
+    );
     expect(last.rows.map((row) => row.id)).toEqual(["menu-41"]);
     expect(last.rows[0].no).toBe(41);
     expect(last.pageCount).toBe(3);
@@ -89,20 +94,46 @@ describe("메뉴 페이지 나누기", () => {
   });
 });
 
-describe("메뉴 관리 화면", () => {
+describe("메뉴 관리 화면 (v4 KPI 시안)", () => {
   const store: Store = {
-    id: "test-store", name: "검증 매장", timezone: "Asia/Seoul",
-    business_days: null, opening_hours: null, floor_fixtures: [],
-    created_at: "2026-11-15T00:00:00Z", updated_at: "2026-11-15T00:00:00Z",
+    id: "test-store",
+    name: "검증 매장",
+    timezone: "Asia/Seoul",
+    business_days: null,
+    opening_hours: null,
+    floor_fixtures: [],
+    created_at: "2026-11-15T00:00:00Z",
+    updated_at: "2026-11-15T00:00:00Z",
   };
 
-  function render(menus: MenuItem[], search = "") {
+  function render(
+    menus: MenuItem[],
+    search = "",
+    costData?: CostSimulationResponse,
+    salesData?: SalesAnalyticsResponse,
+  ) {
     const params = new URLSearchParams(search);
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity, gcTime: Infinity } } });
+    const statusParam = params.get("status") ?? "all";
+    const apiStatus = statusParam === "needs_check" ? "all" : statusParam;
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: Infinity, gcTime: Infinity } },
+    });
     clients.push(client);
-    client.setQueryData(["menus", store.id, params.get("q") ?? "", params.get("category") ?? "", params.get("status") ?? "all"], menus);
-    client.setQueryData(["menus", store.id, "active-count"], menus.filter((item) => item.is_active));
-    client.setQueryData(["menu-categories", store.id], [{ id: "food", name: "식사", menu_count: menus.length }]);
+    client.setQueryData(
+      ["menus", store.id, params.get("q") ?? "", params.get("category") ?? "", apiStatus],
+      menus,
+    );
+    client.setQueryData(["menus", store.id, "", "", "all"], menus);
+    client.setQueryData(
+      ["menus", store.id, "active-count"],
+      menus.filter((item) => item.is_active),
+    );
+    client.setQueryData(
+      ["menu-categories", store.id],
+      [{ id: "food", name: "식사", menu_count: menus.length }],
+    );
+    if (costData) client.setQueryData(["menu-costs", store.id], costData);
+    if (salesData) client.setQueryData(["analytics-sales", store.id], salesData);
     const html = renderToStaticMarkup(
       <QueryClientProvider client={client}>
         <MemoryRouter initialEntries={[`/menus${search}`]}>
@@ -113,49 +144,77 @@ describe("메뉴 관리 화면", () => {
     return html;
   }
 
-  it("전체 요약·유형 추가·검색·상태 필터·메뉴 추가·페이지 탐색을 유지한다", () => {
+  it("3장 KPI 카드·전체 보기 버튼·상태 알약 탭·유형 필터·검색·메뉴 추가·페이지 탐색을 표시한다", () => {
     const html = render([menu(1)]);
-    expect(html).toContain('aria-label="전체 1개, 선택됨"');
-    expect(html).toContain('aria-label="유형 추가"');
+    expect(html).not.toContain('data-testid="menu-category-cards"');
+    expect(html).toContain("메뉴 공헌이익");
+    expect(html).toContain("판매 데이터 전체 기간");
+    expect(html).toContain("전체 보기 →");
+    expect(html).toContain("원가율");
+    expect(html).toContain("확인 필요");
+    expect(html).toContain('aria-label="유형 필터"');
     expect(html).toContain("메뉴 이름 검색");
-    expect(html).toContain("판매 상태");
+    expect(html).toContain('aria-label="판매 상태"');
+    expect(html).toContain('<th class="c">레시피</th>');
+    expect(html).toContain('<th class="c">운영</th>');
     expect(html.match(/\+ 메뉴 추가/g)).toHaveLength(1);
-    expect(html.indexOf("menu-table-region")).toBeLessThan(html.indexOf('aria-label="메뉴 목록 페이지"'));
+    expect(html.indexOf("menu-table-region")).toBeLessThan(
+      html.indexOf('aria-label="메뉴 목록 페이지"'),
+    );
     expect(html).toContain('aria-label="검증 메뉴 1 메뉴 작업"');
   });
 
-  it("모든 레시피 상태를 메뉴명이 포함된 칩 버튼으로 노출한다", () => {
+  it("확인 필요 세부 조건(check 파라미터)으로 목록을 필터링하고 0건일 때 확인할 항목 없음을 표시한다", () => {
+    const m1 = { ...menu(1), name: "완료메뉴", recipe_status: "COMPLETE" as const };
+    const m2 = { ...menu(2), name: "미등록메뉴", recipe_status: "UNREGISTERED" as const };
+    const filteredHtml = render([m1, m2], "?status=needs_check&check=unregistered_recipe");
+    expect(filteredHtml).toContain("미등록메뉴");
+    expect(filteredHtml).not.toContain("<td>완료메뉴</td>");
+    expect(filteredHtml).toContain('aria-label="레시피 미등록 필터 해제"');
+
+    const cleanHtml = render([m1]);
+    expect(cleanHtml).toContain("확인할 항목 없음");
+  });
+
+  it("모든 레시피 상태를 메뉴명이 포함된 공통 칩 버튼으로 노출한다", () => {
     const html = render([
       { ...menu(1), recipe_status: "COMPLETE", recipe_item_count: 3 },
       { ...menu(2), recipe_status: "PARTIAL" },
       menu(3),
     ]);
-    expect(html).toMatch(/<button[^>]*chip-ok[^>]*aria-label="검증 메뉴 1 레시피 등록완료 \+3 보기"/);
+    expect(html).toMatch(/<button[^>]*chip-ok[^>]*aria-label="검증 메뉴 1 레시피 등록완료 보기"/);
     expect(html).toMatch(/<button[^>]*chip-warn[^>]*aria-label="검증 메뉴 2 레시피 등록중 보기"/);
-    expect(html).toMatch(/<button[^>]*chip-idle[^>]*aria-label="검증 메뉴 3 레시피 미등록 보기"/);
-    expect(html).not.toMatch(/>보기<\/button>/);
+    expect(html).toMatch(/<button[^>]*chip-warn[^>]*aria-label="검증 메뉴 3 레시피 미등록 보기"/);
   });
 
-  it("빈 결과에서도 목록 틀과 페이지 하단을 유지한다", () => {
+  it("빈 결과에서도 목록 틀과 유형 필터 해제·페이지 하단을 유지한다", () => {
     const html = render([], "?q=없는메뉴&category=식사&status=active");
     expect(html).toContain("조건에 맞는 메뉴가 없습니다.");
     expect(html).toContain("menu-table-region");
     expect(html).toContain('aria-label="메뉴 목록 페이지"');
-    expect(html).toContain('aria-label="식사 0개, 선택됨"');
+    expect(html).toContain('aria-label="식사 필터 해제"');
   });
 
   it("운영 전환은 저장과 재조회가 끝나야 완료를 알린다", async () => {
     let complete!: (updated: MenuItem) => void;
     let finishRefresh!: () => void;
-    const refreshing = new Promise<void>((resolve) => { finishRefresh = resolve; });
-    vi.mocked(updateMenu).mockImplementationOnce(() => new Promise((resolve) => { complete = resolve; }));
+    const refreshing = new Promise<void>((resolve) => {
+      finishRefresh = resolve;
+    });
+    vi.mocked(updateMenu).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          complete = resolve;
+        }),
+    );
     render([menu(1)]);
     const invalidate = vi.spyOn(clients[0], "invalidateQueries").mockReturnValueOnce(refreshing);
     const action = controls.switches[0].changeAction;
     expect(action).toBeTypeOf("function");
-    // 두 번째 인자는 입력 이벤트이며, 이 콜백은 상태값만 사용한다.
     const saving = action!(false, {} as never);
-    await vi.waitFor(() => expect(updateMenu).toHaveBeenCalledWith(store.id, "menu-1", { is_active: false }));
+    await vi.waitFor(() =>
+      expect(updateMenu).toHaveBeenCalledWith(store.id, "menu-1", { is_active: false }),
+    );
     expect(controls.toast).not.toHaveBeenCalled();
     complete({ ...menu(1), is_active: false });
     await vi.waitFor(() => expect(invalidate).toHaveBeenCalled());
@@ -163,7 +222,10 @@ describe("메뉴 관리 화면", () => {
     finishRefresh();
     await saving;
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["menus", store.id] });
-    expect(controls.toast).toHaveBeenCalledWith({ body: "'검증 메뉴 1' 출시대기으로 저장했습니다.", type: "info" });
+    expect(controls.toast).toHaveBeenCalledWith({
+      body: "'검증 메뉴 1' 출시대기으로 저장했습니다.",
+      type: "info",
+    });
   });
 
   it("저장 실패를 Switch에 전달해 복구하게 하고 오류를 알린다", async () => {
@@ -172,6 +234,8 @@ describe("메뉴 관리 화면", () => {
     const saving = controls.switches[0].changeAction!(false, {} as never);
     await expect(saving).rejects.toThrow("상태 저장 실패");
     expect(controls.toast).toHaveBeenCalledWith({ body: "상태 저장 실패", type: "error" });
-    expect(clients[0].getQueryData<MenuItem[]>(["menus", store.id, "", "", "all"])?.[0].is_active).toBe(true);
+    expect(
+      clients[0].getQueryData<MenuItem[]>(["menus", store.id, "", "", "all"])?.[0].is_active,
+    ).toBe(true);
   });
 });

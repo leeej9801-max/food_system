@@ -7,6 +7,7 @@
 
 import json
 import os
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,7 @@ from fastapi.testclient import TestClient
 
 from app.api.v1.endpoints.weather import get_weather_fetcher
 from app.core.config import settings
+from app.db.models import utcnow
 from app.services.weather import DailyWeather
 
 FIXTURE = Path(__file__).parents[3] / "frontend" / "src" / "api" / "__fixtures__" / "responses.json"
@@ -36,7 +38,13 @@ def test_collect_frontend_response_samples(
         resp = client.request(method, f"/api/v1{path}", json=body)
         assert resp.status_code < 300, f"{method} {path}: {resp.status_code} {resp.text}"
         data = resp.json()
-        samples.setdefault(schema, []).extend(data if unwrap else [data])
+        # 전체 seed 이력 대신 실제 응답의 대표 표본만 계약 fixture에 보존한다.
+        sample = data
+        if schema == "salesOrdersListSchema":
+            sample = {**data, "orders": data["orders"][:3]}
+        elif schema == "visitSummarySchema":
+            sample = {**data, "sessions": data["sessions"][:3]}
+        samples.setdefault(schema, []).extend(data[:3] if unwrap else [sample])
         return data
 
     store = call("storeSchema", "POST", "/stores", {"name": "표본 매장"})
@@ -97,7 +105,7 @@ def test_collect_frontend_response_samples(
     call("productMappingSchema", "GET", f"{s}/integrations/mappings", unwrap=True)
     # 목록의 주문을 표본으로 쓴다
     orders = call("salesOrdersListSchema", "GET", f"{s}/sales-orders")["orders"]
-    samples["salesOrderSchema"] = orders
+    samples["salesOrderSchema"] = orders[:3]
     call("integrationStatusSchema", "GET", f"{s}/integrations/status")
 
     call(
@@ -138,12 +146,20 @@ def test_collect_frontend_response_samples(
     )
     call("weatherMonthSchema", "GET", "/weather?month=2026-10")
     call("costSimulationSchema", "POST", f"{s}/analytics/costing", {"global_change_percent": 10})
+    overrides[utcnow] = lambda: datetime(2026, 10, 15, tzinfo=UTC)
     call(
         "pnlSchema",
         "PUT",
         f"{s}/pnl/2026-10/expenses",
         {"items": [{"code": "rent", "amount": 1000}]},
     )
+    call(
+        "pnlSchema",
+        "PUT",
+        f"{s}/pnl/2026-10/goal",
+        {"revenue_target": 38_000_000, "profit_target": 6_000_000},
+    )
+    call("pnlDayDetailSchema", "GET", f"{s}/pnl/days/2026-10-15")
 
     extra = client.post(f"/api/v1{s}/menus", json={"name": "표본 삭제용"}).json()
     call("menuDeleteSchema", "DELETE", f"{s}/menus/{extra['id']}")
