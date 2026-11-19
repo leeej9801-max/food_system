@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchGuestAnalytics } from "../api/analytics";
+import { Skeleton, SkeletonTable } from "./Skeleton";
 import type { CountBucket, GuestMenuBucket, WeatherGroupItem } from "../types";
 
 // 손님 객층·날씨 분석 (WO-20261116-002). 코드값 → 화면 이름은 홈 입력 화면과 같게 둔다
@@ -60,7 +61,7 @@ function Bars({
           <span className="truncate text-[13px] text-ink">{nameOf(i.key)}</span>
           <span className="h-[6px] overflow-hidden rounded-full bg-ground">
             <span
-              className="block h-full rounded-full bg-accent-300"
+              className="analytics-bar-h block h-full rounded-full bg-accent-300"
               style={{ width: `${Math.round((i.count / max) * 100)}%` }}
             />
           </span>
@@ -105,11 +106,77 @@ function MenuTable({ rows }: { rows: GuestMenuBucket[] }) {
   );
 }
 
+function GuestInsightsSkeleton() {
+  return (
+    <div role="status" aria-busy="true" aria-label="손님·날씨 분석 불러오는 중">
+      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-12 xl:mb-5 xl:gap-5">
+        {["손님 연령대", "동반 관계", "팀 인원"].map((title) => (
+          <section key={title} className="card md:col-span-4">
+            <div className="card-head">
+              <h2>{title}</h2>
+              <Skeleton width={68} height={13} variant="text" />
+            </div>
+            <div className="flex flex-col gap-3">
+              {[80, 62, 48, 34].map((pct, idx) => (
+                <div key={idx} className="grid grid-cols-[56px_minmax(0,1fr)_52px] items-center gap-3">
+                  <Skeleton width={40} height={13} variant="text" />
+                  <Skeleton width={`${pct}%`} height={6} variant="pill" />
+                  <Skeleton width={44} height={13} variant="text" className="sk-align-right" />
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:mb-5 xl:gap-5">
+        {["관계별 많이 팔린 메뉴", "연령대별 많이 팔린 메뉴"].map((title) => (
+          <section key={title} className="card">
+            <div className="card-head">
+              <h2>{title}</h2>
+              <Skeleton width={44} height={20} variant="pill" />
+            </div>
+            <div className="flex flex-col gap-3">
+              {[0, 1, 2].map((idx) => (
+                <div key={idx} className="grid grid-cols-[56px_minmax(0,1fr)] items-center gap-3 py-1">
+                  <Skeleton width={44} height={14} variant="text" />
+                  <Skeleton width="76%" height={14} variant="text" />
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      <section className="card mb-4 xl:mb-5">
+        <div className="card-head">
+          <h2>날씨별 매출</h2>
+          <Skeleton width={64} height={13} variant="text" />
+        </div>
+        <SkeletonTable
+          tableClassName="w-full min-w-[560px] text-[13px]"
+          ariaLabel="날씨별 매출 불러오는 중"
+          rows={4}
+          columns={[
+            { label: "날씨" },
+            { label: "일수", align: "right" },
+            { label: "일 평균 매출", align: "right" },
+            { label: "일 평균 손님", align: "right" },
+            { label: "많이 팔린 메뉴" },
+            { label: "많은 손님" },
+          ]}
+        />
+      </section>
+    </div>
+  );
+}
+
 export function GuestInsights({ storeId }: { storeId: string }) {
   const query = useQuery({
     queryKey: ["analytics-guests", storeId],
     queryFn: () => fetchGuestAnalytics(storeId),
   });
+  if (query.isLoading) return <GuestInsightsSkeleton />;
   const g = query.data;
   if (!g) return null;
   const linkedTotal =
@@ -194,12 +261,12 @@ export function GuestInsights({ storeId }: { storeId: string }) {
             <table className="w-full min-w-[560px] text-[13px]">
               <thead>
                 <tr className="border-b border-rule text-left text-xs text-muted">
-                  <th className="py-2 font-normal">날씨</th>
-                  <th className="py-2 text-right font-normal">일수</th>
-                  <th className="py-2 text-right font-normal">일 평균 매출</th>
-                  <th className="py-2 text-right font-normal">일 평균 손님</th>
-                  <th className="py-2 pl-4 font-normal">많이 팔린 메뉴</th>
-                  <th className="py-2 pl-4 font-normal">많은 손님</th>
+                  <th className="px-2.5 py-2 font-normal">날씨</th>
+                  <th className="px-2.5 py-2 text-right font-normal">일수</th>
+                  <th className="px-2.5 py-2 text-right font-normal">일 평균 매출</th>
+                  <th className="px-2.5 py-2 text-right font-normal">일 평균 손님</th>
+                  <th className="px-2.5 py-2 font-normal">많이 팔린 메뉴</th>
+                  <th className="px-2.5 py-2 font-normal">많은 손님</th>
                 </tr>
               </thead>
               <tbody>
@@ -208,22 +275,22 @@ export function GuestInsights({ storeId }: { storeId: string }) {
                     key={w.key}
                     className="border-b border-rule last:border-0"
                   >
-                    <td className="py-2.5 font-[550] text-ink">
+                    <td className="px-2.5 py-2.5 font-[550] text-ink">
                       {WEATHER_LABELS[w.key]}
                     </td>
-                    <td className="py-2.5 text-right tabular-nums">
+                    <td className="px-2.5 py-2.5 text-right tabular-nums">
                       {w.day_count}
                     </td>
-                    <td className="py-2.5 text-right tabular-nums">
+                    <td className="px-2.5 py-2.5 text-right tabular-nums">
                       {won(w.avg_net_sales)}원
                     </td>
-                    <td className="py-2.5 text-right tabular-nums">
+                    <td className="px-2.5 py-2.5 text-right tabular-nums">
                       {Number(w.avg_guest_count)}명
                     </td>
-                    <td className="max-w-[220px] truncate py-2.5 pl-4">
+                    <td className="max-w-[220px] truncate px-2.5 py-2.5">
                       {w.top_menus.map((m) => m.menu_name).join(" · ") || "-"}
                     </td>
-                    <td className="py-2.5 pl-4">
+                    <td className="px-2.5 py-2.5">
                       {w.top_relationships
                         .map((r) => label(r.key))
                         .join(" · ") || "-"}

@@ -89,7 +89,7 @@
     position: sticky;
     top: 0;
     z-index: 2;
-    background: white;
+    background: var(--color-table-head, #f4f6fa);
   }
   .inventory-management .inventory-table th:first-child,
   .inventory-management .inventory-table td:first-child {
@@ -101,6 +101,7 @@
   }
   .inventory-management .inventory-table th:first-child {
     z-index: 3;
+    background: var(--color-table-head, #f4f6fa);
   }
   .inventory-management .inventory-count-value {
     display: flex;

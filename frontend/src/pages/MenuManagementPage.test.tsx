@@ -106,11 +106,29 @@ describe("메뉴 관리 화면 (v4 KPI 시안)", () => {
     updated_at: "2026-11-15T00:00:00Z",
   };
 
+  const emptyCostData: CostSimulationResponse = {
+    store_id: store.id,
+    cost_basis_label: "최신 입고 단가",
+    global_change_percent: "0",
+    menus: [],
+  };
+
+  const emptySalesData: SalesAnalyticsResponse = {
+    store_id: store.id,
+    total_completed_orders: 0,
+    total_quantity: 0,
+    total_net_sales: "0",
+    known_hour_quantity: 0,
+    unknown_hour_quantity: 0,
+    hourly_buckets: [],
+    menu_rankings: [],
+  };
+
   function render(
-    menus: MenuItem[],
+    menus: MenuItem[] | null,
     search = "",
-    costData?: CostSimulationResponse,
-    salesData?: SalesAnalyticsResponse,
+    costData: CostSimulationResponse | null = emptyCostData,
+    salesData: SalesAnalyticsResponse | null = emptySalesData,
   ) {
     const params = new URLSearchParams(search);
     const statusParam = params.get("status") ?? "all";
@@ -119,19 +137,21 @@ describe("메뉴 관리 화면 (v4 KPI 시안)", () => {
       defaultOptions: { queries: { retry: false, staleTime: Infinity, gcTime: Infinity } },
     });
     clients.push(client);
-    client.setQueryData(
-      ["menus", store.id, params.get("q") ?? "", params.get("category") ?? "", apiStatus],
-      menus,
-    );
-    client.setQueryData(["menus", store.id, "", "", "all"], menus);
-    client.setQueryData(
-      ["menus", store.id, "active-count"],
-      menus.filter((item) => item.is_active),
-    );
-    client.setQueryData(
-      ["menu-categories", store.id],
-      [{ id: "food", name: "식사", menu_count: menus.length }],
-    );
+    if (menus !== null) {
+      client.setQueryData(
+        ["menus", store.id, params.get("q") ?? "", params.get("category") ?? "", apiStatus],
+        menus,
+      );
+      client.setQueryData(["menus", store.id, "", "", "all"], menus);
+      client.setQueryData(
+        ["menus", store.id, "active-count"],
+        menus.filter((item) => item.is_active),
+      );
+      client.setQueryData(
+        ["menu-categories", store.id],
+        [{ id: "food", name: "식사", menu_count: menus.length }],
+      );
+    }
     if (costData) client.setQueryData(["menu-costs", store.id], costData);
     if (salesData) client.setQueryData(["analytics-sales", store.id], salesData);
     const html = renderToStaticMarkup(
@@ -144,10 +164,11 @@ describe("메뉴 관리 화면 (v4 KPI 시안)", () => {
     return html;
   }
 
-  it("3장 KPI 카드·전체 보기 버튼·상태 알약 탭·유형 필터·검색·메뉴 추가·페이지 탐색을 표시한다", () => {
+  it("3장 KPI 카드·공헌이익 안내 툴팁·전체 보기 버튼·상태 알약 탭·유형 필터·검색·메뉴 추가·페이지 탐색을 표시한다", () => {
     const html = render([menu(1)]);
     expect(html).not.toContain('data-testid="menu-category-cards"');
     expect(html).toContain("메뉴 공헌이익");
+    expect(html).toContain('aria-label="메뉴 공헌이익 안내"');
     expect(html).toContain("판매 데이터 전체 기간");
     expect(html).toContain("전체 보기 →");
     expect(html).toContain("원가율");
@@ -162,6 +183,15 @@ describe("메뉴 관리 화면 (v4 KPI 시안)", () => {
       html.indexOf('aria-label="메뉴 목록 페이지"'),
     );
     expect(html).toContain('aria-label="검증 메뉴 1 메뉴 작업"');
+  });
+
+  it("데이터 로딩 중에는 미산출·대시 텍스트 대신 스켈레톤을 표시한다", () => {
+    const html = render(null, "", null, null);
+    expect(html).toContain('data-skeleton="true"');
+    expect(html).toContain('aria-label="메뉴 목록 불러오는 중"');
+    expect(html).not.toContain("미산출");
+    expect(html).not.toContain("판매 데이터 없음");
+    expect(html).not.toContain("확인할 항목 없음");
   });
 
   it("확인 필요 세부 조건(check 파라미터)으로 목록을 필터링하고 0건일 때 확인할 항목 없음을 표시한다", () => {

@@ -23,6 +23,7 @@ import {
   CLOSE_TIME_OPTIONS,
   OPEN_TIME_OPTIONS,
 } from "../app/App";
+import { Skeleton, SkeletonTable } from "../components/Skeleton";
 import type { CsvPreviewResponse, PosModeType, Store } from "../types";
 
 interface SettingsPageProps {
@@ -285,7 +286,14 @@ export function SettingsPage({ store }: SettingsPageProps) {
           <h1>설정</h1>
           <span className="title-divider" />
           <span className="title-meta">
-            {store.name} · {integration?.mode === "CSV_UPLOAD" ? "CSV 수집 모드" : "POS 연동 모드"}
+            {store.name} ·{" "}
+            {integrationQuery.isLoading ? (
+              <Skeleton width={88} height={14} variant="text" />
+            ) : integration?.mode === "CSV_UPLOAD" ? (
+              "CSV 수집 모드"
+            ) : (
+              "POS 연동 모드"
+            )}
           </span>
         </div>
 
@@ -327,67 +335,88 @@ export function SettingsPage({ store }: SettingsPageProps) {
       <section className="card space-y-5">
         <div className="card-head flex-wrap gap-2">
           <h2>데이터 수집 어댑터 모드 (A / B / C)</h2>
-          {integration && (
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-              <span
-                className={`chip ${
-                  integration.connection_status === "READY_CSV" ? "chip-ok" : "chip-warn"
-                }`}
-              >
-                {integration.connection_status === "READY_CSV"
-                  ? "CSV 파일 수집 준비됨"
-                  : "미검증"}
-              </span>
-              <span className="card-meta tabular-nums">
-                누적 완료 주문 <strong className="text-ink">{integration.total_orders_count}건</strong> · 순매출{" "}
-                <strong className="text-ink">
-                  {Number(integration.net_sales_amount).toLocaleString("ko-KR")}원
-                </strong>
-              </span>
+          {integrationQuery.isLoading ? (
+            <div className="flex flex-wrap items-center gap-2" role="status" aria-busy="true" aria-label="연동 상태 불러오는 중">
+              <Skeleton width={116} height={22} variant="pill" />
+              <Skeleton width={180} height={14} variant="text" />
             </div>
+          ) : (
+            integration && (
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+                <span
+                  className={`chip ${
+                    integration.connection_status === "READY_CSV" ? "chip-ok" : "chip-warn"
+                  }`}
+                >
+                  {integration.connection_status === "READY_CSV"
+                    ? "CSV 파일 수집 준비됨"
+                    : "미검증"}
+                </span>
+                <span className="card-meta tabular-nums">
+                  누적 완료 주문 <strong className="text-ink">{integration.total_orders_count}건</strong> · 순매출{" "}
+                  <strong className="text-ink">
+                    {Number(integration.net_sales_amount).toLocaleString("ko-KR")}원
+                  </strong>
+                </span>
+              </div>
+            )
           )}
         </div>
 
         {/* 모드 A / B / C 카드 */}
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {(["CSV_UPLOAD", "TOSS_OPEN_API", "TOSS_PLUGIN"] as PosModeType[]).map(
-            (m) => {
-              const selected = integration?.mode === m;
-              const info = MODE_DESCRIPTIONS[m];
-              return (
-                <button
-                  key={m}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => updateModeMutation.mutate(m)}
-                  className={`flex flex-col justify-between rounded-2xl p-4 text-left transition ${
-                    selected
-                      ? "bg-accent-50 ring-2 ring-accent-600"
-                      : "bg-ground hover:bg-accent-50/50"
-                  }`}
-                >
-                  <div>
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <span className="break-keep text-xs font-bold text-ink">
-                        {info.title}
-                      </span>
-                      <span
-                        className={`chip shrink-0 ${
-                          m === "CSV_UPLOAD" ? "chip-ok" : "chip-warn"
-                        }`}
-                      >
-                        {info.badge}
-                      </span>
+        {integrationQuery.isLoading ? (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3" role="status" aria-busy="true" aria-label="수집 모드 불러오는 중">
+            {[0, 1, 2].map((idx) => (
+              <div key={idx} className="flex flex-col justify-between gap-4 rounded-2xl bg-ground p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <Skeleton width="66%" height={15} variant="text" />
+                  <Skeleton width={64} height={20} variant="pill" />
+                </div>
+                <Skeleton width={96} height={13} variant="text" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            {(["CSV_UPLOAD", "TOSS_OPEN_API", "TOSS_PLUGIN"] as PosModeType[]).map(
+              (m) => {
+                const selected = integration?.mode === m;
+                const info = MODE_DESCRIPTIONS[m];
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => updateModeMutation.mutate(m)}
+                    className={`flex flex-col justify-between rounded-2xl p-4 text-left transition ${
+                      selected
+                        ? "bg-accent-50 ring-2 ring-accent-600"
+                        : "bg-ground hover:bg-accent-50/50"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <span className="break-keep text-xs font-bold text-ink">
+                          {info.title}
+                        </span>
+                        <span
+                          className={`chip shrink-0 ${
+                            m === "CSV_UPLOAD" ? "chip-ok" : "chip-warn"
+                          }`}
+                        >
+                          {info.badge}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="mt-3 text-xs font-semibold text-accent-600">
-                    {selected ? "현재 선택된 모드" : "이 모드로 전환"}
-                  </div>
-                </button>
-              );
-            }
-          )}
-        </div>
+                    <div className="mt-3 text-xs font-semibold text-accent-600">
+                      {selected ? "현재 선택된 모드" : "이 모드로 전환"}
+                    </div>
+                  </button>
+                );
+              }
+            )}
+          </div>
+        )}
 
         {/* CSV 업로드 및 컬럼 매핑 영역 */}
         <div className="rounded-2xl bg-ground p-5 space-y-4">
@@ -635,82 +664,95 @@ export function SettingsPage({ store }: SettingsPageProps) {
             POS/CSV 외부 상품명 ↔ 내부 메뉴 연결 관리
           </h3>
 
-          {allUnmapped.length === 0 ? (
-            <p className="text-xs font-medium text-muted">
-              현재 미매핑된 외부 상품명이 없습니다.
-            </p>
+          {integrationQuery.isLoading || mappingsQuery.isLoading ? (
+            <div className="space-y-2" role="status" aria-busy="true" aria-label="매핑 정보 불러오는 중">
+              <Skeleton width="64%" height={14} variant="text" />
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Skeleton width={132} height={24} variant="pill" />
+                <Skeleton width={148} height={24} variant="pill" />
+                <Skeleton width={116} height={24} variant="pill" />
+              </div>
+            </div>
           ) : (
-            <div className="space-y-2">
-              {allUnmapped.map((extName) => {
-                const selectedMenuId =
-                  selectedMenuByExtName[extName] ?? activeMenus[0]?.id ?? "";
-                return (
-                  <div
-                    key={extName}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-amber-50 px-3.5 py-2.5 text-xs"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="chip chip-warn">미매핑 외부 상품명</span>
-                      <strong className="text-ink">{extName}</strong>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <select
-                        aria-label={`${extName} 연결 메뉴`}
-                        value={selectedMenuId}
-                        onChange={(e) =>
-                          setSelectedMenuByExtName((prev) => ({
-                            ...prev,
-                            [extName]: e.target.value,
-                          }))
-                        }
-                        className="rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-ink"
+            <>
+              {allUnmapped.length === 0 ? (
+                <p className="text-xs font-medium text-muted">
+                  현재 미매핑된 외부 상품명이 없습니다.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {allUnmapped.map((extName) => {
+                    const selectedMenuId =
+                      selectedMenuByExtName[extName] ?? activeMenus[0]?.id ?? "";
+                    return (
+                      <div
+                        key={extName}
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-amber-50 px-3.5 py-2.5 text-xs"
                       >
-                        {activeMenus.length === 0 ? (
-                          <option value="">먼저 메뉴를 등록하세요</option>
-                        ) : (
-                          activeMenus.map((m) => (
-                            <option key={m.id} value={m.id}>
-                              {m.name}
-                            </option>
-                          ))
-                        )}
-                      </select>
-                      <button
-                        type="button"
-                        disabled={!selectedMenuId || upsertMappingMutation.isPending}
-                        onClick={() =>
-                          upsertMappingMutation.mutate({
-                            externalName: extName,
-                            menuItemId: selectedMenuId,
-                          })
-                        }
-                        className="pill pill-sm pill-primary disabled:opacity-50"
-                      >
-                        이 메뉴에 연결
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                        <div className="flex items-center gap-2">
+                          <span className="chip chip-warn">미매핑 외부 상품명</span>
+                          <strong className="text-ink">{extName}</strong>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <select
+                            aria-label={`${extName} 연결 메뉴`}
+                            value={selectedMenuId}
+                            onChange={(e) =>
+                              setSelectedMenuByExtName((prev) => ({
+                                ...prev,
+                                [extName]: e.target.value,
+                              }))
+                            }
+                            className="rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-ink"
+                          >
+                            {activeMenus.length === 0 ? (
+                              <option value="">먼저 메뉴를 등록하세요</option>
+                            ) : (
+                              activeMenus.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                  {m.name}
+                                </option>
+                              ))
+                            )}
+                          </select>
+                          <button
+                            type="button"
+                            disabled={!selectedMenuId || upsertMappingMutation.isPending}
+                            onClick={() =>
+                              upsertMappingMutation.mutate({
+                                externalName: extName,
+                                menuItemId: selectedMenuId,
+                              })
+                            }
+                            className="pill pill-sm pill-primary disabled:opacity-50"
+                          >
+                            이 메뉴에 연결
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
-          {(mappingsQuery.data ?? []).length > 0 && (
-            <div className="pt-2">
-              <div className="mb-1.5 text-xs font-semibold text-muted">
-                등록된 상품명 매핑 규칙 ({mappingsQuery.data?.length}건)
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {(mappingsQuery.data ?? []).map((mp) => (
-                  <span
-                    key={mp.id}
-                    className="chip chip-idle"
-                  >
-                    <strong className="text-ink">{mp.external_product_name}</strong> → {mp.menu_name}
-                  </span>
-                ))}
-              </div>
-            </div>
+              {(mappingsQuery.data ?? []).length > 0 && (
+                <div className="pt-2">
+                  <div className="mb-1.5 text-xs font-semibold text-muted">
+                    등록된 상품명 매핑 규칙 ({mappingsQuery.data?.length}건)
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(mappingsQuery.data ?? []).map((mp) => (
+                      <span
+                        key={mp.id}
+                        className="chip chip-idle"
+                      >
+                        <strong className="text-ink">{mp.external_product_name}</strong> → {mp.menu_name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
@@ -867,80 +909,95 @@ export function SettingsPage({ store }: SettingsPageProps) {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>테이블명</th>
-                <th>좌석 수</th>
-                <th className="!text-right">배치 좌표 (열, 행)</th>
-                <th>상태</th>
-                <th className="!text-right">관리</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(tablesQuery.data ?? []).map((t) => (
-                <tr
-                  key={t.id}
-                  className={t.is_active ? "" : "opacity-60"}
-                >
-                  <td className="font-semibold text-ink">
-                    {t.name}
-                  </td>
-                  <td>
-                    <div className="inline-flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          patchTableMutation.mutate({
-                            tableId: t.id,
-                            payload: { seats: Math.max(1, t.seats - 1) },
-                          })
-                        }
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-ground font-bold text-ink hover:bg-accent-50"
-                      >
-                        -
-                      </button>
-                      <span className="w-8 text-center font-semibold tabular-nums text-ink">{t.seats}석</span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          patchTableMutation.mutate({
-                            tableId: t.id,
-                            payload: { seats: Math.min(20, t.seats + 1) },
-                          })
-                        }
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-ground font-bold text-ink hover:bg-accent-50"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </td>
-                  <td className="!text-right tabular-nums text-muted">
-                    ({t.grid_x}, {t.grid_y})
-                  </td>
-                  <td>
-                    <span className={`chip ${t.is_active ? "chip-ok" : "chip-idle"}`}>
-                      {t.is_active ? "활성" : "비활성"}
-                    </span>
-                  </td>
-                  <td className="!text-right">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        patchTableMutation.mutate({
-                          tableId: t.id,
-                          payload: { is_active: !t.is_active },
-                        })
-                      }
-                      className="pill pill-sm pill-soft"
-                    >
-                      {t.is_active ? "비활성화" : "재활성화"}
-                    </button>
-                  </td>
+          {tablesQuery.isLoading ? (
+            <SkeletonTable
+              tableClassName="data-table"
+              ariaLabel="테이블 목록 불러오는 중"
+              rows={5}
+              columns={[
+                { label: "테이블명" },
+                { label: "좌석 수" },
+                { label: "배치 좌표 (열, 행)", align: "right" },
+                { label: "상태" },
+                { label: "관리", align: "right" },
+              ]}
+            />
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>테이블명</th>
+                  <th>좌석 수</th>
+                  <th className="!text-right">배치 좌표 (열, 행)</th>
+                  <th>상태</th>
+                  <th className="!text-right">관리</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {(tablesQuery.data ?? []).map((t) => (
+                  <tr
+                    key={t.id}
+                    className={t.is_active ? "" : "opacity-60"}
+                  >
+                    <td className="font-semibold text-ink">
+                      {t.name}
+                    </td>
+                    <td>
+                      <div className="inline-flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            patchTableMutation.mutate({
+                              tableId: t.id,
+                              payload: { seats: Math.max(1, t.seats - 1) },
+                            })
+                          }
+                          className="flex h-10 w-10 items-center justify-center rounded-full bg-ground font-bold text-ink hover:bg-accent-50"
+                        >
+                          -
+                        </button>
+                        <span className="w-8 text-center font-semibold tabular-nums text-ink">{t.seats}석</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            patchTableMutation.mutate({
+                              tableId: t.id,
+                              payload: { seats: Math.min(20, t.seats + 1) },
+                            })
+                          }
+                          className="flex h-10 w-10 items-center justify-center rounded-full bg-ground font-bold text-ink hover:bg-accent-50"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
+                    <td className="!text-right tabular-nums text-muted">
+                      ({t.grid_x}, {t.grid_y})
+                    </td>
+                    <td>
+                      <span className={`chip ${t.is_active ? "chip-ok" : "chip-idle"}`}>
+                        {t.is_active ? "활성" : "비활성"}
+                      </span>
+                    </td>
+                    <td className="!text-right">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          patchTableMutation.mutate({
+                            tableId: t.id,
+                            payload: { is_active: !t.is_active },
+                          })
+                        }
+                        className="pill pill-sm pill-soft"
+                      >
+                        {t.is_active ? "비활성화" : "재활성화"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </section>
     </div>

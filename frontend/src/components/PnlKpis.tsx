@@ -1,6 +1,8 @@
 import { useId, useState } from "react";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
+import { Skeleton, SkeletonBarChart } from "./Skeleton";
 import { averageOrderValue, businessDayProgress, kpiDelta, manWon, shiftMonth, won } from "../lib/pnl";
+import { useAnimatedNumber } from "../lib/useAnimatedNumber";
 import type { PnlResponse, Store } from "../types";
 
 function Info({ label, content }: { label: string; content: string }) {
@@ -55,18 +57,31 @@ function CompareTabs({ pnl, unit, onChange }: { pnl: PnlResponse; unit: Unit; on
 }
 
 function Value({ amount }: { amount: number | null }) {
-  return <div className="pk-value">{amount === null ? "미산출" : <>{amount.toLocaleString("ko-KR")}<small>원</small></>}</div>;
+  const animated = useAnimatedNumber(amount);
+  return (
+    <div className="pk-value">
+      {animated === null ? "미산출" : <>{Math.round(animated).toLocaleString("ko-KR")}<small>원</small></>}
+    </div>
+  );
 }
 
 function DayBars({ yesterday, today }: { yesterday: number | null; today: number | null }) {
+  const animYesterday = useAnimatedNumber(yesterday);
+  const animToday = useAnimatedNumber(today);
   const max = Math.max(1, yesterday ?? 0, today ?? 0);
+  const items = [
+    { raw: yesterday, shown: animYesterday, label: "어제", isToday: false },
+    { raw: today, shown: animToday, label: "오늘", isToday: true },
+  ];
   return (
     <div className="pk-dd" aria-label="어제 전체와 오늘 수집분 비교">
-      {[yesterday, today].map((amount, index) => (
-        <div key={index} className={index ? "pk-today" : undefined}>
-          <span className="pk-v2">{amount === null ? "미산출" : manWon(amount, 2)}</span>
-          <div className="pk-b" style={{ height: `${Math.max(0, amount ?? 0) / max * 58}px` }} />
-          {index ? "오늘" : "어제"}
+      {items.map((item) => (
+        <div key={item.label} className={item.isToday ? "pk-today" : undefined}>
+          <span className="pk-v2">
+            {item.raw === null || item.shown === null ? "미산출" : manWon(Math.round(item.shown), 2)}
+          </span>
+          <div className="pk-b" style={{ height: `${Math.max(0, item.shown ?? 0) / max * 58}px` }} />
+          {item.label}
         </div>
       ))}
     </div>
@@ -133,6 +148,12 @@ function Goal({ pnl, store, onEdit }: { pnl: PnlResponse; store: Store; onEdit: 
     : days?.elapsed ? Math.round(actual / days.elapsed) : null;
   const difference = rate !== null && days?.expected !== null && days?.expected !== undefined ? rate - days.expected : null;
   const clamp = (value: number) => Math.max(0, Math.min(100, value));
+  const animatedRate = useAnimatedNumber(rate);
+  const animatedActual = useAnimatedNumber(actual);
+  const animatedRemaining = useAnimatedNumber(remaining);
+  const animatedNeeded = useAnimatedNumber(needed);
+  const displayRate = animatedRate ?? rate ?? 0;
+
   return (
     <aside className="pk-card pk-goal" aria-label="매출 목표">
       <div className="pk-goal-top">
@@ -147,23 +168,142 @@ function Goal({ pnl, store, onEdit }: { pnl: PnlResponse; store: Store; onEdit: 
             <svg width="260" height="150" viewBox="0 0 260 150" aria-hidden="true">
               <defs><linearGradient id={gradientId} x1="0" x2="1"><stop offset="0" stopColor="#7fb2ff" /><stop offset="1" stopColor="#5ff0d8" /></linearGradient></defs>
               <path d="M20 140 A110 110 0 0 1 240 140" fill="none" stroke="rgba(255,255,255,.16)" strokeWidth="18" strokeLinecap="round" />
-              {rate > 0 && <path d="M20 140 A110 110 0 0 1 240 140" fill="none" stroke={`url(#${gradientId})`} strokeWidth="18" strokeLinecap="round" strokeDasharray="345.6" strokeDashoffset={345.6 * (1 - clamp(rate) / 100)} />}
+              {displayRate > 0 && <path d="M20 140 A110 110 0 0 1 240 140" fill="none" stroke={`url(#${gradientId})`} strokeWidth="18" strokeLinecap="round" strokeDasharray="345.6" strokeDashoffset={345.6 * (1 - clamp(displayRate) / 100)} />}
             </svg>
-            <div className="pk-gauge-c"><div className="pk-pct">{rate.toFixed(1)}%</div><div className="pk-frac"><b>{manWon(actual)}원</b><span>{manWon(target!)}원</span></div></div>
+            <div className="pk-gauge-c"><div className="pk-pct">{displayRate.toFixed(1)}%</div><div className="pk-frac"><b>{manWon(Math.round(animatedActual ?? actual))}원</b><span>{manWon(target!)}원</span></div></div>
           </div>
           <div className="pk-mini-row">
-            <div className="pk-mini"><div className="pk-label">남은 금액</div><div className="pk-v">{won(remaining)}</div><div className="pk-s">{days ? `남은 영업일 ${days.remaining}일` : "영업일 미설정"}</div></div>
-            <div className="pk-mini"><div className="pk-label">하루 필요 매출</div><div className="pk-v">{needed === null ? "미산출" : won(needed)}</div><div className="pk-s">평소 하루 {usual === null ? "미산출" : won(usual)}</div></div>
+            <div className="pk-mini"><div className="pk-label">남은 금액</div><div className="pk-v">{won(Math.round(animatedRemaining ?? remaining))}</div><div className="pk-s">{days ? `남은 영업일 ${days.remaining}일` : "영업일 미설정"}</div></div>
+            <div className="pk-mini"><div className="pk-label">하루 필요 매출</div><div className="pk-v">{needed === null ? "미산출" : won(Math.round(animatedNeeded ?? needed))}</div><div className="pk-s">평소 하루 {usual === null ? "미산출" : won(usual)}</div></div>
           </div>
           <div className="pk-pace">
             <div className="pk-pace-row"><span>진도 <Info label="영업일 진도" content="예상 매출은 경과 영업일 ÷ 이번 달 전체 영업일이에요. 남은 영업일은 내일부터 세며, 평소 하루는 지난달 매출 ÷ 영업일(지난달 기록이 없으면 이번 달 경과 영업일)이에요." /></span><b>{difference === null ? "영업일 미설정" : Math.abs(difference) < 0.05 ? "목표 진도와 같아요" : `목표보다 ${Math.abs(difference).toFixed(1)}%p ${difference > 0 ? "앞서요" : "뒤처져요"}`}</b></div>
-            <div className="pk-pace-bar"><div className="pk-fill" style={{ width: `${clamp(rate)}%` }} />{days?.expected !== null && days?.expected !== undefined && <div className="pk-mark" style={{ left: `${clamp(days.expected)}%` }} />}</div>
-            <div className="pk-pace-row pk-pace-legend"><span><i className="pk-dot" />현재 매출 {Math.round(rate)}%</span><span className="pk-exp"><i className="pk-dot" />예상 매출 {days?.expected === null || days?.expected === undefined ? "미산출" : `${Math.round(days.expected)}%`}</span></div>
+            <div className="pk-pace-bar"><div className="pk-fill" style={{ width: `${clamp(displayRate)}%` }} />{days?.expected !== null && days?.expected !== undefined && <div className="pk-mark" style={{ left: `${clamp(days.expected)}%` }} />}</div>
+            <div className="pk-pace-row pk-pace-legend"><span><i className="pk-dot" />현재 매출 {Math.round(displayRate)}%</span><span className="pk-exp"><i className="pk-dot" />예상 매출 {days?.expected === null || days?.expected === undefined ? "미산출" : `${Math.round(days.expected)}%`}</span></div>
           </div>
         </>
       )}
       <div className="pk-goal-profit">영업이익 목표 {pnl.goal.profit_target === null ? "미설정" : won(pnl.goal.profit_target)}</div>
     </aside>
+  );
+}
+
+export function PnlKpisSkeleton() {
+  return (
+    <div className="pnl-kpi-container" role="status" aria-busy="true" aria-label="손익 지표 불러오는 중">
+      <div className="pnl-kpi-grid">
+        <section className="pk-card pk-hero">
+          <div className="pk-hero-top">
+            <Skeleton width={68} height={15} tone="on-accent" />
+            <Skeleton width={132} height={22} variant="pill" tone="on-accent" />
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <Skeleton width={180} height={36} tone="on-accent" />
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <Skeleton width={128} height={22} variant="pill" tone="on-accent" />
+          </div>
+          <div className="pk-meta">
+            {[0, 1, 2].map((i) => (
+              <div key={i}>
+                <Skeleton width={44} height={12} tone="on-accent" />
+                <div style={{ marginTop: 6 }}>
+                  <Skeleton width={56} height={18} tone="on-accent" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="pk-split">
+          {[0, 1].map((cardIdx) => (
+            <section key={cardIdx} className="pk-card">
+              <div>
+                <Skeleton width={56} height={14} />
+                <div style={{ marginTop: 8 }}>
+                  <Skeleton width={124} height={28} />
+                </div>
+                <div style={{ marginTop: 10 }}>
+                  <Skeleton width={96} height={20} variant="pill" />
+                </div>
+              </div>
+              <div className="pk-dd">
+                <div>
+                  <Skeleton width={26} height={34} radius="6px 6px 3px 3px" />
+                  <Skeleton width={22} height={10} />
+                </div>
+                <div>
+                  <Skeleton width={26} height={50} radius="6px 6px 3px 3px" />
+                  <Skeleton width={22} height={10} />
+                </div>
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <section className="pk-card pk-spend">
+          <Skeleton width={56} height={14} />
+          <div style={{ marginTop: 10 }}>
+            <Skeleton width={160} height={36} />
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <Skeleton width={118} height={22} variant="pill" />
+          </div>
+          <div style={{ marginTop: "auto", paddingTop: 20 }}>
+            <Skeleton width="100%" height={10} variant="pill" />
+            <div className="pk-legend">
+              {[54, 52, 48, 44].map((w, i) => (
+                <Skeleton key={i} width={w} height={12} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <aside className="pk-card pk-goal">
+          <div className="pk-goal-top">
+            <Skeleton width={76} height={15} tone="on-accent" />
+            <Skeleton width={18} height={18} variant="circle" tone="on-accent" />
+          </div>
+          <div className="flex flex-col items-center gap-3 py-4">
+            <Skeleton width={180} height={96} radius="999px 999px 12px 12px" tone="on-accent" />
+            <Skeleton width={96} height={30} tone="on-accent" />
+          </div>
+          <div className="pk-mini-row">
+            {[0, 1].map((i) => (
+              <div key={i} className="pk-mini">
+                <Skeleton width={64} height={12} tone="on-accent" />
+                <div style={{ marginTop: 8 }}>
+                  <Skeleton width={92} height={20} tone="on-accent" />
+                </div>
+                <div style={{ marginTop: 6 }}>
+                  <Skeleton width={72} height={11} tone="on-accent" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="pk-pace">
+            <div className="pk-pace-row">
+              <Skeleton width={56} height={12} tone="on-accent" />
+              <Skeleton width={104} height={12} tone="on-accent" />
+            </div>
+            <div style={{ marginTop: 10 }}>
+              <Skeleton width="100%" height={8} variant="pill" tone="on-accent" />
+            </div>
+          </div>
+          <Skeleton width={120} height={13} tone="on-accent" />
+        </aside>
+
+        <section className="pk-card pk-trend">
+          <div className="pk-trend-head">
+            <Skeleton width={76} height={15} />
+            <Skeleton width={96} height={28} variant="pill" />
+          </div>
+          <div style={{ marginTop: 18 }}>
+            <SkeletonBarChart bars={6} height={150} ariaLabel="최근 6개월 추이 불러오는 중" />
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }
 
@@ -186,6 +326,9 @@ export function PnlKpis({ pnl, store, onEditGoal, onPickMonth }: {
     ? comparison.previous_month.operating_profit / comparison.previous_month.revenue * 100 : null;
   const margin = pnl.operating_margin_percent === null ? null : Number(pnl.operating_margin_percent);
   const marginDiff = margin !== null && previousMargin !== null ? margin - previousMargin : null;
+  const animatedMargin = useAnimatedNumber(margin);
+  const animatedPreviousMargin = useAnimatedNumber(previousMargin);
+  const animatedMarginDiff = useAnimatedNumber(marginDiff);
   const groups = [
     { label: "재료비", codes: ["ingredients", "liquor"], color: "#2f6bff" },
     { label: "인건비", codes: ["labor", "social_insurance"], color: "#1aa9a0" },
@@ -203,9 +346,9 @@ export function PnlKpis({ pnl, store, onEditGoal, onPickMonth }: {
         <Value amount={pnl.operating_profit} />
         <Delta amountOnly vs={vs} current={pair.current?.operating_profit ?? null} previous={pair.baseline?.operating_profit ?? null} />
         <div className="pk-meta">
-          <div>이익률<b>{margin === null ? "미산출" : `${margin.toFixed(1)}%`}</b></div>
-          <div>지난달<b>{previousMargin === null ? "미산출" : `${previousMargin.toFixed(1)}%`}</b></div>
-          <div>지난달 대비<b>{marginDiff === null ? "미산출" : `${marginDiff >= 0 ? "+" : ""}${marginDiff.toFixed(1)}%p`}</b></div>
+          <div>이익률<b>{animatedMargin === null ? "미산출" : `${animatedMargin.toFixed(1)}%`}</b></div>
+          <div>지난달<b>{animatedPreviousMargin === null ? "미산출" : `${animatedPreviousMargin.toFixed(1)}%`}</b></div>
+          <div>지난달 대비<b>{animatedMarginDiff === null ? "미산출" : `${animatedMarginDiff >= 0 ? "+" : ""}${animatedMarginDiff.toFixed(1)}%p`}</b></div>
         </div>
         <svg className="pk-wave" width="220" height="70" viewBox="0 0 220 70" aria-hidden="true"><path d="M0 55 C30 40 50 60 80 42 S130 20 160 30 S200 12 220 8" fill="none" stroke="#fff" strokeWidth="3" /></svg>
       </section>

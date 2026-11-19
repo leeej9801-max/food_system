@@ -3,7 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { AppLink as Link } from "../components/AppLink";
 import { GuestInsights } from "../components/GuestInsights";
 import { HeroKpi } from "../components/HeroKpi";
+import { Skeleton, SkeletonBarChart } from "../components/Skeleton";
 import { fetchSalesAnalytics, simulateMenuCosts } from "../api/analytics";
+import { useAnimatedNumber } from "../lib/useAnimatedNumber";
 import type { Store } from "../types";
 
 interface AnalyticsPageProps {
@@ -35,6 +37,11 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
     sales && sales.total_completed_orders > 0
       ? Math.round(Number(sales.total_net_sales) / sales.total_completed_orders)
       : null;
+
+  const animNetSales = useAnimatedNumber(salesQuery.isLoading ? null : Number(sales?.total_net_sales ?? 0));
+  const animTotalQty = useAnimatedNumber(salesQuery.isLoading ? null : Number(sales?.total_quantity ?? 0));
+  const animAvgTicket = useAnimatedNumber(salesQuery.isLoading ? null : avgTicket);
+  const animHighCost = useAnimatedNumber(costingQuery.isLoading ? null : highCostCount);
 
   const hours = (sales?.hourly_buckets ?? []).filter(
     (b) => b.quantity > 0 || (b.hour >= 11 && b.hour <= 21)
@@ -68,33 +75,71 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
       </div>
 
       <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-[1.12fr_1fr_1.32fr] xl:mb-5 xl:gap-5">
-        <HeroKpi label="누적 순매출" value={won(sales?.total_net_sales ?? 0)} unit="원">
-          완료 주문 {sales?.total_completed_orders ?? 0}건
+        <HeroKpi
+          label="누적 순매출"
+          value={
+            salesQuery.isLoading ? (
+              <Skeleton width={144} height={32} tone="on-accent" />
+            ) : (
+              won(animNetSales ?? 0)
+            )
+          }
+          unit={salesQuery.isLoading ? undefined : "원"}
+        >
+          {salesQuery.isLoading ? (
+            <Skeleton width={96} height={13} variant="text" tone="on-accent" />
+          ) : (
+            `완료 주문 ${sales?.total_completed_orders ?? 0}건`
+          )}
         </HeroKpi>
 
         <section className="card flex flex-col justify-between">
           <div className="kpi-label">누적 판매 수량</div>
           <div className="kpi-value">
-            {won(sales?.total_quantity ?? 0)}
-            <small>개</small>
+            {salesQuery.isLoading ? (
+              <Skeleton width={104} height={32} />
+            ) : (
+              <>
+                {won(animTotalQty ?? 0)}
+                <small>개</small>
+              </>
+            )}
           </div>
-          <div className="kpi-sub">시각 미상 {sales?.unknown_hour_quantity ?? 0}개</div>
+          <div className="kpi-sub">
+            {salesQuery.isLoading ? (
+              <Skeleton width={92} height={13} variant="text" />
+            ) : (
+              `시각 미상 ${sales?.unknown_hour_quantity ?? 0}개`
+            )}
+          </div>
         </section>
 
         <section className="card grid grid-cols-2 gap-4 !bg-accent-50 sm:col-span-2 md:col-span-1">
           <div className="flex min-w-0 flex-col justify-between">
             <div className="kpi-label">객단가</div>
             <div className="kpi-value">
-              {avgTicket === null ? "-" : won(avgTicket)}
-              {avgTicket !== null && <small>원</small>}
+              {salesQuery.isLoading ? (
+                <Skeleton width={88} height={28} />
+              ) : (
+                <>
+                  {avgTicket === null ? "-" : won(animAvgTicket ?? avgTicket)}
+                  {avgTicket !== null && <small>원</small>}
+                </>
+              )}
             </div>
             <div className="kpi-sub">완료 주문 기준</div>
           </div>
           <div className="flex min-w-0 flex-col justify-between">
             <div className="kpi-label">고원가율 메뉴</div>
-            <div className={`kpi-value ${highCostCount > 0 ? "!text-[#965d11]" : ""}`}>
-              {highCostCount}
-              <small>개</small>
+            <div className={`kpi-value ${!costingQuery.isLoading && highCostCount > 0 ? "!text-[#965d11]" : ""}`}>
+              {costingQuery.isLoading ? (
+                <Skeleton width={52} height={28} />
+              ) : (
+                <>
+                  {Math.round(animHighCost ?? highCostCount)}
+                  <small>개</small>
+                </>
+              )}
             </div>
             <div className="kpi-sub">원가율 35% 이상</div>
           </div>
@@ -105,13 +150,19 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
         <section className="card md:col-span-7">
           <div className="card-head">
             <h2>시간대별 판매</h2>
-            {peak && (
-              <span className="card-meta">
-                가장 많은 시간 {peak.hour}시 · {peak.quantity}개
-              </span>
+            {salesQuery.isLoading ? (
+              <Skeleton width={132} height={14} variant="text" />
+            ) : (
+              peak && (
+                <span className="card-meta">
+                  가장 많은 시간 {peak.hour}시 · {peak.quantity}개
+                </span>
+              )
             )}
           </div>
-          {(sales?.known_hour_quantity ?? 0) === 0 ? (
+          {salesQuery.isLoading ? (
+            <SkeletonBarChart bars={11} height={232} ariaLabel="시간대별 판매 불러오는 중" />
+          ) : (sales?.known_hour_quantity ?? 0) === 0 ? (
             <p className="py-12 text-center text-sm text-muted">시각이 있는 판매 기록이 없습니다</p>
           ) : (
             <div className="flex h-[232px] items-end gap-1.5 sm:gap-2.5" role="list">
@@ -133,7 +184,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
                     </span>
                     <div className="flex w-full flex-1 items-end overflow-hidden rounded-[10px] bg-ground">
                       <div
-                        className={`w-full rounded-[10px] transition-[height] ${isPeak ? "bg-accent-600" : "bg-accent-300"}`}
+                        className={`analytics-bar-v w-full rounded-[10px] ${isPeak ? "bg-accent-600" : "bg-accent-300"}`}
                         style={{ height: `${h}%` }}
                       />
                     </div>
@@ -148,7 +199,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
         <section className="card md:col-span-5">
           <div className="card-head">
             <h2>메뉴별 판매 TOP {TOP_N}</h2>
-            {rankings.length > TOP_N && (
+            {!salesQuery.isLoading && rankings.length > TOP_N && (
               <button
                 type="button"
                 onClick={() => setShowAllMenus((v) => !v)}
@@ -158,7 +209,18 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
               </button>
             )}
           </div>
-          {rankings.length === 0 ? (
+          {salesQuery.isLoading ? (
+            <div className="flex flex-col gap-5" role="status" aria-busy="true" aria-label="메뉴별 판매 순위 불러오는 중">
+              {[88, 72, 60, 48, 36].map((pct, idx) => (
+                <div key={idx} className="grid grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2">
+                  <Skeleton width={18} height={12} variant="text" />
+                  <Skeleton width={`${pct}%`} height={14} variant="text" />
+                  <Skeleton width={40} height={16} variant="text" className="row-span-2" />
+                  <Skeleton width={`${pct}%`} height={5} variant="pill" className="col-start-2" />
+                </div>
+              ))}
+            </div>
+          ) : rankings.length === 0 ? (
             <p className="py-12 text-center text-sm text-muted">판매 기록이 없습니다</p>
           ) : (
             <ol className="flex flex-col gap-5">
@@ -180,7 +242,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
                   </span>
                   <span className="col-start-2 h-[5px] overflow-hidden rounded-full bg-ground">
                     <span
-                      className={`block h-full rounded-full ${idx === 0 ? "bg-ink" : "bg-accent-300"}`}
+                      className={`analytics-bar-h block h-full rounded-full ${idx === 0 ? "bg-ink" : "bg-accent-300"}`}
                       style={{ width: `${Math.round((r.quantity / maxMenuQty) * 100)}%` }}
                     />
                   </span>

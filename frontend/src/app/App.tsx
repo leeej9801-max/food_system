@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { AppLink as Link } from "../components/AppLink";
+import { KpiPageSkeleton, ShellPageSkeleton, Skeleton } from "../components/Skeleton";
 import { withStore } from "../lib/navigation";
 import { createStore, fetchStores, fetchTables, fetchVisitSummary } from "../api/stores";
 import { fetchTodaySummary } from "../api/todaySummary";
@@ -528,22 +529,38 @@ function ShellLayout({ store }: { store: Store }) {
               <div className="flex items-baseline gap-1.5">
                 <dt className="text-gray-500">홀 착석</dt>
                 <dd className="font-semibold text-ink">
-                  {visitSummary?.active_table_count ?? 0}/{activeTablesCount}테이블 ·{" "}
-                  {visitSummary?.active_guest_count ?? 0}명
+                  {visitSummaryQuery.isLoading || tablesQuery.isLoading ? (
+                    <Skeleton width={104} height={15} variant="text" />
+                  ) : (
+                    <>
+                      {visitSummary?.active_table_count ?? 0}/{activeTablesCount}테이블 ·{" "}
+                      {visitSummary?.active_guest_count ?? 0}명
+                    </>
+                  )}
                 </dd>
               </div>
               <div className="flex items-baseline gap-1.5">
                 <dt className="text-gray-500">오늘 방문</dt>
                 <dd className="font-semibold text-ink">
-                  {todaySummary ? `${todaySummary.today_visit_count}팀 · ${todaySummary.today_guest_count}명` : "—"}
+                  {todayQuery.isLoading ? (
+                    <Skeleton width={76} height={15} variant="text" />
+                  ) : todaySummary ? (
+                    `${todaySummary.today_visit_count}팀 · ${todaySummary.today_guest_count}명`
+                  ) : (
+                    "—"
+                  )}
                 </dd>
               </div>
               <div className="flex items-baseline gap-1.5">
                 <dt className="text-gray-500">오늘 매출</dt>
                 <dd className="font-semibold text-ink">
-                  {todaySummary
-                    ? `${Number(todaySummary.today_net_sales_amount).toLocaleString("ko-KR")}원`
-                    : "0원"}
+                  {todayQuery.isLoading ? (
+                    <Skeleton width={76} height={15} variant="text" />
+                  ) : todaySummary ? (
+                    `${Number(todaySummary.today_net_sales_amount).toLocaleString("ko-KR")}원`
+                  ) : (
+                    "0원"
+                  )}
                 </dd>
               </div>
               <span className="hidden text-gray-500 lg:inline">{today}</span>
@@ -562,7 +579,7 @@ function ShellLayout({ store }: { store: Store }) {
               <Route
                 path="/menus"
                 element={
-                  <Suspense fallback={null}>
+                  <Suspense fallback={<KpiPageSkeleton ariaLabel="메뉴 관리 불러오는 중" />}>
                     <MenuManagementPage store={store} />
                   </Suspense>
                 }
@@ -570,7 +587,7 @@ function ShellLayout({ store }: { store: Store }) {
               <Route
                 path="/ingredients"
                 element={
-                  <Suspense fallback={null}>
+                  <Suspense fallback={<KpiPageSkeleton ariaLabel="식자재 관리 불러오는 중" />}>
                     <IngredientManagementPage store={store} />
                   </Suspense>
                 }
@@ -628,11 +645,7 @@ function StoreApp() {
   }, [storeId, selectedStore, setParams]);
 
   if (storesQuery.isLoading) {
-    return (
-      <div className="p-10 text-center text-sm text-muted">
-        매장 정보를 확인하는 중입니다...
-      </div>
-    );
+    return <ShellPageSkeleton />;
   }
 
   if (storesQuery.isError) {

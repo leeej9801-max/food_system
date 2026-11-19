@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchPnlDay } from "../api/pnl";
 import { Dialog } from "./Dialog";
+import { SkeletonTable } from "./Skeleton";
 import type { Store } from "../types";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -31,16 +32,26 @@ export function PnlDayDialog({ store, day, onClose }: { store: Store; day: strin
           </button>
         </div>
 
-        {query.isLoading && <p className="text-sm text-muted">불러오는 중…</p>}
+        {query.isLoading && (
+          <SkeletonTable
+            columns={[
+              { label: "항목" },
+              { label: "수량", align: "right" },
+              { label: "금액", align: "right" },
+            ]}
+            rows={5}
+            ariaLabel="일별 손익 상세 불러오는 중"
+          />
+        )}
         {query.isError && <p className="text-sm text-[#b42318]">불러오지 못했어요.</p>}
 
         {detail && (
           <table className="w-full text-sm tabular-nums">
             <thead>
               <tr className="border-b border-rule text-left text-xs text-muted">
-                <th className="py-2 font-medium">항목</th>
-                <th className="py-2 text-right font-medium">수량</th>
-                <th className="py-2 text-right font-medium">금액</th>
+                <th className="px-2.5 py-2 font-medium">항목</th>
+                <th className="px-2.5 py-2 text-right font-medium">수량</th>
+                <th className="px-2.5 py-2 text-right font-medium">금액</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-rule">

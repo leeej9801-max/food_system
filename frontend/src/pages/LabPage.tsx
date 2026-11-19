@@ -1,6 +1,7 @@
 import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { simulateMenuCosts } from "../api/analytics";
+import { SkeletonTable } from "../components/Skeleton";
 import type { Store } from "../types";
 
 interface LabPageProps {
@@ -69,7 +70,25 @@ export function LabPage({ store }: LabPageProps) {
           </div>
         </div>
 
-        {menus.length === 0 ? (
+        {costingQuery.isLoading ? (
+          <div className="overflow-x-auto">
+            <SkeletonTable
+              tableClassName="data-table"
+              ariaLabel="메뉴 원가 시뮬레이션 불러오는 중"
+              rows={6}
+              columns={[
+                { label: "메뉴" },
+                { label: "판매가", align: "right" },
+                { label: "원가", align: "right" },
+                { label: "원가율", align: "right" },
+                { label: "변동 후 원가", align: "right" },
+                { label: "변동 후 마진", align: "right" },
+                { label: "상태" },
+                { label: "", width: "40px" },
+              ]}
+            />
+          </div>
+        ) : menus.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted">활성 메뉴가 없습니다</p>
         ) : (
           <div className="overflow-x-auto">

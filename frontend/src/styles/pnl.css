@@ -112,7 +112,7 @@
   .pnl-page .pk-dd { display: flex; align-items: flex-end; gap: 8px; min-height: 84px; }
   .pnl-page .pk-dd > div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; height: 100%; font-size: 10px; color: var(--pk-muted); }
   .pnl-page .pk-dd .pk-v2 { font-size: 11px; font-weight: 700; color: var(--pk-ink); font-variant-numeric: tabular-nums; }
-  .pnl-page .pk-dd .pk-b { width: 26px; border-radius: 6px 6px 3px 3px; background: #dfe7fb; }
+  .pnl-page .pk-dd .pk-b { width: 26px; border-radius: 6px 6px 3px 3px; background: #dfe7fb; transition: height 400ms cubic-bezier(0.22, 1, 0.36, 1); }
   .pnl-page .pk-dd .pk-today .pk-b { background: linear-gradient(180deg,#2f6bff,#1aa9a0); }
   .pnl-page .pk-dd .pk-today { color: var(--pk-ink); font-weight: 700; }
 
@@ -120,6 +120,7 @@
   .pnl-page .pk-spend { display: flex; flex-direction: column; }
   .pnl-page .pk-spend .pk-delta { align-self: flex-start; }
   .pnl-page .pk-stack { display: flex; height: 10px; border-radius: 999px; overflow: hidden; margin-top: auto; background: #eef1f6; }
+  .pnl-page .pk-stack > span { transition: width 400ms cubic-bezier(0.22, 1, 0.36, 1); }
   .pnl-page .pk-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 11px; color: var(--pk-muted); }
   .pnl-page .pk-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
 
@@ -168,8 +169,8 @@
   .pnl-page .pk-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 0; background: #5ff0d8; }
   .pnl-page .pk-exp .pk-dot { background: #ffc857; }
   .pnl-page .pk-pace-bar { position: relative; height: 8px; background: rgba(255,255,255,.18); border-radius: 999px; margin-top: 10px; }
-  .pnl-page .pk-pace-bar .pk-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 70%; background: #5ff0d8; border-radius: 999px; }
-  .pnl-page .pk-pace-bar .pk-mark { position: absolute; top: -4px; bottom: -4px; left: 65%; width: 3px; border-radius: 2px; background: #ffc857; }
+  .pnl-page .pk-pace-bar .pk-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 70%; background: #5ff0d8; border-radius: 999px; transition: width 400ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .pnl-page .pk-pace-bar .pk-mark { position: absolute; top: -4px; bottom: -4px; left: 65%; width: 3px; border-radius: 2px; background: #ffc857; transition: left 400ms cubic-bezier(0.22, 1, 0.36, 1); }
   .pnl-page .pk-goal-empty { display: flex; flex: 1; flex-direction: column; justify-content: center; align-items: center; gap: 16px; text-align: center; min-height: 260px; }
   .pnl-page .pk-goal-empty p { font-size: 14px; }
 
@@ -183,14 +184,14 @@
   .pnl-page .pk-seg button { padding: 4px 12px; border-radius: 999px; color: var(--pk-muted, var(--color-muted)); cursor: pointer; }
   .pnl-page .pk-seg button[aria-pressed="true"] { background: var(--pk-ink, var(--color-ink)); color: #fff; }
   .pnl-page .pk-plot { position: relative; height: 150px; margin-top: 20px; }
-  .pnl-page .pk-gline { position: absolute; left: 0; right: 0; border-top: 2px dashed #ffb020; z-index: 2; }
+  .pnl-page .pk-gline { position: absolute; left: 0; right: 0; border-top: 2px dashed #ffb020; z-index: 2; transition: bottom 400ms cubic-bezier(0.22, 1, 0.36, 1); }
   .pnl-page .pk-gline span { position: absolute; right: 0; top: -20px; font-size: 11px; font-weight: 700; color: #c98200; background: #fff; padding: 0 4px; }
-  .pnl-page .pk-zero { position: absolute; left: 0; right: 0; border-top: 1px solid #e3e8f1; }
+  .pnl-page .pk-zero { position: absolute; left: 0; right: 0; border-top: 1px solid #e3e8f1; transition: bottom 400ms cubic-bezier(0.22, 1, 0.36, 1); }
   .pnl-page .pk-bars { position: absolute; inset: 0; display: flex; gap: 14px; }
   .pnl-page .pk-bar { position: relative; padding: 0; background: transparent; border: 0; cursor: pointer; flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; font-size: 11px; color: var(--pk-muted); }
-  .pnl-page .pk-bar .pk-amt { position: absolute; white-space: nowrap; z-index: 3; background: #fff; padding: 0 4px; border-radius: 4px; font-size: 12px; font-weight: 700; color: var(--pk-ink); font-variant-numeric: tabular-nums; }
+  .pnl-page .pk-bar .pk-amt { position: absolute; white-space: nowrap; z-index: 3; background: #fff; padding: 0 4px; border-radius: 4px; font-size: 12px; font-weight: 700; color: var(--pk-ink); font-variant-numeric: tabular-nums; transition: bottom 400ms cubic-bezier(0.22, 1, 0.36, 1); }
   .pnl-page .pk-bar.pk-below .pk-amt { color: var(--pk-muted); }
-  .pnl-page .pk-bar .pk-col { position: absolute; width: 100%; max-width: 56px; border-radius: 8px 8px 4px 4px; background: linear-gradient(180deg,#2f6bff,#1aa9a0); }
+  .pnl-page .pk-bar .pk-col { position: absolute; width: 100%; max-width: 56px; border-radius: 8px 8px 4px 4px; background: linear-gradient(180deg,#2f6bff,#1aa9a0); transition: height 400ms cubic-bezier(0.22, 1, 0.36, 1), bottom 400ms cubic-bezier(0.22, 1, 0.36, 1); }
   .pnl-page .pk-bar.pk-below .pk-col { background: #dfe7fb; }
   .pnl-page .pk-bar.pk-now .pk-col { background: repeating-linear-gradient(135deg,#cfe0ff 0 6px,#e6efff 6px 12px); outline: 1.5px dashed #2f6bff; outline-offset: -1.5px; }
   .pnl-page .pk-bar.pk-negative .pk-col { border-radius: 4px 4px 8px 8px; }
@@ -198,6 +199,19 @@
   .pnl-page .pk-bar:hover .pk-col { filter: brightness(.96); }
   .pnl-page .pk-month { position: absolute; bottom: 0; white-space: nowrap; }
   .pnl-page .pk-bar.pk-now .pk-month { color: var(--pk-ink); font-weight: 700; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pnl-page .pk-dd .pk-b,
+    .pnl-page .pk-stack > span,
+    .pnl-page .pk-pace-bar .pk-fill,
+    .pnl-page .pk-pace-bar .pk-mark,
+    .pnl-page .pk-gline,
+    .pnl-page .pk-zero,
+    .pnl-page .pk-bar .pk-amt,
+    .pnl-page .pk-bar .pk-col {
+      transition: none;
+    }
+  }
 
   .pnl-page .pnl-kpi-grid button:focus-visible { outline: 2px solid #2f6bff; outline-offset: 4px; }
   .pnl-page .pk-goal button:focus-visible,

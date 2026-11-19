@@ -4,9 +4,10 @@ import { fetchPnl, savePnlGoal } from "../api/pnl";
 import { fetchWeatherMonth } from "../api/weather";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { Dialog } from "../components/Dialog";
-import { PnlKpis } from "../components/PnlKpis";
+import { PnlKpis, PnlKpisSkeleton } from "../components/PnlKpis";
 import { PnlDayDialog } from "../components/PnlDayDialog";
 import { PnlStatementDialog } from "../components/PnlStatementDialog";
+import { Skeleton } from "../components/Skeleton";
 import { formatKoreanMonth, shiftMonth, thisMonth, todayIso, won } from "../lib/pnl";
 import type { PnlResponse, Store, WeatherMonthDay, WeatherSkyType } from "../types";
 
@@ -354,6 +355,60 @@ function GoalDialog({
   );
 }
 
+function PnlCalendarSkeleton() {
+  return (
+    <section className="card" role="status" aria-busy="true" aria-label="일별 매출·지출 불러오는 중">
+      <div className="card-head">
+        <h2>일별 매출 · 지출</h2>
+        <span className="flex items-center gap-3">
+          <Skeleton width={64} height={14} variant="text" />
+        </span>
+      </div>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,680px)_minmax(280px,1fr)]">
+        <div className="grid grid-cols-7 gap-1.5 text-xs">
+          {WEEKDAYS.map((w, i) => (
+            <div
+              key={w}
+              className={`pb-1 text-center font-semibold ${i === 0 ? "text-[#b42318]" : i === 6 ? "text-accent-700" : "text-muted"}`}
+            >
+              {w}
+            </div>
+          ))}
+          {Array.from({ length: 35 }, (_, idx) => (
+            <div
+              key={idx}
+              className="flex min-h-[92px] min-w-0 flex-col gap-1.5 rounded-xl bg-ground p-1.5"
+            >
+              <Skeleton width={20} height={14} variant="text" />
+              <div className="mt-auto flex flex-col gap-1 rounded-lg bg-white p-1.5">
+                <Skeleton width="76%" height={10} variant="text" />
+                <Skeleton width="58%" height={10} variant="text" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <aside className="flex flex-col gap-3 rounded-2xl bg-ground p-5">
+          <div className="flex items-center justify-between">
+            <Skeleton width={132} height={24} />
+            <Skeleton width={48} height={22} variant="pill" />
+          </div>
+          <div className="flex flex-col gap-2.5 rounded-xl bg-white p-4">
+            <Skeleton width="42%" height={12} variant="text" />
+            <Skeleton width="68%" height={22} />
+            <Skeleton width="56%" height={12} variant="text" />
+          </div>
+          <div className="flex flex-col gap-2.5 rounded-xl bg-white p-4">
+            <Skeleton width="48%" height={12} variant="text" />
+            <Skeleton width="62%" height={18} />
+            <Skeleton width="54%" height={18} />
+          </div>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
 export function PnlPage({ store }: { store: Store }) {
   const [month, setMonth] = useState(thisMonth);
   const [statementOpen, setStatementOpen] = useState(false);
@@ -404,15 +459,22 @@ export function PnlPage({ store }: { store: Store }) {
           >
             ›
           </button>
-          {pnl && (
+          {pnlQuery.isLoading ? (
             <>
-              <button type="button" className="pill pill-sm pill-soft" onClick={() => setGoalOpen(true)}>
-                목표 설정
-              </button>
-              <button type="button" className="pill pill-sm pill-primary" onClick={() => setStatementOpen(true)}>
-                손익계산 &gt;
-              </button>
+              <Skeleton width={76} height={32} variant="pill" />
+              <Skeleton width={88} height={32} variant="pill" />
             </>
+          ) : (
+            pnl && (
+              <>
+                <button type="button" className="pill pill-sm pill-soft" onClick={() => setGoalOpen(true)}>
+                  목표 설정
+                </button>
+                <button type="button" className="pill pill-sm pill-primary" onClick={() => setStatementOpen(true)}>
+                  손익계산 &gt;
+                </button>
+              </>
+            )
           )}
         </div>
       </div>
@@ -423,7 +485,12 @@ export function PnlPage({ store }: { store: Store }) {
         </div>
       )}
 
-      {pnlQuery.isLoading && <div className="card text-sm text-muted">손익을 불러오는 중이에요…</div>}
+      {pnlQuery.isLoading && (
+        <div className="flex flex-col gap-4 xl:gap-5">
+          <PnlKpisSkeleton />
+          <PnlCalendarSkeleton />
+        </div>
+      )}
 
       {pnl && cmp && (
         <div className="flex flex-col gap-4 xl:gap-5">
