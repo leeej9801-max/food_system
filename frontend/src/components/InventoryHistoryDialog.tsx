@@ -4,6 +4,7 @@ import { SegmentedControl, SegmentedControlItem } from "@astryxdesign/core/Segme
 import { fetchMenus } from "../api/menus";
 import { fetchMenuRecipe } from "../api/ingredients";
 import { Dialog } from "./Dialog";
+import { Skeleton, SkeletonTable } from "./Skeleton";
 import { filterReceipts, priceChanges, type HistoryFilter } from "../lib/inventoryView";
 import type { InventoryReceipt, Store } from "../types";
 
@@ -36,8 +37,9 @@ export function InventoryHistoryDialog({ store, receipts, isLoading, error, onCl
     recipeQuery.data?.items.map((item) => item.ingredient_id));
   const changes = priceChanges(rows);
   const filterLoading = mode === "menu" && (menusQuery.isLoading || (Boolean(menuId) && recipeQuery.isLoading));
+  const loading = isLoading || filterLoading;
   const filterError = mode === "menu" ? menusQuery.error ?? (menuId ? recipeQuery.error : null) : null;
-  const message = isLoading || filterLoading ? "이력을 불러오는 중입니다..."
+  const message = loading ? null
     : error || filterError ? (error ?? filterError)!.message
     : mode === "ingredient" && !ingredientId ? "식자재를 선택해 주세요."
     : mode === "menu" && !menuId ? "메뉴를 선택해 주세요."
@@ -73,7 +75,7 @@ export function InventoryHistoryDialog({ store, receipts, isLoading, error, onCl
             </select>
           )}
         </div>
-        {!message && changes.length > 0 && (
+        {!loading && !message && changes.length > 0 && (
           <section className="shrink-0" aria-label="단가 변동">
             <h3 className="mb-2 text-xs text-muted">단가 변동 (최근 입고 대 평균)</h3>
             <ol className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -89,8 +91,22 @@ export function InventoryHistoryDialog({ store, receipts, isLoading, error, onCl
           </section>
         )}
         <div className="inventory-history-scroll" role="region" aria-label="입고 이력 표" tabIndex={0}
-          aria-busy={isLoading || filterLoading}>
-          {message ? <p className="p-4 text-sm text-muted" role={error || filterError ? "alert" : "status"}>{message}</p> : (
+          aria-busy={loading}>
+          {loading ? (
+            <SkeletonTable
+              tableClassName="data-table"
+              ariaLabel="이력을 불러오는 중입니다..."
+              rows={5}
+              columns={[
+                { label: "입고 일시" },
+                { label: "식자재" },
+                { label: "수량", align: "right" },
+                { label: "금액", align: "right" },
+                { label: "단가", align: "right" },
+                { label: "공급처" },
+              ]}
+            />
+          ) : message ? <p className="p-4 text-sm text-muted" role={error || filterError ? "alert" : "status"}>{message}</p> : (
             <table className="data-table">
               <thead><tr>
                 <th>입고 일시</th><th>식자재</th><th className="!text-right">수량</th>
@@ -109,7 +125,9 @@ export function InventoryHistoryDialog({ store, receipts, isLoading, error, onCl
             </table>
           )}
         </div>
-        <p className="shrink-0 text-xs text-muted tabular-nums" role="status">{message ? "—" : rows.length}건</p>
+        <p className="shrink-0 text-xs text-muted tabular-nums" role="status">
+          {loading ? <Skeleton width={36} height={13} variant="text" /> : `${message ? "—" : rows.length}건`}
+        </p>
       </section>
     </Dialog>
   );

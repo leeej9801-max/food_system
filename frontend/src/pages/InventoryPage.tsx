@@ -12,6 +12,8 @@ import { defaultThemeSlug, themes } from "../astryx-themes";
 import { AppLink as Link } from "../components/AppLink";
 import { Dialog } from "../components/Dialog";
 import { InventoryHistoryDialog } from "../components/InventoryHistoryDialog";
+import { Skeleton, SkeletonTable } from "../components/Skeleton";
+import { useAnimatedNumber } from "../lib/useAnimatedNumber";
 import {
   adjustmentDelta, filterInventory, getInventoryPage, INVENTORY_FILTERS, INVENTORY_PAGE_SIZE,
   isWasteReason, receiptSummary, shortageRanking, type AdjustmentDirection, type InventoryStatusFilter,
@@ -302,6 +304,7 @@ function Inventory({ store }: InventoryPageProps) {
   }
   const summaryReady = !summaryQuery.isLoading && !summaryQuery.isError;
   const receiptsReady = !receiptsQuery.isLoading && !receiptsQuery.isError;
+  const animAlerts = useAnimatedNumber(summaryReady ? alerts : null);
 
   function openAction(item: IngredientInventoryItem, action: Action) {
     setBanner(null);
@@ -321,7 +324,13 @@ function Inventory({ store }: InventoryPageProps) {
         <div className="page-title">
           <h1>입고 · 재고</h1>
           <span className="title-divider" />
-          <span className="title-meta">{summaryReady ? items.length : "—"}종</span>
+          <span className="title-meta">
+            {summaryQuery.isLoading ? (
+              <Skeleton width={40} height={14} variant="text" />
+            ) : (
+              `${summaryReady ? items.length : "—"}종`
+            )}
+          </span>
         </div>
         <div className="page-actions">
           <Link to="/ingredients" className="pill pill-secondary">식자재 관리 →</Link>
@@ -342,10 +351,28 @@ function Inventory({ store }: InventoryPageProps) {
           }}>
           <span className="flex items-baseline justify-between gap-3">
             <span className="text-sm font-semibold">입고 필요</span>
-            <strong className="text-3xl font-semibold tabular-nums">{summaryReady ? alerts : "—"}<small className="ml-1 text-sm font-normal">종</small></strong>
+            <strong className="text-3xl font-semibold tabular-nums">
+              {summaryQuery.isLoading ? (
+                <Skeleton width={52} height={28} tone="on-accent" />
+              ) : (
+                <>
+                  {summaryReady ? Math.round(animAlerts ?? alerts) : "—"}
+                  <small className="ml-1 text-sm font-normal">종</small>
+                </>
+              )}
+            </strong>
           </span>
           <span className="text-xs">안전재고 대비 부족률 순</span>
-          {summaryReady && ranking.length > 0 ? (
+          {summaryQuery.isLoading ? (
+            <div className="flex flex-col gap-2" role="status" aria-busy="true" aria-label="입고 필요 식자재 불러오는 중">
+              {[0, 1, 2].map((idx) => (
+                <div key={idx} className="flex items-center justify-between gap-3">
+                  <Skeleton width="58%" height={13} variant="text" tone="on-accent" />
+                  <Skeleton width={32} height={13} variant="text" tone="on-accent" />
+                </div>
+              ))}
+            </div>
+          ) : summaryReady && ranking.length > 0 ? (
             <ol className="flex flex-col gap-1 text-sm">
               {ranking.map(({ item, shortage }) => (
                 <li key={item.ingredient_id} className="flex items-center justify-between gap-3">
@@ -354,7 +381,15 @@ function Inventory({ store }: InventoryPageProps) {
                 </li>
               ))}
             </ol>
-          ) : <span className="text-sm">{summaryQuery.isError ? "재고 조회 실패" : !summaryReady ? "재고 확인 중" : alerts === 0 ? "입고 필요한 식자재가 없습니다" : "부족률을 계산할 식자재가 없습니다"}</span>}
+          ) : (
+            <span className="text-sm">
+              {summaryQuery.isError
+                ? "재고 조회 실패"
+                : alerts === 0
+                  ? "입고 필요한 식자재가 없습니다"
+                  : "부족률을 계산할 식자재가 없습니다"}
+            </span>
+          )}
         </section>
 
         <section className="card inventory-quick-card" aria-label="재고 빠른 기록">
@@ -369,9 +404,44 @@ function Inventory({ store }: InventoryPageProps) {
             ))}
           </div>
           <dl className="inventory-receipt-summary">
-            <div><dt>최근 입고일</dt><dd>{!receiptsReady ? "—" : summary.latest ? new Date(summary.latest).toLocaleDateString("ko-KR", { timeZone: store.timezone }) : "없음"}</dd></div>
-            <div><dt>최근 7일 입고</dt><dd>{receiptsReady ? `${fmt(summary.count)}건` : "—"}</dd></div>
-            <div><dt>최근 7일 입고액</dt><dd>{receiptsReady ? `${fmt(summary.amount)}원` : "—"}</dd></div>
+            <div>
+              <dt>최근 입고일</dt>
+              <dd>
+                {receiptsQuery.isLoading ? (
+                  <Skeleton width={76} height={15} variant="text" />
+                ) : !receiptsReady ? (
+                  "—"
+                ) : summary.latest ? (
+                  new Date(summary.latest).toLocaleDateString("ko-KR", { timeZone: store.timezone })
+                ) : (
+                  "없음"
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>최근 7일 입고</dt>
+              <dd>
+                {receiptsQuery.isLoading ? (
+                  <Skeleton width={48} height={15} variant="text" />
+                ) : receiptsReady ? (
+                  `${fmt(summary.count)}건`
+                ) : (
+                  "—"
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>최근 7일 입고액</dt>
+              <dd>
+                {receiptsQuery.isLoading ? (
+                  <Skeleton width={72} height={15} variant="text" />
+                ) : receiptsReady ? (
+                  `${fmt(summary.amount)}원`
+                ) : (
+                  "—"
+                )}
+              </dd>
+            </div>
           </dl>
           {receiptsQuery.isError && <p role="alert" className="text-xs text-muted">{errorText(receiptsQuery.error, "입고 이력을 불러오지 못했습니다.")}</p>}
         </section>
@@ -388,8 +458,24 @@ function Inventory({ store }: InventoryPageProps) {
           </SegmentedControl>
         </div>
         <div key={`${filterKey}:${page}`} className="inventory-table-region" role="region" aria-label="재고 현황 표" tabIndex={0} aria-busy={summaryQuery.isLoading}>
-          {summaryQuery.isLoading ? <p role="status" className="p-4 text-sm text-muted">재고를 불러오는 중입니다...</p>
-            : summaryQuery.isError ? <p role="alert" className="p-4 text-sm text-muted">{errorText(summaryQuery.error, "재고를 불러오지 못했습니다.")}</p>
+          {summaryQuery.isLoading ? (
+            <SkeletonTable
+              tableClassName="data-table inventory-table"
+              ariaLabel="재고를 불러오는 중입니다..."
+              rows={7}
+              columns={[
+                { label: "식자재" },
+                { label: "최근 입고 단가", align: "right" },
+                { label: "마지막 실사", align: "right" },
+                { label: "실사 후 입고", align: "right" },
+                { label: "실사 후 소모", align: "right" },
+                { label: "실사 후 폐기·보정", align: "right" },
+                { label: "예상 재고", align: "right" },
+                { label: "상태" },
+                { label: <span className="sr-only">기록</span>, align: "right" },
+              ]}
+            />
+          ) : summaryQuery.isError ? <p role="alert" className="p-4 text-sm text-muted">{errorText(summaryQuery.error, "재고를 불러오지 못했습니다.")}</p>
             : items.length === 0 ? (
               <div className="p-6 text-center">
                 <p className="text-sm text-muted">등록된 식자재가 없습니다</p>
@@ -439,7 +525,15 @@ function Inventory({ store }: InventoryPageProps) {
             )}
         </div>
         <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-rule pt-3 text-xs text-muted tabular-nums">
-          <p role="status" aria-live="polite">{summaryReady ? `${filtered.length > 0 ? `${offset + 1}–${offset + rows.length}` : "0"} / ${filtered.length}종 · 페이지당 ${INVENTORY_PAGE_SIZE}행` : "—"}</p>
+          <p role="status" aria-live="polite">
+            {summaryQuery.isLoading ? (
+              <Skeleton width={132} height={13} variant="text" />
+            ) : summaryReady ? (
+              `${filtered.length > 0 ? `${offset + 1}–${offset + rows.length}` : "0"} / ${filtered.length}종 · 페이지당 ${INVENTORY_PAGE_SIZE}행`
+            ) : (
+              "—"
+            )}
+          </p>
           <InternationalizationProvider locale="ko-KR" messages={{ "ko-KR": koKR }}><Pagination label="재고 목록 페이지" page={page} totalPages={pageCount} size="sm" variant="compact"
             isDisabled={!summaryReady || filtered.length === 0} onChange={(next) => setPagination({ filterKey, page: next })} /></InternationalizationProvider>
         </footer>

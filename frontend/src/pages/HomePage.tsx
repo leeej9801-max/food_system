@@ -23,6 +23,7 @@ import {
   updateVisitSlot,
 } from "../api/stores";
 import { FLOOR_COLORS, FloorPlan } from "../components/FloorPlan";
+import { Skeleton } from "../components/Skeleton";
 import type {
   AgeBandType,
   GenderType,
@@ -336,8 +337,14 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
           <div className="mb-2 flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs font-bold">
             <div className="flex items-center gap-3 text-ink">
               <span className="tabular-nums">
-                이용 {visitSummaryQuery.data?.active_table_count ?? 0}테이블 ·{" "}
-                {visitSummaryQuery.data?.active_guest_count ?? 0}명
+                {visitSummaryQuery.isLoading ? (
+                  <Skeleton width={116} height={14} variant="text" />
+                ) : (
+                  <>
+                    이용 {visitSummaryQuery.data?.active_table_count ?? 0}테이블 ·{" "}
+                    {visitSummaryQuery.data?.active_guest_count ?? 0}명
+                  </>
+                )}
               </span>
               <span className="inline-flex items-center gap-1.5 text-muted">
                 <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: FLOOR_COLORS.seated }} />
@@ -380,15 +387,36 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
               <button
                 type="button"
                 aria-pressed={editLayoutMode}
+                disabled={tablesQuery.isLoading}
                 onClick={() => setEditLayoutMode((v) => !v)}
-                className="pill pill-sm pill-soft"
+                className="pill pill-sm pill-soft disabled:opacity-50"
               >
                 {editLayoutMode ? "배치 끝내기" : "배치 편집"}
               </button>
             </div>
           </div>
           <div className="min-h-0 flex-1">
-            {tables.length === 0 ? (
+            {tablesQuery.isLoading ? (
+              <div
+                className="grid h-full grid-cols-2 gap-4 rounded-2xl bg-ground/70 p-6 sm:grid-cols-3"
+                role="status"
+                aria-busy="true"
+                aria-label="홀 테이블 불러오는 중"
+              >
+                {Array.from({ length: 6 }, (_, idx) => (
+                  <div
+                    key={idx}
+                    className="flex flex-col justify-between rounded-2xl bg-white p-4"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <Skeleton width={56} height={16} />
+                      <Skeleton width={44} height={20} variant="pill" />
+                    </div>
+                    <Skeleton width="64%" height={12} variant="text" />
+                  </div>
+                ))}
+              </div>
+            ) : tables.length === 0 ? (
               <div className="flex h-full items-center justify-center text-sm text-muted">
                 등록된 테이블이 없습니다.&nbsp;
                 <Link to="/settings" className="font-bold text-accent-600 underline">
@@ -416,7 +444,25 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
           className="card flex min-h-0 flex-col gap-3 !p-4 text-sm"
           data-testid="visit-panel"
         >
-          {!selectedTable ? (
+          {tablesQuery.isLoading ? (
+            <div className="flex flex-1 flex-col gap-4" role="status" aria-busy="true" aria-label="테이블 상세 불러오는 중">
+              <div className="card-head !mb-1">
+                <Skeleton width={88} height={22} />
+                <Skeleton width={76} height={24} variant="pill" />
+              </div>
+              <Skeleton width="100%" height={40} radius={12} />
+              <Skeleton width="100%" height={48} variant="pill" />
+              <div className="mt-2 flex flex-col gap-3">
+                {[0, 1, 2, 3].map((idx) => (
+                  <div key={idx} className="flex items-center justify-between gap-3">
+                    <Skeleton width={48} height={16} variant="text" />
+                    <Skeleton width={108} height={36} radius={12} />
+                    <Skeleton width={108} height={36} radius={12} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : !selectedTable ? (
             <p className="text-muted">테이블을 선택해 주세요.</p>
           ) : (
             <>
@@ -696,8 +742,22 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
               {/* 수집된 주문 목록 */}
               {salesOrdersQuery.isLoading ? (
-                <div className="py-8 text-center text-sm text-muted">
-                  주문 내역을 불러오는 중입니다...
+                <div className="space-y-3" role="status" aria-busy="true" aria-label="주문 내역 불러오는 중">
+                  {[0, 1, 2].map((idx) => (
+                    <div key={idx} className="rounded-2xl bg-ground p-4">
+                      <div className="flex items-center justify-between gap-2 border-b border-rule pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <Skeleton width={96} height={15} variant="text" />
+                          <Skeleton width={60} height={20} variant="pill" />
+                        </div>
+                        <Skeleton width={80} height={16} variant="text" />
+                      </div>
+                      <div className="mt-2.5 space-y-2">
+                        <Skeleton width="62%" height={13} variant="text" />
+                        <Skeleton width="48%" height={13} variant="text" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (salesOrdersQuery.data?.orders.length ?? 0) === 0 ? (
                 <div className="rounded-2xl bg-ground p-8 text-center text-sm text-muted">

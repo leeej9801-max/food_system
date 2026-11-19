@@ -8,7 +8,7 @@ import { Pagination } from "@astryxdesign/core/Pagination";
 import { InternationalizationProvider } from "@astryxdesign/core/i18n";
 import koKR from "@astryxdesign/core/locales/ko-KR.generated.js";
 import { Switch } from "@astryxdesign/core/Switch";
-import { Text } from "@astryxdesign/core/Text";
+import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { useToast } from "@astryxdesign/core/Toast";
 import { Theme } from "@astryxdesign/core/theme";
 import "@astryxdesign/core/reset.css";
@@ -26,12 +26,14 @@ import { AppLink as Link } from "../components/AppLink";
 import { Dialog } from "../components/Dialog";
 import { MenuFormModal } from "../components/MenuFormModal";
 import { RecipeEditorModal } from "../components/RecipeEditorModal";
+import { Skeleton, SkeletonTable } from "../components/Skeleton";
 import {
   computeMenuKpi,
   matchesMenuCheckCondition,
   type MenuCheckCondition,
 } from "../lib/menuKpi";
 import { formatKrwPrice } from "../lib/menuValidation";
+import { useAnimatedNumber } from "../lib/useAnimatedNumber";
 import { useUrlState } from "../lib/useUrlState";
 import type { MenuItem, Store } from "../types";
 
@@ -180,10 +182,30 @@ function MenuManagement({ store }: MenuManagementPageProps) {
   const baseMenus = allMenusQuery.data ?? menusQuery.data ?? [];
   const kpi = computeMenuKpi(baseMenus, costQuery.data, salesQuery.data);
 
+  const baseLoading = allMenusQuery.isLoading && !menusQuery.data;
+  const countsLoading = categoriesQuery.isLoading && allMenusQuery.isLoading && menusQuery.isLoading;
+  const activeCountLoading = activeQuery.isLoading && allMenusQuery.isLoading && menusQuery.isLoading;
+  const contributionLoading = baseLoading || costQuery.isLoading || salesQuery.isLoading;
+  const costKpiLoading = baseLoading || costQuery.isLoading;
+  const checkKpiLoading = baseLoading || costQuery.isLoading;
+  const tableLoading =
+    menusQuery.isLoading || ((statusFilter === "needs_check" || Boolean(checkFilter)) && costQuery.isLoading);
+
   const totalMenus =
     categories.length > 0 ? categories.reduce((n, c) => n + c.menu_count, 0) : baseMenus.length;
   const activeCount = activeQuery.data?.length ?? baseMenus.filter((m) => m.is_active).length;
   const standbyCount = Math.max(totalMenus - activeCount, 0);
+
+  const animTotalContribution = useAnimatedNumber(
+    contributionLoading ? null : kpi.totalContributionManWon,
+  );
+  const animMinCost = useAnimatedNumber(costKpiLoading ? null : kpi.minCostRatio);
+  const animAvgCost = useAnimatedNumber(costKpiLoading ? null : kpi.weightedAvgCostRatio);
+  const animMaxCost = useAnimatedNumber(costKpiLoading ? null : kpi.maxCostRatio);
+  const animNeedsCheck = useAnimatedNumber(checkKpiLoading ? null : kpi.needsCheckCount);
+  const animHighCost = useAnimatedNumber(checkKpiLoading ? null : kpi.highCostCount);
+  const animUnregistered = useAnimatedNumber(checkKpiLoading ? null : kpi.unregisteredRecipeCount);
+  const animNoPrice = useAnimatedNumber(checkKpiLoading ? null : kpi.noPriceCount);
 
   function refresh() {
     return Promise.all(
@@ -290,7 +312,13 @@ function MenuManagement({ store }: MenuManagementPageProps) {
       <h1 className="kpi-title">
         메뉴 관리{" "}
         <small>
-          {totalMenus}개 · 운영 중 {activeCount}
+          {countsLoading || activeCountLoading ? (
+            <Skeleton width={112} height={14} variant="text" />
+          ) : (
+            <>
+              {totalMenus}개 · 운영 중 {activeCount}
+            </>
+          )}
         </small>
       </h1>
 
@@ -298,55 +326,86 @@ function MenuManagement({ store }: MenuManagementPageProps) {
         {/* 1. 대표 숫자: 공헌이익 (그라데이션은 여기 숫자 하나만) */}
         <article className="kpi-card">
           <div className="kpi-head">
-            <b>메뉴 공헌이익</b>
+            <span className="kpi-head-title">
+              <b>메뉴 공헌이익</b>
+              <Tooltip
+                content="공헌이익 = (판매가 − 레시피 원가) × 판매 수량 · 기간 전체 기준, 고정비 미포함"
+                touchTrigger="tap"
+                focusTrigger="always"
+                hasHoverIndication={false}
+              >
+                <button type="button" className="kpi-info" aria-label="메뉴 공헌이익 안내">
+                  i
+                </button>
+              </Tooltip>
+            </span>
             <div className="kpi-head-right">
               <span>판매 데이터 전체 기간</span>
               <button
                 type="button"
                 className="kpi-head-action"
-                disabled={kpi.allContributionItems.length === 0}
+                disabled={contributionLoading || kpi.allContributionItems.length === 0}
                 onClick={() => setContributionModalOpen(true)}
               >
                 전체 보기 →
               </button>
             </div>
           </div>
-          <div className="kpi-big kpi-grad">
-            {kpi.totalContributionManWon !== null ? (
-              <>
-                {kpi.totalContributionManWon.toLocaleString("ko-KR")}
-                <em>만원</em>
-              </>
-            ) : (
-              "미산출"
-            )}
-          </div>
-          <div className="kpi-stack" aria-label="메뉴별 공헌이익 비중">
-            {kpi.contributionSegments.map((seg) => (
-              <i key={seg.id} style={{ flex: seg.flex, background: seg.colorVar }} />
-            ))}
-          </div>
-          <div className="kpi-rows">
-            {kpi.contributionRows.length === 0 ? (
-              <div className="kpi-row">
-                <span className="l">집계 가능한 레시피·판매 메뉴 없음</span>
-                <span className="v kpi-na">미산출</span>
+          {contributionLoading ? (
+            <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="메뉴 공헌이익 불러오는 중">
+              <div className="kpi-big">
+                <Skeleton width={144} height={36} />
               </div>
-            ) : (
-              kpi.contributionRows.map((row) => (
-                <div key={row.id} className="kpi-row">
-                  <span className="l">
-                    <i style={{ background: row.colorVar }} />
-                    {row.label}
-                  </span>
-                  <span className="v">
-                    {row.amountManWon.toLocaleString("ko-KR")}만원
-                    <small>{row.roundedSharePercent}%</small>
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
+              <Skeleton width="100%" height={12} radius={6} />
+              <div className="kpi-rows">
+                {[0, 1, 2].map((idx) => (
+                  <div key={idx} className="kpi-row">
+                    <Skeleton width={104} height={14} variant="text" />
+                    <Skeleton width={76} height={14} variant="text" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="kpi-big kpi-grad">
+                {kpi.totalContributionManWon !== null && animTotalContribution !== null ? (
+                  <>
+                    {Math.round(animTotalContribution).toLocaleString("ko-KR")}
+                    <em>만원</em>
+                  </>
+                ) : (
+                  "미산출"
+                )}
+              </div>
+              <div className="kpi-stack" aria-label="메뉴별 공헌이익 비중">
+                {kpi.contributionSegments.map((seg) => (
+                  <i key={seg.id} style={{ flex: seg.flex, background: seg.colorVar }} />
+                ))}
+              </div>
+              <div className="kpi-rows">
+                {kpi.contributionRows.length === 0 ? (
+                  <div className="kpi-row">
+                    <span className="l">집계 가능한 레시피·판매 메뉴 없음</span>
+                    <span className="v kpi-na">미산출</span>
+                  </div>
+                ) : (
+                  kpi.contributionRows.map((row) => (
+                    <div key={row.id} className="kpi-row">
+                      <span className="l">
+                        <i style={{ background: row.colorVar }} />
+                        {row.label}
+                      </span>
+                      <span className="v">
+                        {row.amountManWon.toLocaleString("ko-KR")}만원
+                        <small>{row.roundedSharePercent}%</small>
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
         </article>
 
         {/* 2. 원가율: 숫자 3개 + 최저~최고 막대 */}
@@ -355,174 +414,242 @@ function MenuManagement({ store }: MenuManagementPageProps) {
             <b>원가율</b>
             <span>판매가 대비 레시피 원가</span>
           </div>
-          <div className="kpi-trio">
-            <div>
-              <strong className="is-min">
-                {kpi.minCostRatio !== null ? `${kpi.minCostRatio.toFixed(1)}%` : "미산출"}
-              </strong>
-              <span>
-                <i style={{ background: "#14b8a6" }} />
-                최소
-              </span>
+          {costKpiLoading ? (
+            <div className="flex flex-1 flex-col gap-3" role="status" aria-busy="true" aria-label="원가율 불러오는 중">
+              <div className="kpi-trio">
+                {[
+                  { color: "#14b8a6", label: "최소" },
+                  { color: "#2f6bff", label: "평균" },
+                  { color: "#c2410c", label: "최대" },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <strong>
+                      <Skeleton width={56} height={24} />
+                    </strong>
+                    <span>
+                      <i style={{ background: item.color }} />
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="kpi-range">
+                <Skeleton width="100%" height={10} radius={999} />
+              </div>
+              <div className="kpi-foot">
+                <Skeleton width={108} height={13} variant="text" />
+                <Link to="/lab">원가 보기 →</Link>
+              </div>
             </div>
-            <div>
-              <strong className="is-avg">
-                {kpi.weightedAvgCostRatio !== null
-                  ? `${kpi.weightedAvgCostRatio.toFixed(1)}%`
-                  : "미산출"}
-              </strong>
-              <span>
-                <i style={{ background: "#2f6bff" }} />
-                평균
-              </span>
-            </div>
-            <div>
-              <strong className="is-max">
-                {kpi.maxCostRatio !== null ? `${kpi.maxCostRatio.toFixed(1)}%` : "미산출"}
-              </strong>
-              <span>
-                <i style={{ background: "#c2410c" }} />
-                최대
-              </span>
-            </div>
-          </div>
-          <div className="kpi-range" aria-label="메뉴별 원가율 위치">
-            <div className="track" />
-            {kpi.costedMenuCount > 0 && (
-              <>
-                <span
-                  className="dot is-min"
-                  style={{ left: "0%" }}
-                  title={
-                    kpi.minCostMenuName && kpi.minCostRatio !== null
-                      ? `${kpi.minCostMenuName} ${kpi.minCostRatio.toFixed(1)}%`
-                      : undefined
-                  }
-                />
-                <span
-                  className="dot is-avg"
-                  style={{ left: `${kpi.avgCostLeftPercent}%` }}
-                  title={
-                    kpi.weightedAvgCostRatio !== null
-                      ? `판매 가중 평균 ${kpi.weightedAvgCostRatio.toFixed(1)}%`
-                      : undefined
-                  }
-                />
-                <span
-                  className="dot is-max"
-                  style={{ left: "100%" }}
-                  title={
-                    kpi.maxCostMenuName && kpi.maxCostRatio !== null
-                      ? `${kpi.maxCostMenuName} ${kpi.maxCostRatio.toFixed(1)}%`
-                      : undefined
-                  }
-                />
-                {kpi.minCostMenuName && (
-                  <span className="ax" style={{ left: "0%", transform: "none" }}>
-                    {kpi.minCostMenuName}
+          ) : (
+            <>
+              <div className="kpi-trio">
+                <div>
+                  <strong className="is-min">
+                    {kpi.minCostRatio !== null && animMinCost !== null
+                      ? `${animMinCost.toFixed(1)}%`
+                      : "미산출"}
+                  </strong>
+                  <span>
+                    <i style={{ background: "#14b8a6" }} />
+                    최소
                   </span>
-                )}
-                {kpi.maxCostMenuName && (
-                  <span
-                    className="ax"
-                    style={{ left: "100%", transform: "translateX(-100%)", textAlign: "right" }}
-                  >
-                    {kpi.maxCostMenuName}
+                </div>
+                <div>
+                  <strong className="is-avg">
+                    {kpi.weightedAvgCostRatio !== null && animAvgCost !== null
+                      ? `${animAvgCost.toFixed(1)}%`
+                      : "미산출"}
+                  </strong>
+                  <span>
+                    <i style={{ background: "#2f6bff" }} />
+                    평균
                   </span>
+                </div>
+                <div>
+                  <strong className="is-max">
+                    {kpi.maxCostRatio !== null && animMaxCost !== null
+                      ? `${animMaxCost.toFixed(1)}%`
+                      : "미산출"}
+                  </strong>
+                  <span>
+                    <i style={{ background: "#c2410c" }} />
+                    최대
+                  </span>
+                </div>
+              </div>
+              <div className="kpi-range" aria-label="메뉴별 원가율 위치">
+                <div className="track" />
+                {kpi.costedMenuCount > 0 && (
+                  <>
+                    <span
+                      className="dot is-min"
+                      style={{ left: "0%" }}
+                      title={
+                        kpi.minCostMenuName && kpi.minCostRatio !== null
+                          ? `${kpi.minCostMenuName} ${kpi.minCostRatio.toFixed(1)}%`
+                          : undefined
+                      }
+                    />
+                    <span
+                      className="dot is-avg"
+                      style={{ left: `${kpi.avgCostLeftPercent}%` }}
+                      title={
+                        kpi.weightedAvgCostRatio !== null
+                          ? `판매 가중 평균 ${kpi.weightedAvgCostRatio.toFixed(1)}%`
+                          : undefined
+                      }
+                    />
+                    <span
+                      className="dot is-max"
+                      style={{ left: "100%" }}
+                      title={
+                        kpi.maxCostMenuName && kpi.maxCostRatio !== null
+                          ? `${kpi.maxCostMenuName} ${kpi.maxCostRatio.toFixed(1)}%`
+                          : undefined
+                      }
+                    />
+                    {kpi.minCostMenuName && (
+                      <span className="ax" style={{ left: "0%", transform: "none" }}>
+                        {kpi.minCostMenuName}
+                      </span>
+                    )}
+                    {kpi.maxCostMenuName && (
+                      <span
+                        className="ax"
+                        style={{ left: "100%", transform: "translateX(-100%)", textAlign: "right" }}
+                      >
+                        {kpi.maxCostMenuName}
+                      </span>
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </div>
-          <div className="kpi-foot">
-            <span>
-              원가 산출 {kpi.costedMenuCount} / {totalMenus}개
-            </span>
-            <Link to="/lab">원가 보기 →</Link>
-          </div>
+              </div>
+              <div className="kpi-foot">
+                <span>
+                  원가 산출 {kpi.costedMenuCount} / {totalMenus}개
+                </span>
+                <Link to="/lab">원가 보기 →</Link>
+              </div>
+            </>
+          )}
         </article>
 
         {/* 3. 확인 필요: 값-라벨 행 + 행동 띠 */}
         <article className="kpi-card kpi-check">
           <div className="kpi-head">
             <b>확인 필요</b>
-            <span>{kpi.needsCheckCount}건</span>
+            <span>
+              {checkKpiLoading ? (
+                <Skeleton width={28} height={14} variant="text" />
+              ) : (
+                `${Math.round(animNeedsCheck ?? kpi.needsCheckCount)}건`
+              )}
+            </span>
           </div>
-          <div className="kpi-rows">
-            <button
-              type="button"
-              disabled={kpi.highCostCount === 0}
-              aria-pressed={statusFilter === "needs_check" && checkFilter === "high_cost"}
-              className={`kpi-row kpi-row-btn${
-                statusFilter === "needs_check" && checkFilter === "high_cost" ? " is-active" : ""
-              }`}
-              onClick={() => selectCheckRow("high_cost")}
-            >
-              <span className="l">
-                <i style={{ background: "var(--kpi-warn)" }} />
-                원가율 높은 메뉴
-              </span>
-              <span className={`v${kpi.highCostCount > 0 ? " w" : ""}`}>
-                {kpi.highCostCount}개
-              </span>
-            </button>
-            <button
-              type="button"
-              disabled={kpi.unregisteredRecipeCount === 0}
-              aria-pressed={
-                statusFilter === "needs_check" && checkFilter === "unregistered_recipe"
-              }
-              className={`kpi-row kpi-row-btn${
-                statusFilter === "needs_check" && checkFilter === "unregistered_recipe"
-                  ? " is-active"
-                  : ""
-              }`}
-              onClick={() => selectCheckRow("unregistered_recipe")}
-            >
-              <span className="l">
-                <i style={{ background: "#f5b301" }} />
-                레시피 미등록
-              </span>
-              <span className={`v${kpi.unregisteredRecipeCount > 0 ? " w" : ""}`}>
-                {kpi.unregisteredRecipeCount}개
-              </span>
-            </button>
-            <button
-              type="button"
-              disabled={kpi.noPriceCount === 0}
-              aria-pressed={statusFilter === "needs_check" && checkFilter === "no_price"}
-              className={`kpi-row kpi-row-btn${
-                statusFilter === "needs_check" && checkFilter === "no_price" ? " is-active" : ""
-              }`}
-              onClick={() => selectCheckRow("no_price")}
-            >
-              <span className="l">
-                <i style={{ background: "var(--kpi-c5)" }} />
-                가격 미입력
-              </span>
-              <span className={`v${kpi.noPriceCount > 0 ? " w" : ""}`}>{kpi.noPriceCount}개</span>
-            </button>
-          </div>
-          <div className="kpi-foot">
-            {kpi.firstAction ? (
-              <>
-                <span>{kpi.firstAction.menu.name}</span>
+          {checkKpiLoading ? (
+            <div className="flex flex-1 flex-col gap-2" role="status" aria-busy="true" aria-label="확인 필요 항목 불러오는 중">
+              <div className="kpi-rows">
+                {[
+                  { color: "var(--kpi-warn)", label: "원가율 높은 메뉴" },
+                  { color: "#f5b301", label: "레시피 미등록" },
+                  { color: "var(--kpi-c5)", label: "가격 미입력" },
+                ].map((item) => (
+                  <div key={item.label} className="kpi-row">
+                    <span className="l">
+                      <i style={{ background: item.color }} />
+                      {item.label}
+                    </span>
+                    <Skeleton width={32} height={14} variant="text" />
+                  </div>
+                ))}
+              </div>
+              <div className="kpi-foot">
+                <Skeleton width={116} height={13} variant="text" />
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="kpi-rows">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (kpi.firstAction?.kind === "PRICE") {
-                      openForm(kpi.firstAction.menu);
-                    } else if (kpi.firstAction) {
-                      setRecipeTarget(kpi.firstAction.menu);
-                    }
-                  }}
+                  disabled={kpi.highCostCount === 0}
+                  aria-pressed={statusFilter === "needs_check" && checkFilter === "high_cost"}
+                  className={`kpi-row kpi-row-btn${
+                    statusFilter === "needs_check" && checkFilter === "high_cost" ? " is-active" : ""
+                  }`}
+                  onClick={() => selectCheckRow("high_cost")}
                 >
-                  {kpi.firstAction.label}
+                  <span className="l">
+                    <i style={{ background: "var(--kpi-warn)" }} />
+                    원가율 높은 메뉴
+                  </span>
+                  <span className={`v${kpi.highCostCount > 0 ? " w" : ""}`}>
+                    {Math.round(animHighCost ?? kpi.highCostCount)}개
+                  </span>
                 </button>
-              </>
-            ) : (
-              <span>확인할 항목 없음</span>
-            )}
-          </div>
+                <button
+                  type="button"
+                  disabled={kpi.unregisteredRecipeCount === 0}
+                  aria-pressed={
+                    statusFilter === "needs_check" && checkFilter === "unregistered_recipe"
+                  }
+                  className={`kpi-row kpi-row-btn${
+                    statusFilter === "needs_check" && checkFilter === "unregistered_recipe"
+                      ? " is-active"
+                      : ""
+                  }`}
+                  onClick={() => selectCheckRow("unregistered_recipe")}
+                >
+                  <span className="l">
+                    <i style={{ background: "#f5b301" }} />
+                    레시피 미등록
+                  </span>
+                  <span className={`v${kpi.unregisteredRecipeCount > 0 ? " w" : ""}`}>
+                    {Math.round(animUnregistered ?? kpi.unregisteredRecipeCount)}개
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  disabled={kpi.noPriceCount === 0}
+                  aria-pressed={statusFilter === "needs_check" && checkFilter === "no_price"}
+                  className={`kpi-row kpi-row-btn${
+                    statusFilter === "needs_check" && checkFilter === "no_price" ? " is-active" : ""
+                  }`}
+                  onClick={() => selectCheckRow("no_price")}
+                >
+                  <span className="l">
+                    <i style={{ background: "var(--kpi-c5)" }} />
+                    가격 미입력
+                  </span>
+                  <span className={`v${kpi.noPriceCount > 0 ? " w" : ""}`}>
+                    {Math.round(animNoPrice ?? kpi.noPriceCount)}개
+                  </span>
+                </button>
+              </div>
+              <div className="kpi-foot">
+                {kpi.firstAction ? (
+                  <>
+                    <span>{kpi.firstAction.menu.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (kpi.firstAction?.kind === "PRICE") {
+                          openForm(kpi.firstAction.menu);
+                        } else if (kpi.firstAction) {
+                          setRecipeTarget(kpi.firstAction.menu);
+                        }
+                      }}
+                    >
+                      {kpi.firstAction.label}
+                    </button>
+                  </>
+                ) : (
+                  <span>확인할 항목 없음</span>
+                )}
+              </div>
+            </>
+          )}
         </article>
       </section>
 
@@ -536,7 +663,7 @@ function MenuManagement({ store }: MenuManagementPageProps) {
               className={statusFilter === "all" ? "on" : undefined}
               onClick={() => selectStatusTab("all")}
             >
-              전체<em>{totalMenus}</em>
+              전체<em>{countsLoading ? <Skeleton width={16} height={11} variant="text" /> : totalMenus}</em>
             </button>
             <button
               type="button"
@@ -545,7 +672,7 @@ function MenuManagement({ store }: MenuManagementPageProps) {
               className={statusFilter === "active" ? "on" : undefined}
               onClick={() => selectStatusTab("active")}
             >
-              운영중<em>{activeCount}</em>
+              운영중<em>{activeCountLoading ? <Skeleton width={16} height={11} variant="text" /> : activeCount}</em>
             </button>
             <button
               type="button"
@@ -554,7 +681,14 @@ function MenuManagement({ store }: MenuManagementPageProps) {
               className={statusFilter === "inactive" ? "on" : undefined}
               onClick={() => selectStatusTab("inactive")}
             >
-              출시대기<em>{standbyCount}</em>
+              출시대기
+              <em>
+                {countsLoading || activeCountLoading ? (
+                  <Skeleton width={16} height={11} variant="text" />
+                ) : (
+                  standbyCount
+                )}
+              </em>
             </button>
             <button
               type="button"
@@ -566,7 +700,14 @@ function MenuManagement({ store }: MenuManagementPageProps) {
                 setCheckFilter("");
               }}
             >
-              확인 필요<em>{kpi.needsCheckCount}</em>
+              확인 필요
+              <em>
+                {checkKpiLoading ? (
+                  <Skeleton width={16} height={11} variant="text" />
+                ) : (
+                  kpi.needsCheckCount
+                )}
+              </em>
             </button>
           </div>
           <div className="kpi-right">
@@ -608,8 +749,22 @@ function MenuManagement({ store }: MenuManagementPageProps) {
         </div>
 
         <div className="menu-table-region">
-          {menusQuery.isLoading ? (
-            <Text color="secondary">메뉴 목록을 불러오는 중입니다...</Text>
+          {tableLoading ? (
+            <SkeletonTable
+              tableClassName="kpi-table"
+              ariaLabel="메뉴 목록 불러오는 중"
+              rows={7}
+              columns={[
+                { label: "종류", width: "12%" },
+                { label: "메뉴 이름", width: "22%" },
+                { label: "가격", align: "right", width: "11%" },
+                { label: "원가율", align: "right", width: "10%" },
+                { label: "마진", align: "right", width: "12%" },
+                { label: "판매 비중", align: "right", width: "13%" },
+                { label: "레시피", align: "center", width: "10%" },
+                { label: "운영", align: "center", width: "10%" },
+              ]}
+            />
           ) : menusQuery.isError ? (
             <EmptyState
               title="메뉴 목록 조회에 실패했습니다."
@@ -695,33 +850,46 @@ function MenuManagement({ store }: MenuManagementPageProps) {
                       </td>
                       <td
                         className={`n${
-                          metrics?.highCostWarning
-                            ? " kpi-hi"
-                            : metrics?.costRatioPercent === null ||
-                                metrics?.costRatioPercent === undefined
-                              ? " kpi-na"
-                              : ""
+                          costQuery.isLoading
+                            ? ""
+                            : metrics?.highCostWarning
+                              ? " kpi-hi"
+                              : metrics?.costRatioPercent === null ||
+                                  metrics?.costRatioPercent === undefined
+                                ? " kpi-na"
+                                : ""
                         }`}
                       >
-                        {metrics?.costRatioPercent !== null &&
-                        metrics?.costRatioPercent !== undefined
-                          ? `${metrics.costRatioPercent.toFixed(1)}%`
-                          : "미산출"}
+                        {costQuery.isLoading ? (
+                          <Skeleton width={44} height={14} variant="text" className="sk-align-right" />
+                        ) : metrics?.costRatioPercent !== null &&
+                          metrics?.costRatioPercent !== undefined ? (
+                          `${metrics.costRatioPercent.toFixed(1)}%`
+                        ) : (
+                          "미산출"
+                        )}
                       </td>
                       <td
                         className={`n${
-                          metrics?.marginWon === null || metrics?.marginWon === undefined
+                          !costQuery.isLoading &&
+                          (metrics?.marginWon === null || metrics?.marginWon === undefined)
                             ? " kpi-na"
                             : ""
                         }`}
                       >
-                        {metrics?.marginWon !== null && metrics?.marginWon !== undefined
-                          ? `${metrics.marginWon.toLocaleString("ko-KR")}원`
-                          : "미산출"}
+                        {costQuery.isLoading ? (
+                          <Skeleton width={56} height={14} variant="text" className="sk-align-right" />
+                        ) : metrics?.marginWon !== null && metrics?.marginWon !== undefined ? (
+                          `${metrics.marginWon.toLocaleString("ko-KR")}원`
+                        ) : (
+                          "미산출"
+                        )}
                       </td>
                       <td className="n">
-                        {metrics?.salesSharePercent !== null &&
-                        metrics?.salesSharePercent !== undefined ? (
+                        {salesQuery.isLoading ? (
+                          <Skeleton width={54} height={14} variant="text" className="sk-align-right" />
+                        ) : metrics?.salesSharePercent !== null &&
+                          metrics?.salesSharePercent !== undefined ? (
                           <span className="kpi-share">
                             <i style={{ width: `${metrics.salesShareBarPx}px` }} />
                             {Math.round(metrics.salesSharePercent)}%

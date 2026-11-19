@@ -10,7 +10,6 @@ import { Pagination } from "@astryxdesign/core/Pagination";
 import { InternationalizationProvider } from "@astryxdesign/core/i18n";
 import koKR from "@astryxdesign/core/locales/ko-KR.generated.js";
 import { Selector } from "@astryxdesign/core/Selector";
-import { Text } from "@astryxdesign/core/Text";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { Theme } from "@astryxdesign/core/theme";
@@ -25,6 +24,7 @@ import {
 import { createAdjustment, fetchInventorySummary } from "../api/inventory";
 import { AppLink as Link } from "../components/AppLink";
 import { Dialog } from "../components/Dialog";
+import { Skeleton, SkeletonTable } from "../components/Skeleton";
 import {
   computeIngredientKpi,
   getEstimatedTickPercent,
@@ -33,6 +33,7 @@ import {
   type IngredientCheckCondition,
   type IngredientUiStatus,
 } from "../lib/ingredientKpi";
+import { useAnimatedNumber } from "../lib/useAnimatedNumber";
 import { useUrlState } from "../lib/useUrlState";
 import { ActionDialog } from "./InventoryPage";
 import type {
@@ -513,6 +514,18 @@ function IngredientManagement({ store }: Props) {
   const kpi = computeIngredientKpi(all, summaryList, store.timezone);
   const enrichedById = new Map(kpi.rows.map((r) => [r.ingredient.id, r]));
 
+  const listLoading = listQuery.isLoading;
+  const summaryLoading = inventorySummaryQuery.isLoading;
+  const kpiLoading = listLoading || summaryLoading;
+
+  const animEvalManWon = useAnimatedNumber(kpiLoading ? null : Number(kpi.totalEvaluationManWon));
+  const animSufficient = useAnimatedNumber(kpiLoading ? null : kpi.sufficientCount);
+  const animNeedsRestock = useAnimatedNumber(kpiLoading ? null : kpi.needsRestockCount);
+  const animOutOfStock = useAnimatedNumber(kpiLoading ? null : kpi.outOfStockCount);
+  const animNeedsCheck = useAnimatedNumber(kpiLoading ? null : kpi.needsCheckCount);
+  const animUnlinked = useAnimatedNumber(kpiLoading ? null : kpi.unlinkedCount);
+  const animNoCost = useAnimatedNumber(kpiLoading ? null : kpi.noCostCount);
+
   function selectStatusTab(next: Filter) {
     setFilter(next);
     if (checkFilter) {
@@ -585,8 +598,14 @@ function IngredientManagement({ store }: Props) {
       <h1 className="kpi-title">
         식자재 관리{" "}
         <small>
-          {kpi.totalCount}개 ·{" "}
-          {kpi.lastCountedLabel ? `마지막 실사 ${kpi.lastCountedLabel}` : "실사 기록 없음"}
+          {kpiLoading ? (
+            <Skeleton width={148} height={14} variant="text" />
+          ) : (
+            <>
+              {kpi.totalCount}개 ·{" "}
+              {kpi.lastCountedLabel ? `마지막 실사 ${kpi.lastCountedLabel}` : "실사 기록 없음"}
+            </>
+          )}
         </small>
       </h1>
 
@@ -600,43 +619,62 @@ function IngredientManagement({ store }: Props) {
               <button
                 type="button"
                 className="kpi-head-action"
-                disabled={kpi.allValuationItems.length === 0}
+                disabled={kpiLoading || kpi.allValuationItems.length === 0}
                 onClick={() => setValuationModalOpen(true)}
               >
                 전체 보기 →
               </button>
             </div>
           </div>
-          <div className="kpi-big kpi-grad">
-            {kpi.totalEvaluationManWon}
-            <em>만원</em>
-          </div>
-          <div className="kpi-stack" aria-label="식자재별 평가금액 비중">
-            {kpi.valuationSegments.map((seg) => (
-              <i key={seg.id} style={{ flex: seg.flex, background: seg.colorVar }} />
-            ))}
-          </div>
-          <div className="kpi-rows">
-            {kpi.valuationRows.length === 0 ? (
-              <div className="kpi-row">
-                <span className="l">입고 단가가 입력된 식자재 없음</span>
-                <span className="v kpi-na">미산출</span>
+          {kpiLoading ? (
+            <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="재고 평가금액 불러오는 중">
+              <div className="kpi-big">
+                <Skeleton width={140} height={36} />
               </div>
-            ) : (
-              kpi.valuationRows.map((row) => (
-                <div key={row.id} className="kpi-row">
-                  <span className="l">
-                    <i style={{ background: row.colorVar }} />
-                    {row.label}
-                  </span>
-                  <span className="v">
-                    {row.amountWon.toLocaleString("ko-KR")}원
-                    <small>{row.roundedSharePercent}%</small>
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
+              <Skeleton width="100%" height={12} radius={6} />
+              <div className="kpi-rows">
+                {[0, 1, 2].map((idx) => (
+                  <div key={idx} className="kpi-row">
+                    <Skeleton width={96} height={14} variant="text" />
+                    <Skeleton width={82} height={14} variant="text" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="kpi-big kpi-grad">
+                {(animEvalManWon ?? Number(kpi.totalEvaluationManWon)).toFixed(1)}
+                <em>만원</em>
+              </div>
+              <div className="kpi-stack" aria-label="식자재별 평가금액 비중">
+                {kpi.valuationSegments.map((seg) => (
+                  <i key={seg.id} style={{ flex: seg.flex, background: seg.colorVar }} />
+                ))}
+              </div>
+              <div className="kpi-rows">
+                {kpi.valuationRows.length === 0 ? (
+                  <div className="kpi-row">
+                    <span className="l">입고 단가가 입력된 식자재 없음</span>
+                    <span className="v kpi-na">미산출</span>
+                  </div>
+                ) : (
+                  kpi.valuationRows.map((row) => (
+                    <div key={row.id} className="kpi-row">
+                      <span className="l">
+                        <i style={{ background: row.colorVar }} />
+                        {row.label}
+                      </span>
+                      <span className="v">
+                        {row.amountWon.toLocaleString("ko-KR")}원
+                        <small>{row.roundedSharePercent}%</small>
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
         </article>
 
         {/* 2. 재고 상태: 구간 막대 + 값 행 */}
@@ -645,118 +683,176 @@ function IngredientManagement({ store }: Props) {
             <b>재고 상태</b>
             <span>안전재고 기준</span>
           </div>
-          <div className="kpi-seg" aria-label="상태별 식자재 수">
-            {kpi.sufficientCount > 0 && (
-              <i style={{ flex: kpi.sufficientCount, background: "var(--kpi-c2)" }}>
-                충분 {kpi.sufficientCount}
-              </i>
-            )}
-            {kpi.needsRestockCount > 0 && (
-              <i style={{ flex: kpi.needsRestockCount, background: "#f5b301" }}>
-                입고 필요 {kpi.needsRestockCount}
-              </i>
-            )}
-            {kpi.outOfStockCount > 0 && (
-              <i style={{ flex: kpi.outOfStockCount, background: "var(--kpi-warn)" }}>
-                재고 없음 {kpi.outOfStockCount}
-              </i>
-            )}
-            {kpi.totalCount === 0 && (
-              <i style={{ flex: 1, background: "var(--kpi-c5)" }}>식자재 0</i>
-            )}
-          </div>
-          <div className="kpi-rows">
-            <div className="kpi-row">
-              <span className="l">
-                <i style={{ background: "var(--kpi-c2)" }} />
-                충분
-              </span>
-              <span className="v">{kpi.sufficientCount}개</span>
+          {kpiLoading ? (
+            <div className="flex flex-1 flex-col gap-3" role="status" aria-busy="true" aria-label="재고 상태 불러오는 중">
+              <Skeleton width="100%" height={28} radius={6} />
+              <div className="kpi-rows">
+                {[
+                  { color: "var(--kpi-c2)", label: "충분" },
+                  { color: "#f5b301", label: "입고 필요" },
+                  { color: "var(--kpi-warn)", label: "재고 없음" },
+                ].map((item) => (
+                  <div key={item.label} className="kpi-row">
+                    <span className="l">
+                      <i style={{ background: item.color }} />
+                      {item.label}
+                    </span>
+                    <Skeleton width={32} height={14} variant="text" />
+                  </div>
+                ))}
+              </div>
+              <div className="kpi-foot kpi-foot-end">
+                <Skeleton width={76} height={14} variant="text" />
+              </div>
             </div>
-            <div className="kpi-row">
-              <span className="l">
-                <i style={{ background: "#f5b301" }} />
-                입고 필요
-              </span>
-              <span className={`v${kpi.needsRestockCount > 0 ? " w" : ""}`}>
-                {kpi.needsRestockCount}개
-              </span>
-            </div>
-            <div className="kpi-row">
-              <span className="l">
-                <i style={{ background: "var(--kpi-warn)" }} />
-                재고 없음
-              </span>
-              <span className={`v${kpi.outOfStockCount > 0 ? " w" : ""}`}>
-                {kpi.outOfStockCount}개
-              </span>
-            </div>
-          </div>
-          <div className="kpi-foot kpi-foot-end">
-            <button
-              type="button"
-              disabled={all.length === 0}
-              onClick={() => openInventoryAction("RECEIPT")}
-            >
-              입고 등록 →
-            </button>
-          </div>
+          ) : (
+            <>
+              <div className="kpi-seg" aria-label="상태별 식자재 수">
+                {kpi.sufficientCount > 0 && (
+                  <i style={{ flex: kpi.sufficientCount, background: "var(--kpi-c2)" }}>
+                    충분 {Math.round(animSufficient ?? kpi.sufficientCount)}
+                  </i>
+                )}
+                {kpi.needsRestockCount > 0 && (
+                  <i style={{ flex: kpi.needsRestockCount, background: "#f5b301" }}>
+                    입고 필요 {Math.round(animNeedsRestock ?? kpi.needsRestockCount)}
+                  </i>
+                )}
+                {kpi.outOfStockCount > 0 && (
+                  <i style={{ flex: kpi.outOfStockCount, background: "var(--kpi-warn)" }}>
+                    재고 없음 {Math.round(animOutOfStock ?? kpi.outOfStockCount)}
+                  </i>
+                )}
+                {kpi.totalCount === 0 && (
+                  <i style={{ flex: 1, background: "var(--kpi-c5)" }}>식자재 0</i>
+                )}
+              </div>
+              <div className="kpi-rows">
+                <div className="kpi-row">
+                  <span className="l">
+                    <i style={{ background: "var(--kpi-c2)" }} />
+                    충분
+                  </span>
+                  <span className="v">{Math.round(animSufficient ?? kpi.sufficientCount)}개</span>
+                </div>
+                <div className="kpi-row">
+                  <span className="l">
+                    <i style={{ background: "#f5b301" }} />
+                    입고 필요
+                  </span>
+                  <span className={`v${kpi.needsRestockCount > 0 ? " w" : ""}`}>
+                    {Math.round(animNeedsRestock ?? kpi.needsRestockCount)}개
+                  </span>
+                </div>
+                <div className="kpi-row">
+                  <span className="l">
+                    <i style={{ background: "var(--kpi-warn)" }} />
+                    재고 없음
+                  </span>
+                  <span className={`v${kpi.outOfStockCount > 0 ? " w" : ""}`}>
+                    {Math.round(animOutOfStock ?? kpi.outOfStockCount)}개
+                  </span>
+                </div>
+              </div>
+              <div className="kpi-foot kpi-foot-end">
+                <button
+                  type="button"
+                  disabled={all.length === 0}
+                  onClick={() => openInventoryAction("RECEIPT")}
+                >
+                  입고 등록 →
+                </button>
+              </div>
+            </>
+          )}
         </article>
 
         {/* 3. 확인 필요 */}
         <article className="kpi-card kpi-check">
           <div className="kpi-head">
             <b>확인 필요</b>
-            <span>{kpi.needsCheckCount}건</span>
-          </div>
-          <div className="kpi-rows">
-            <button
-              type="button"
-              disabled={kpi.unlinkedCount === 0}
-              aria-pressed={checkFilter === "unlinked"}
-              className={`kpi-row kpi-row-btn${checkFilter === "unlinked" ? " is-active" : ""}`}
-              onClick={() => selectCheckRow("unlinked")}
-            >
-              <span className="l">
-                <i style={{ background: "#f5b301" }} />
-                레시피 미연결
-              </span>
-              <span className={`v${kpi.unlinkedCount > 0 ? " w" : ""}`}>
-                {kpi.unlinkedCount}개
-              </span>
-            </button>
-            <button
-              type="button"
-              disabled={kpi.noCostCount === 0}
-              aria-pressed={checkFilter === "no_cost"}
-              className={`kpi-row kpi-row-btn${checkFilter === "no_cost" ? " is-active" : ""}`}
-              onClick={() => selectCheckRow("no_cost")}
-            >
-              <span className="l">
-                <i style={{ background: "var(--kpi-c5)" }} />
-                단가 미입력
-              </span>
-              <span className={`v${kpi.noCostCount > 0 ? " w" : ""}`}>{kpi.noCostCount}개</span>
-            </button>
-          </div>
-          <div className="kpi-foot">
             <span>
-              {kpi.needsCheckCount > 0 ? `${kpi.needsCheckCount}개 항목 확인 필요` : "확인할 항목 없음"}
+              {kpiLoading ? (
+                <Skeleton width={28} height={14} variant="text" />
+              ) : (
+                `${Math.round(animNeedsCheck ?? kpi.needsCheckCount)}건`
+              )}
             </span>
-            {kpi.unlinkedCount > 0 ? (
-              <Link to="/menus">레시피 연결 →</Link>
-            ) : kpi.noCostCount > 0 ? (
-              <button
-                type="button"
-                onClick={() => {
-                  const firstNoCost = kpi.rows.find((r) => r.isNoCost)?.ingredient;
-                  openInventoryAction("RECEIPT", firstNoCost);
-                }}
-              >
-                입고 등록 →
-              </button>
-            ) : null}
           </div>
+          {kpiLoading ? (
+            <div className="flex flex-1 flex-col gap-2" role="status" aria-busy="true" aria-label="확인 필요 항목 불러오는 중">
+              <div className="kpi-rows">
+                {[
+                  { color: "#f5b301", label: "레시피 미연결" },
+                  { color: "var(--kpi-c5)", label: "단가 미입력" },
+                ].map((item) => (
+                  <div key={item.label} className="kpi-row">
+                    <span className="l">
+                      <i style={{ background: item.color }} />
+                      {item.label}
+                    </span>
+                    <Skeleton width={32} height={14} variant="text" />
+                  </div>
+                ))}
+              </div>
+              <div className="kpi-foot">
+                <Skeleton width={120} height={13} variant="text" />
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="kpi-rows">
+                <button
+                  type="button"
+                  disabled={kpi.unlinkedCount === 0}
+                  aria-pressed={checkFilter === "unlinked"}
+                  className={`kpi-row kpi-row-btn${checkFilter === "unlinked" ? " is-active" : ""}`}
+                  onClick={() => selectCheckRow("unlinked")}
+                >
+                  <span className="l">
+                    <i style={{ background: "#f5b301" }} />
+                    레시피 미연결
+                  </span>
+                  <span className={`v${kpi.unlinkedCount > 0 ? " w" : ""}`}>
+                    {Math.round(animUnlinked ?? kpi.unlinkedCount)}개
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  disabled={kpi.noCostCount === 0}
+                  aria-pressed={checkFilter === "no_cost"}
+                  className={`kpi-row kpi-row-btn${checkFilter === "no_cost" ? " is-active" : ""}`}
+                  onClick={() => selectCheckRow("no_cost")}
+                >
+                  <span className="l">
+                    <i style={{ background: "var(--kpi-c5)" }} />
+                    단가 미입력
+                  </span>
+                  <span className={`v${kpi.noCostCount > 0 ? " w" : ""}`}>
+                    {Math.round(animNoCost ?? kpi.noCostCount)}개
+                  </span>
+                </button>
+              </div>
+              <div className="kpi-foot">
+                <span>
+                  {kpi.needsCheckCount > 0 ? `${kpi.needsCheckCount}개 항목 확인 필요` : "확인할 항목 없음"}
+                </span>
+                {kpi.unlinkedCount > 0 ? (
+                  <Link to="/menus">레시피 연결 →</Link>
+                ) : kpi.noCostCount > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const firstNoCost = kpi.rows.find((r) => r.isNoCost)?.ingredient;
+                      openInventoryAction("RECEIPT", firstNoCost);
+                    }}
+                  >
+                    입고 등록 →
+                  </button>
+                ) : null}
+              </div>
+            </>
+          )}
         </article>
       </section>
 
@@ -770,7 +866,7 @@ function IngredientManagement({ store }: Props) {
               className={filter === "all" && !checkFilter ? "on" : undefined}
               onClick={() => selectStatusTab("all")}
             >
-              전체<em>{kpi.totalCount}</em>
+              전체<em>{listLoading ? <Skeleton width={16} height={11} variant="text" /> : kpi.totalCount}</em>
             </button>
             <button
               type="button"
@@ -779,7 +875,7 @@ function IngredientManagement({ store }: Props) {
               className={filter === "NEEDS_RESTOCK" && !checkFilter ? "on" : undefined}
               onClick={() => selectStatusTab("NEEDS_RESTOCK")}
             >
-              입고 필요<em>{kpi.needsRestockCount}</em>
+              입고 필요<em>{kpiLoading ? <Skeleton width={16} height={11} variant="text" /> : kpi.needsRestockCount}</em>
             </button>
             <button
               type="button"
@@ -788,7 +884,7 @@ function IngredientManagement({ store }: Props) {
               className={filter === "OUT_OF_STOCK" && !checkFilter ? "on" : undefined}
               onClick={() => selectStatusTab("OUT_OF_STOCK")}
             >
-              재고 없음<em>{kpi.outOfStockCount}</em>
+              재고 없음<em>{kpiLoading ? <Skeleton width={16} height={11} variant="text" /> : kpi.outOfStockCount}</em>
             </button>
             <button
               type="button"
@@ -797,7 +893,7 @@ function IngredientManagement({ store }: Props) {
               className={filter === "IDLE" && !checkFilter ? "on" : undefined}
               onClick={() => selectStatusTab("IDLE")}
             >
-              미사용<em>{kpi.idleCount}</em>
+              미사용<em>{kpiLoading ? <Skeleton width={16} height={11} variant="text" /> : kpi.idleCount}</em>
             </button>
           </div>
           <div className="kpi-right">
@@ -836,7 +932,20 @@ function IngredientManagement({ store }: Props) {
 
         <div className="menu-table-region">
           {listQuery.isLoading ? (
-            <Text color="secondary">불러오는 중...</Text>
+            <SkeletonTable
+              tableClassName="kpi-table"
+              ariaLabel="식자재 목록 불러오는 중"
+              rows={7}
+              columns={[
+                { label: "식자재", width: "18%" },
+                { label: "예상 재고", align: "right", width: "13%" },
+                { label: "안전재고", align: "center", width: "22%" },
+                { label: "최근 단가", align: "right", width: "14%" },
+                { label: "평가금액", align: "right", width: "13%" },
+                { label: "연결 메뉴", align: "center", width: "8%" },
+                { label: "상태", align: "center", width: "12%" },
+              ]}
+            />
           ) : listQuery.isError ? (
             <EmptyState
               title="불러오지 못했습니다"
@@ -886,10 +995,14 @@ function IngredientManagement({ store }: Props) {
                           {r.name}
                         </button>
                       </td>
-                      <td className={`n${estimated === null ? " kpi-na" : ""}`}>
-                        {estimated !== null
-                          ? `${fmt(estimated)}${unitLabel(r.base_unit)}`
-                          : "미산출"}
+                      <td className={`n${!summaryLoading && estimated === null ? " kpi-na" : ""}`}>
+                        {summaryLoading ? (
+                          <Skeleton width={56} height={14} variant="text" className="sk-align-right" />
+                        ) : estimated !== null ? (
+                          `${fmt(estimated)}${unitLabel(r.base_unit)}`
+                        ) : (
+                          "미산출"
+                        )}
                       </td>
                       <td style={{ textAlign: "center" }}>
                         <SafetyStockSlider
@@ -903,20 +1016,34 @@ function IngredientManagement({ store }: Props) {
                           }}
                         />
                       </td>
-                      <td className={`n${unitCostPurchase === null ? " kpi-na" : ""}`}>
-                        {unitCostPurchase !== null
-                          ? `${Math.round(unitCostPurchase).toLocaleString("ko-KR")}원/${unitLabel(
-                              r.purchase_unit,
-                            )}`
-                          : "미산출"}
+                      <td className={`n${!summaryLoading && unitCostPurchase === null ? " kpi-na" : ""}`}>
+                        {summaryLoading ? (
+                          <Skeleton width={68} height={14} variant="text" className="sk-align-right" />
+                        ) : unitCostPurchase !== null ? (
+                          `${Math.round(unitCostPurchase).toLocaleString("ko-KR")}원/${unitLabel(
+                            r.purchase_unit,
+                          )}`
+                        ) : (
+                          "미산출"
+                        )}
                       </td>
-                      <td className={`n${evalWon === null ? " kpi-na" : ""}`}>
-                        {evalWon !== null ? `${evalWon.toLocaleString("ko-KR")}원` : "미산출"}
+                      <td className={`n${!summaryLoading && evalWon === null ? " kpi-na" : ""}`}>
+                        {summaryLoading ? (
+                          <Skeleton width={60} height={14} variant="text" className="sk-align-right" />
+                        ) : evalWon !== null ? (
+                          `${evalWon.toLocaleString("ko-KR")}원`
+                        ) : (
+                          "미산출"
+                        )}
                       </td>
                       <td className="c">{r.linked_menu_count}</td>
                       <td className="c">
                         <div className="ing-status-cell">
-                          <span className={`chip ${badge.className}`}>{badge.label}</span>
+                          {summaryLoading ? (
+                            <Skeleton width={56} height={22} variant="pill" />
+                          ) : (
+                            <span className={`chip ${badge.className}`}>{badge.label}</span>
+                          )}
                           <MoreMenu
                             label={`${r.name} 메뉴`}
                             alignment="end"
