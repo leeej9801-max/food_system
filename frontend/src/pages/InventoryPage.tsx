@@ -302,8 +302,9 @@ function Inventory({ store }: InventoryPageProps) {
   if (pagination.filterKey !== filterKey || pagination.page !== page) {
     setPagination({ filterKey, page });
   }
-  const summaryReady = !summaryQuery.isLoading && !summaryQuery.isError;
-  const receiptsReady = !receiptsQuery.isLoading && !receiptsQuery.isError;
+  const pageLoading = summaryQuery.isLoading || receiptsQuery.isLoading;
+  const summaryReady = !pageLoading && !summaryQuery.isError;
+  const receiptsReady = !pageLoading && !receiptsQuery.isError;
   const animAlerts = useAnimatedNumber(summaryReady ? alerts : null);
 
   function openAction(item: IngredientInventoryItem, action: Action) {
@@ -325,7 +326,7 @@ function Inventory({ store }: InventoryPageProps) {
           <h1>입고 · 재고</h1>
           <span className="title-divider" />
           <span className="title-meta">
-            {summaryQuery.isLoading ? (
+            {pageLoading ? (
               <Skeleton width={40} height={14} variant="text" />
             ) : (
               `${summaryReady ? items.length : "—"}종`
@@ -352,7 +353,7 @@ function Inventory({ store }: InventoryPageProps) {
           <span className="flex items-baseline justify-between gap-3">
             <span className="text-sm font-semibold">입고 필요</span>
             <strong className="text-3xl font-semibold tabular-nums">
-              {summaryQuery.isLoading ? (
+              {pageLoading ? (
                 <Skeleton width={52} height={28} tone="on-accent" />
               ) : (
                 <>
@@ -363,7 +364,7 @@ function Inventory({ store }: InventoryPageProps) {
             </strong>
           </span>
           <span className="text-xs">안전재고 대비 부족률 순</span>
-          {summaryQuery.isLoading ? (
+          {pageLoading ? (
             <div className="flex flex-col gap-2" role="status" aria-busy="true" aria-label="입고 필요 식자재 불러오는 중">
               {[0, 1, 2].map((idx) => (
                 <div key={idx} className="flex items-center justify-between gap-3">
@@ -407,7 +408,7 @@ function Inventory({ store }: InventoryPageProps) {
             <div>
               <dt>최근 입고일</dt>
               <dd>
-                {receiptsQuery.isLoading ? (
+                {pageLoading ? (
                   <Skeleton width={76} height={15} variant="text" />
                 ) : !receiptsReady ? (
                   "—"
@@ -421,7 +422,7 @@ function Inventory({ store }: InventoryPageProps) {
             <div>
               <dt>최근 7일 입고</dt>
               <dd>
-                {receiptsQuery.isLoading ? (
+                {pageLoading ? (
                   <Skeleton width={48} height={15} variant="text" />
                 ) : receiptsReady ? (
                   `${fmt(summary.count)}건`
@@ -433,7 +434,7 @@ function Inventory({ store }: InventoryPageProps) {
             <div>
               <dt>최근 7일 입고액</dt>
               <dd>
-                {receiptsQuery.isLoading ? (
+                {pageLoading ? (
                   <Skeleton width={72} height={15} variant="text" />
                 ) : receiptsReady ? (
                   `${fmt(summary.amount)}원`
@@ -457,8 +458,8 @@ function Inventory({ store }: InventoryPageProps) {
             {INVENTORY_FILTERS.map((filter) => <SegmentedControlItem key={filter.value} value={filter.value} label={filter.label} />)}
           </SegmentedControl>
         </div>
-        <div key={`${filterKey}:${page}`} className="inventory-table-region" role="region" aria-label="재고 현황 표" tabIndex={0} aria-busy={summaryQuery.isLoading}>
-          {summaryQuery.isLoading ? (
+        <div key={`${filterKey}:${page}`} className="inventory-table-region" role="region" aria-label="재고 현황 표" tabIndex={0} aria-busy={pageLoading}>
+          {pageLoading ? (
             <SkeletonTable
               tableClassName="data-table inventory-table"
               ariaLabel="재고를 불러오는 중입니다..."
@@ -526,7 +527,7 @@ function Inventory({ store }: InventoryPageProps) {
         </div>
         <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-rule pt-3 text-xs text-muted tabular-nums">
           <p role="status" aria-live="polite">
-            {summaryQuery.isLoading ? (
+            {pageLoading ? (
               <Skeleton width={132} height={13} variant="text" />
             ) : summaryReady ? (
               `${filtered.length > 0 ? `${offset + 1}–${offset + rows.length}` : "0"} / ${filtered.length}종 · 페이지당 ${INVENTORY_PAGE_SIZE}행`

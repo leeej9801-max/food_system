@@ -182,14 +182,19 @@ function MenuManagement({ store }: MenuManagementPageProps) {
   const baseMenus = allMenusQuery.data ?? menusQuery.data ?? [];
   const kpi = computeMenuKpi(baseMenus, costQuery.data, salesQuery.data);
 
-  const baseLoading = allMenusQuery.isLoading && !menusQuery.data;
-  const countsLoading = categoriesQuery.isLoading && allMenusQuery.isLoading && menusQuery.isLoading;
-  const activeCountLoading = activeQuery.isLoading && allMenusQuery.isLoading && menusQuery.isLoading;
-  const contributionLoading = baseLoading || costQuery.isLoading || salesQuery.isLoading;
-  const costKpiLoading = baseLoading || costQuery.isLoading;
-  const checkKpiLoading = baseLoading || costQuery.isLoading;
-  const tableLoading =
-    menusQuery.isLoading || ((statusFilter === "needs_check" || Boolean(checkFilter)) && costQuery.isLoading);
+  const pageLoading =
+    menusQuery.isLoading ||
+    allMenusQuery.isLoading ||
+    categoriesQuery.isLoading ||
+    activeQuery.isLoading ||
+    costQuery.isLoading ||
+    salesQuery.isLoading;
+  const countsLoading = pageLoading;
+  const activeCountLoading = pageLoading;
+  const contributionLoading = pageLoading;
+  const costKpiLoading = pageLoading;
+  const checkKpiLoading = pageLoading;
+  const tableLoading = pageLoading;
 
   const totalMenus =
     categories.length > 0 ? categories.reduce((n, c) => n + c.menu_count, 0) : baseMenus.length;
@@ -960,7 +965,7 @@ function MenuManagement({ store }: MenuManagementPageProps) {
                 totalPages={pageCount}
                 size="sm"
                 variant="compact"
-                isDisabled={menusQuery.isLoading || menusQuery.isError || menus.length === 0}
+                isDisabled={tableLoading || menusQuery.isError || menus.length === 0}
                 onChange={(next) => setPagination({ filterKey, page: next })}
               />
             </InternationalizationProvider>
@@ -974,7 +979,7 @@ function MenuManagement({ store }: MenuManagementPageProps) {
                 totalPages={pageCount}
                 size="sm"
                 variant="compact"
-                isDisabled={menusQuery.isLoading || menusQuery.isError || menus.length === 0}
+                isDisabled={tableLoading || menusQuery.isError || menus.length === 0}
                 onChange={(next) => setPagination({ filterKey, page: next })}
               />
             </InternationalizationProvider>

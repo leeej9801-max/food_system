@@ -877,7 +877,7 @@ function IngredientManagement({ store }: Props) {
               className={filter === "all" && !checkFilter ? "on" : undefined}
               onClick={() => selectStatusTab("all")}
             >
-              전체<em>{listLoading ? <Skeleton width={16} height={11} variant="text" /> : kpi.totalCount}</em>
+              전체<em>{kpiLoading ? <Skeleton width={16} height={11} variant="text" /> : kpi.totalCount}</em>
             </button>
             <button
               type="button"
@@ -930,7 +930,7 @@ function IngredientManagement({ store }: Props) {
             <button
               type="button"
               className="kpi-ghost"
-              disabled={all.length === 0}
+              disabled={kpiLoading || all.length === 0}
               onClick={() => openInventoryAction("COUNT")}
             >
               재고 실사
@@ -942,7 +942,7 @@ function IngredientManagement({ store }: Props) {
         </div>
 
         <div className="menu-table-region">
-          {listQuery.isLoading ? (
+          {kpiLoading ? (
             <SkeletonTable
               tableClassName="kpi-table"
               ariaLabel="식자재 목록 불러오는 중"
@@ -1006,10 +1006,8 @@ function IngredientManagement({ store }: Props) {
                           {r.name}
                         </button>
                       </td>
-                      <td className={`n${!summaryLoading && estimated === null ? " kpi-na" : ""}`}>
-                        {summaryLoading ? (
-                          <Skeleton width={56} height={14} variant="text" className="sk-align-right" />
-                        ) : estimated !== null ? (
+                      <td className={`n${estimated === null ? " kpi-na" : ""}`}>
+                        {estimated !== null ? (
                           `${fmt(estimated)}${unitLabel(r.base_unit)}`
                         ) : (
                           "미산출"
@@ -1027,10 +1025,8 @@ function IngredientManagement({ store }: Props) {
                           }}
                         />
                       </td>
-                      <td className={`n${!summaryLoading && unitCostPurchase === null ? " kpi-na" : ""}`}>
-                        {summaryLoading ? (
-                          <Skeleton width={68} height={14} variant="text" className="sk-align-right" />
-                        ) : unitCostPurchase !== null ? (
+                      <td className={`n${unitCostPurchase === null ? " kpi-na" : ""}`}>
+                        {unitCostPurchase !== null ? (
                           `${Math.round(unitCostPurchase).toLocaleString("ko-KR")}원/${unitLabel(
                             r.purchase_unit,
                           )}`
@@ -1038,10 +1034,8 @@ function IngredientManagement({ store }: Props) {
                           "미산출"
                         )}
                       </td>
-                      <td className={`n${!summaryLoading && evalWon === null ? " kpi-na" : ""}`}>
-                        {summaryLoading ? (
-                          <Skeleton width={60} height={14} variant="text" className="sk-align-right" />
-                        ) : evalWon !== null ? (
+                      <td className={`n${evalWon === null ? " kpi-na" : ""}`}>
+                        {evalWon !== null ? (
                           `${evalWon.toLocaleString("ko-KR")}원`
                         ) : (
                           "미산출"
@@ -1050,11 +1044,7 @@ function IngredientManagement({ store }: Props) {
                       <td className="c">{r.linked_menu_count}</td>
                       <td className="c">
                         <div className="ing-status-cell">
-                          {summaryLoading ? (
-                            <Skeleton width={56} height={22} variant="pill" />
-                          ) : (
-                            <span className={`chip ${badge.className}`}>{badge.label}</span>
-                          )}
+                          <span className={`chip ${badge.className}`}>{badge.label}</span>
                           <MoreMenu
                             label={`${r.name} 메뉴`}
                             alignment="end"
@@ -1108,7 +1098,7 @@ function IngredientManagement({ store }: Props) {
                 size="sm"
                 variant="compact"
                 isDisabled={
-                  listQuery.isLoading || listQuery.isError || filteredIngredients.length === 0
+                  kpiLoading || listQuery.isError || filteredIngredients.length === 0
                 }
                 onChange={(next) => setPagination({ filterKey, page: next })}
               />
@@ -1124,7 +1114,7 @@ function IngredientManagement({ store }: Props) {
                 size="sm"
                 variant="compact"
                 isDisabled={
-                  listQuery.isLoading || listQuery.isError || filteredIngredients.length === 0
+                  kpiLoading || listQuery.isError || filteredIngredients.length === 0
                 }
                 onChange={(next) => setPagination({ filterKey, page: next })}
               />

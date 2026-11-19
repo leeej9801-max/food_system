@@ -438,6 +438,7 @@ export function PnlPage({ store }: { store: Store }) {
     weatherQuery.data?.station_id != null ? weatherQuery.data.days.map((d) => [d.date, d]) : []
   );
 
+  const pageLoading = pnlQuery.isLoading || weatherQuery.isLoading;
   const pnl = pnlQuery.data;
   const cmp = pnl?.comparison;
 
@@ -468,7 +469,7 @@ export function PnlPage({ store }: { store: Store }) {
           >
             ›
           </button>
-          {pnlQuery.isLoading ? (
+          {pageLoading ? (
             <>
               <Skeleton width={76} height={32} variant="pill" />
               <Skeleton width={88} height={32} variant="pill" />
@@ -488,20 +489,20 @@ export function PnlPage({ store }: { store: Store }) {
         </div>
       </div>
 
-      {pnlQuery.isError && (
+      {!pageLoading && pnlQuery.isError && (
         <div className="mb-4 rounded-2xl bg-[#fdecec] px-4 py-3 text-sm text-[#b42318]">
           손익을 불러오지 못했습니다: {(pnlQuery.error as Error).message}
         </div>
       )}
 
-      {pnlQuery.isLoading && (
+      {pageLoading && (
         <div className="flex flex-col gap-4 xl:gap-5">
           <PnlKpisSkeleton />
           <PnlCalendarSkeleton />
         </div>
       )}
 
-      {pnl && cmp && (
+      {!pageLoading && pnl && cmp && (
         <div className="flex flex-col gap-4 xl:gap-5">
           <PnlKpis pnl={pnl} store={store} onEditGoal={() => setGoalOpen(true)} onPickMonth={setMonth} />
 
