@@ -218,7 +218,7 @@
   .pnl-page .pk-hero button:focus-visible { outline-color: #fff; }
 
   /* xl에서도 KPI 영역이 좁으면 목표를 추이 옆으로 내려 숫자 공간을 확보한다. */
-  @media (min-width: 1280px) {
+  @media (min-width: 900px) {
     @container (1100px < width <= 1180px) {
       .pnl-page .pk-card { padding: 18px; }
       .pnl-page .pk-value { font-size: 25px; letter-spacing: -.8px; }
@@ -237,7 +237,7 @@
       .pnl-page .pk-dd { margin-left: auto; }
     }
   }
-  @media (max-width: 1279px) {
+  @media (max-width: 899px) {
     .pnl-page .pnl-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .pnl-page .pk-goal { grid-column: 1 / -1; grid-row: auto; order: 5; min-height: 502px; }
     .pnl-page .pk-trend { grid-column: 1 / -1; }
