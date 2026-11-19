@@ -313,10 +313,30 @@
 .attendance-page .field textarea { width:100%; resize:vertical; }
 .attendance-page .field input, .attendance-page .field select { min-width:0; width:100%; }
 .attendance-page .field input[type=color] { padding:6px; }
-.attendance-page .md { height:158px; min-height:158px; max-height:158px; padding:7px 8px; gap:4px; overflow:hidden; cursor:pointer; }
-.attendance-page .md .n { flex:none; min-height:20px; }
-.attendance-page .md .chip { flex:none; text-align:left; }
-.attendance-page .md .more-n { flex:none; min-width:22px; height:18px; padding:0 6px; border-radius:999px; background:var(--accent-600); color:#fff; font-size:10.5px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; font-variant-numeric:tabular-nums; }
+.attendance-page .today-st { grid-template-columns:repeat(5,1fr); gap:6px; }
+.attendance-page .today-st div { padding:10px 4px; }
+.attendance-page .today-st .late { background:#fef2f2; color:#b42318; }
+.attendance-page .today-st .late b { color:#b42318; }
+.attendance-page .schedule-stage { display:grid; grid-template-columns:minmax(0,1fr) 224px; gap:16px; align-items:start; }
+.attendance-page .schedule-stage > .board { min-width:0; }
+.attendance-page .schedule-stage > .roster { position:sticky; top:calc(var(--app-header-height, 68px) + 12px); align-self:start; display:flex; flex-direction:column; align-items:stretch; gap:10px; flex-wrap:nowrap; padding:14px; }
+.attendance-page .roster-head { display:flex; flex-direction:column; gap:2px; }
+.attendance-page .roster-head .lbl { margin-right:0; }
+.attendance-page .roster-head .hint { margin-left:0; font-size:11px; }
+.attendance-page .roster-list { display:flex; flex-direction:column; gap:8px; }
+.attendance-page .roster-item { display:flex; align-items:center; gap:6px; }
+.attendance-page .roster-item .person { flex:1; min-width:0; height:40px; padding:0 12px 0 6px; }
+.attendance-page .person-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.attendance-page .roster-item .person small { margin-left:auto; flex:none; }
+.attendance-page .roster-act { flex-direction:column; align-items:stretch; gap:8px; margin-top:4px; padding-top:10px; font-size:12px; }
+.attendance-page .roster-act-btns { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+.attendance-page .roster-act .pill { margin-left:0; height:34px; padding:0 14px; font-size:12px; }
+.attendance-page .drag-ghost { position:fixed; z-index:9999; pointer-events:none; opacity:.65; transform:translate(-50%, -50%) rotate(-2deg); box-shadow:0 10px 24px rgba(15,30,61,.22); background:#fff; border-color:var(--accent-600); }
+.attendance-page .md { height:106px; min-height:106px; max-height:106px; padding:6px 7px; gap:3px; overflow:hidden; cursor:pointer; }
+.attendance-page .md .n { flex:none; min-height:18px; font-size:12px; }
+.attendance-page .md .chip { flex:none; text-align:left; padding:2px 5px; line-height:1.2; font-size:10.5px; }
+.attendance-page .md .chip small { font-size:9.5px; }
+.attendance-page .md .more-n { flex:none; min-width:20px; height:16px; padding:0 5px; border-radius:999px; background:var(--accent-600); color:#fff; font-size:10px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; font-variant-numeric:tabular-nums; }
 .attendance-page .md .n button { text-align:left; flex:1; }
 .attendance-page .m-foot { flex-wrap:wrap; margin-top:4px; }
 .attendance-page .m-foot .astryx-button { border-radius:999px; }
@@ -324,8 +344,8 @@
 .attendance-page .md.today .tag { background:var(--accent-600); color:white; }
 .attendance-page .md.off .tag { background:var(--line); color:var(--muted); }
 .attendance-page .day .tl-row:nth-child(2) .now span { display:block; }
-.attendance-page .axis .hr:nth-child(3) { transform:none; }
-.attendance-page .axis .hr:last-child { transform:translateX(-100%); }
+.attendance-page .axis .hr.hr-first { transform:none; }
+.attendance-page .axis .hr.hr-last { transform:translateX(-100%); }
 .attendance-day-modal { font-family:Pretendard, system-ui, sans-serif; color:var(--color-ink, #0f1e3d); }
 .attendance-day-modal .day-empty { padding:24px 0; text-align:center; font-size:13px; color:var(--color-muted, #636d81); }
 .attendance-day-modal .day-table-wrap { overflow-x:auto; }
@@ -345,6 +365,10 @@
   .attendance-page .seg { margin-left:auto; }
   .attendance-page .panel { grid-template-columns:1fr 1fr; }
   .attendance-page .rcol { grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; }
+  .attendance-page .schedule-stage { grid-template-columns:1fr; }
+  .attendance-page .schedule-stage > .roster { position:static; }
+  .attendance-page .roster-list { flex-direction:row; flex-wrap:wrap; }
+  .attendance-page .roster-item { flex:0 1 auto; }
 }
 @media (max-width:600px) {
   .attendance-page .panel, .attendance-page .rcol { grid-template-columns:1fr; }
