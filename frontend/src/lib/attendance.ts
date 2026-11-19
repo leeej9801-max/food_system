@@ -217,10 +217,117 @@ function pushSegment(segments: TimelineBarSegment[], kind: TimelineSegmentKind, 
   segments.push({ kind, startMinute, endMinute });
 }
 
+export interface TimelineAxis {
+  startMinute: number;
+  endMinute: number;
+  openMinute: number;
+  closeMinute: number;
+  hasOpeningHours: boolean;
+  closePastMidnight: boolean;
+  ticks: { minute: number; label: string; pct: number }[];
+  ampmMarkers: { label: "AM" | "PM"; pct: number }[];
+}
+
+export function timelineAxis(openingHours: string | null | undefined, padMinutes: number = 60): TimelineAxis {
+  let openMinute = 0;
+  let closeMinute = 1440;
+  let hasOpeningHours = false;
+  let closePastMidnight = false;
+
+  if (openingHours) {
+    const match = /^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$/.exec(openingHours);
+    if (match) {
+      const h1 = Number(match[1]);
+      const m1 = Number(match[2]);
+      const h2 = Number(match[3]);
+      const m2 = Number(match[4]);
+      if (h1 >= 0 && h1 <= 24 && m1 >= 0 && m1 < 60 && h2 >= 0 && h2 <= 24 && m2 >= 0 && m2 < 60) {
+        const start = h1 * 60 + m1;
+        const end = h2 * 60 + m2;
+        if (start < 1440 && end <= 1440 && start !== end) {
+          hasOpeningHours = true;
+          openMinute = start;
+          if (end <= start) {
+            closePastMidnight = true;
+            closeMinute = 1440;
+          } else {
+            closeMinute = end;
+          }
+        }
+      }
+    }
+  }
+
+  let startMinute = 0;
+  let endMinute = 1440;
+  if (hasOpeningHours && !closePastMidnight) {
+    startMinute = Math.max(0, Math.floor((openMinute - padMinutes) / 60) * 60);
+    endMinute = Math.min(1440, Math.ceil((closeMinute + padMinutes) / 60) * 60);
+    if (endMinute - startMinute < 180) {
+      startMinute = 0;
+      endMinute = 1440;
+    }
+  }
+
+  const span = Math.max(60, endMinute - startMinute);
+  const spanHours = Math.round(span / 60);
+  const stepHours = spanHours <= 14 ? 1 : spanHours <= 18 ? 2 : 3;
+  const ticks: { minute: number; label: string; pct: number }[] = [];
+  for (let m = startMinute; m <= endMinute; m += stepHours * 60) {
+    const h = Math.floor(m / 60) % 24;
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    const label = stepHours === 1 ? `${String(Math.floor(m / 60) === 24 ? 24 : h).padStart(2, "0")}` : `${h12}`;
+    ticks.push({ minute: m, label, pct: ((m - startMinute) / span) * 100 });
+  }
+  if (ticks.length === 0 || ticks[ticks.length - 1].minute < endMinute) {
+    const h = Math.floor(endMinute / 60) % 24;
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    const label = stepHours === 1 ? `${String(Math.floor(endMinute / 60) === 24 ? 24 : h).padStart(2, "0")}` : `${h12}`;
+    ticks.push({ minute: endMinute, label, pct: 100 });
+  }
+
+  const ampmMarkers: { label: "AM" | "PM"; pct: number }[] = [];
+  if (startMinute < 720) {
+    ampmMarkers.push({ label: "AM", pct: 0 });
+  }
+  if (endMinute > 720) {
+    const pmMinute = Math.max(startMinute, 720);
+    ampmMarkers.push({ label: "PM", pct: ((pmMinute - startMinute) / span) * 100 });
+  }
+
+  return {
+    startMinute,
+    endMinute,
+    openMinute,
+    closeMinute,
+    hasOpeningHours,
+    closePastMidnight,
+    ticks,
+    ampmMarkers,
+  };
+}
+
+export function timelineSpanStyle(leftMinute: number, rightMinute: number, axis: Pick<TimelineAxis, "startMinute" | "endMinute">) {
+  const span = Math.max(1, axis.endMinute - axis.startMinute);
+  const clampedLeft = Math.max(axis.startMinute, Math.min(axis.endMinute, leftMinute));
+  const clampedRight = Math.max(clampedLeft, Math.min(axis.endMinute, rightMinute));
+  return {
+    left: `${((clampedLeft - axis.startMinute) / span) * 100}%`,
+    width: `${((clampedRight - clampedLeft) / span) * 100}%`,
+  };
+}
+
+export function timelinePointPct(minute: number, axis: Pick<TimelineAxis, "startMinute" | "endMinute">): number {
+  const span = Math.max(1, axis.endMinute - axis.startMinute);
+  const clamped = Math.max(axis.startMinute, Math.min(axis.endMinute, minute));
+  return ((clamped - axis.startMinute) / span) * 100;
+}
+
 export function analyzeDayTimeline(
   shifts: ShiftInterval[],
   sessions: SessionInterval[],
   graceMinutes: number = ATTENDANCE_GRACE_MINUTES,
+  currentMinute?: number,
 ): DayTimelineAnalysis {
   const sortedShifts = [...shifts].sort((a, b) => a.start_minute - b.start_minute || a.end_minute - b.end_minute);
   const sortedSessions = [...sessions].sort((a, b) => a.startMinute - b.startMinute || a.endMinute - b.endMinute);
@@ -230,7 +337,17 @@ export function analyzeDayTimeline(
 
   for (const shift of sortedShifts) {
     const overlapping = sortedSessions.filter((s) => intervalsOverlap(s.startMinute, s.endMinute, shift.start_minute, shift.end_minute));
-    if (!overlapping.length) continue;
+    if (!overlapping.length) {
+      if (currentMinute !== undefined && currentMinute > shift.start_minute + graceMinutes) {
+        const endMinute = Math.min(currentMinute, shift.end_minute);
+        const lateMinutes = endMinute - shift.start_minute;
+        if (lateMinutes > graceMinutes) {
+          gaps.push({ kind: "late", startMinute: shift.start_minute, endMinute, minutes: lateMinutes });
+          shiftStats.set(shift.id, { lateMinutes, earlyLeaveMinutes: 0 });
+        }
+      }
+      continue;
+    }
 
     const firstStart = Math.min(...overlapping.map((s) => s.startMinute));
     const lateDiff = firstStart - shift.start_minute;
@@ -408,7 +525,15 @@ export function buildDayScheduleRows(params: {
       timezone,
       nowIso,
     );
-    analyses.set(staffId, analyzeDayTimeline(personShifts, personSessions, graceMinutes));
+    analyses.set(
+      staffId,
+      analyzeDayTimeline(
+        personShifts,
+        personSessions,
+        graceMinutes,
+        day === today ? currentMinute : undefined,
+      ),
+    );
   }
 
   const rows: DayScheduleRow[] = [];
@@ -434,6 +559,8 @@ export function buildDayScheduleRows(params: {
     const matchedBars = (analysis?.bars ?? []).filter((b) => b.matchedShiftIds.includes(shift.id));
     if (!matchedBars.length) {
       const missed = day < today || (day === today && currentMinute > shift.end_minute + graceMinutes);
+      const isLatePending = !missed && day === today && currentMinute > shift.start_minute + graceMinutes;
+      const lateMinutes = isLatePending ? Math.min(currentMinute, shift.end_minute) - shift.start_minute : 0;
       rows.push({
         id: `shift-${shift.id}`,
         staffId: shift.staff_id,
@@ -441,9 +568,9 @@ export function buildDayScheduleRows(params: {
         typeLabel: shift.label,
         plannedRange,
         actualRange: "-",
-        status: missed ? "미출근" : "출근 예정",
-        statusDetail: "",
-        tone: missed ? "danger" : "muted",
+        status: missed ? "미출근" : isLatePending ? "지각" : "출근 예정",
+        statusDetail: isLatePending ? `지각 ${lateMinutes}분 · 미출근` : "",
+        tone: missed || isLatePending ? "danger" : "muted",
       });
       continue;
     }
@@ -515,4 +642,81 @@ export function buildDayScheduleRows(params: {
   }
 
   return rows;
+}
+
+export type SummaryStatusKey = "WORKING" | "EXPECTED" | "LATE" | "OUT" | "MISSING";
+
+export interface SummaryStatusItem {
+  staff_id: string;
+  status: "WORKING" | "EXPECTED" | "OUT" | "MISSING" | "NONE";
+}
+
+export function computeTodayStatusCounts(params: {
+  summary: SummaryStatusItem[];
+  shifts: Shift[];
+  sessions: WorkSession[];
+  day: string;
+  today: string;
+  currentMinute: number;
+  timezone: string;
+  nowIso: string;
+  graceMinutes?: number;
+}): Record<SummaryStatusKey, number> {
+  const {
+    summary,
+    shifts,
+    sessions,
+    day,
+    today,
+    currentMinute,
+    timezone,
+    nowIso,
+    graceMinutes = ATTENDANCE_GRACE_MINUTES,
+  } = params;
+  const counts: Record<SummaryStatusKey, number> = {
+    WORKING: 0,
+    EXPECTED: 0,
+    LATE: 0,
+    OUT: 0,
+    MISSING: 0,
+  };
+
+  for (const item of summary) {
+    if (item.status === "MISSING") {
+      counts.MISSING += 1;
+      continue;
+    }
+
+    const personShifts = shifts.filter((s) => s.staff_id === item.staff_id && s.work_date === day);
+    const personSessions = sessionsForDay(
+      sessions.filter((s) => s.staff_id === item.staff_id),
+      personShifts,
+      day,
+      timezone,
+      nowIso,
+    );
+    const effectiveMinute = day === today ? currentMinute : day < today ? 1440 : undefined;
+    const analysis = analyzeDayTimeline(personShifts, personSessions, graceMinutes, effectiveMinute);
+    const isLateNotArrived =
+      item.status === "EXPECTED" &&
+      effectiveMinute !== undefined &&
+      personShifts.some((sh) => {
+        const hasOverlap = personSessions.some((sess) =>
+          intervalsOverlap(sess.startMinute, sess.endMinute, sh.start_minute, sh.end_minute),
+        );
+        return !hasOverlap && effectiveMinute > sh.start_minute + graceMinutes;
+      });
+
+    if (isLateNotArrived || (day === today && analysis.totalLateMinutes > 0 && item.status === "EXPECTED")) {
+      counts.LATE += 1;
+    } else if (item.status === "WORKING") {
+      counts.WORKING += 1;
+    } else if (item.status === "EXPECTED") {
+      counts.EXPECTED += 1;
+    } else if (item.status === "OUT") {
+      counts.OUT += 1;
+    }
+  }
+
+  return counts;
 }

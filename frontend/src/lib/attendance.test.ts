@@ -5,6 +5,7 @@ import {
   addDays,
   analyzeDayTimeline,
   buildDayScheduleRows,
+  computeTodayStatusCounts,
   isClosed,
   monthGrid,
   navigatePeriod,
@@ -15,6 +16,9 @@ import {
   shortDateRange,
   storeDay,
   timeRange,
+  timelineAxis,
+  timelinePointPct,
+  timelineSpanStyle,
   zonedInputToIso,
   type SessionInterval,
 } from "./attendance";
@@ -226,5 +230,85 @@ describe("일간 타임라인 상태 판정 (유예 5분)", () => {
     expect(rows[1]).toMatchObject({ staffId: null, status: "점주 근무" });
     expect(rows[2]).toMatchObject({ staffId: "s2", status: "출근 예정" });
     expect(rows[3]).toMatchObject({ staffId: "s3", typeLabel: "무계획 근무", status: "무계획" });
+  });
+
+  it("계획 시작 + 유예(5분) 경과 후 출근(IN) 기록이 없으면 타임라인·오늘 현황·상세 행 모두 지각으로 표시한다", () => {
+    // 13:30 (810분) ~ 20:00 (1200분), 현재 14:37 (877분), 미출근(IN 없음)
+    const plannedShift = shift("sh-late", 810, 1200, "s1", "오후 타임", "2026-11-18");
+    const currentMinute = 14 * 60 + 37; // 877
+
+    // 유예 5분 이내(13:35 = 815분)에는 지각이 아니라 출근 예정
+    const withinGrace = analyzeDayTimeline([plannedShift], [], ATTENDANCE_GRACE_MINUTES, 815);
+    expect(withinGrace.gaps).toEqual([]);
+    expect(withinGrace.totalLateMinutes).toBe(0);
+
+    // 14:37 (877분)에는 67분 지각 갭 생성
+    const analysis = analyzeDayTimeline([plannedShift], [], ATTENDANCE_GRACE_MINUTES, currentMinute);
+    expect(analysis.gaps).toEqual([
+      { kind: "late", startMinute: 810, endMinute: 877, minutes: 67 },
+    ]);
+    expect(analysis.totalLateMinutes).toBe(67);
+
+    // 오늘 현황 카운트: EXPECTED 대신 LATE로 집계
+    const counts = computeTodayStatusCounts({
+      summary: [
+        { staff_id: "s1", status: "EXPECTED" },
+        { staff_id: "s2", status: "EXPECTED" },
+      ],
+      shifts: [
+        plannedShift,
+        shift("sh-future", 960, 1260, "s2", "저녁 타임", "2026-11-18"), // 16:00~21:00 -> 아직 출근 예정
+      ],
+      sessions: [],
+      day: "2026-11-18",
+      today: "2026-11-18",
+      currentMinute,
+      timezone: "Asia/Seoul",
+      nowIso: "2026-11-18T05:37:00Z",
+    });
+    expect(counts.LATE).toBe(1);
+    expect(counts.EXPECTED).toBe(1);
+
+    // 상세 모달 행에서도 지각 상태 표시
+    const rows = buildDayScheduleRows({
+      day: "2026-11-18",
+      today: "2026-11-18",
+      currentMinute,
+      timezone: "Asia/Seoul",
+      nowIso: "2026-11-18T05:37:00Z",
+      shifts: [plannedShift],
+      sessions: [],
+    });
+    expect(rows[0]).toMatchObject({
+      staffId: "s1",
+      status: "지각",
+      statusDetail: "지각 67분 · 미출근",
+      tone: "danger",
+    });
+  });
+
+  it("매장 영업시간(opening_hours) 기준으로 타임라인 축을 계산하고 미설정·자정 넘김은 0~24시로 폴백한다", () => {
+    const axis = timelineAxis("11:00-22:00");
+    expect(axis.startMinute).toBe(600); // 10:00 (1h pad)
+    expect(axis.endMinute).toBe(1380); // 23:00 (1h pad)
+    expect(timelinePointPct(600, axis)).toBeCloseTo(0);
+    expect(timelinePointPct(1380, axis)).toBeCloseTo(100);
+    expect(timelineSpanStyle(660, 1320, axis)).toEqual({
+      left: `${((660 - 600) / 780) * 100}%`,
+      width: `${((1320 - 660) / 780) * 100}%`,
+    });
+
+    const fallback = timelineAxis(null);
+    expect(fallback.startMinute).toBe(0);
+    expect(fallback.endMinute).toBe(1440);
+
+    const invalid = timelineAxis("invalid");
+    expect(invalid.startMinute).toBe(0);
+    expect(invalid.endMinute).toBe(1440);
+
+    const pastMidnight = timelineAxis("17:00-01:00");
+    expect(pastMidnight.closePastMidnight).toBe(true);
+    expect(pastMidnight.startMinute).toBe(0);
+    expect(pastMidnight.endMinute).toBe(1440);
   });
 });
