@@ -1,6 +1,9 @@
 from decimal import Decimal
 
+import pytest
 from fastapi.testclient import TestClient
+
+from app.core.config import settings
 
 
 def test_ac1_ac2_ac3_menu_costing_and_non_destructive_simulation(
@@ -176,7 +179,7 @@ def test_western_bistro_demo_seed_replaces_sample_sales(
 
     seed1 = client.post(f"/api/v1/stores/{store_id}/seed-western-demo")
     assert seed1.status_code == 200
-    assert seed1.json()["ingredients_created"] == 5
+    assert seed1.json()["ingredients_created"] == 6
     assert seed1.json()["menus_created"] == 4
     assert seed1.json()["receipts_created"] > 500
     tables = {row["name"]: row for row in client.get(tables_url).json()}
@@ -187,6 +190,22 @@ def test_western_bistro_demo_seed_replaces_sample_sales(
         "V",
     )
     sales1 = client.get(f"/api/v1/stores/{store_id}/analytics/sales").json()
+
+    costing = client.post(
+        f"/api/v1/stores/{store_id}/analytics/costing",
+        json={"global_change_percent": "0"},
+    ).json()
+    cost_by_menu = {m["menu_name"]: m for m in costing["menus"]}
+    assert cost_by_menu["하우스 와인(글라스)"]["cost_status"] == "COMPLETE"
+    assert Decimal(cost_by_menu["하우스 와인(글라스)"]["base_margin"]) > 0
+
+    guests = client.get(f"/api/v1/stores/{store_id}/analytics/guests").json()
+    genders = {g["key"]: g["count"] for g in guests["genders"]}
+    assert set(genders) == {"FEMALE", "MALE"}
+    assert genders["FEMALE"] > genders["MALE"] > 0
+    rels = {r["key"]: r["count"] for r in guests["relationships"]}
+    assert {"ALONE", "COUPLE", "FRIENDS", "FAMILY"} <= set(rels)
+    assert Decimal("0.05") <= Decimal(rels["ALONE"]) / guests["visit_count"] <= Decimal("0.18")
 
     # 재호출 시 중복 생성되지 않음 (멱등성)
     seed2 = client.post(f"/api/v1/stores/{store_id}/seed-western-demo")
@@ -199,3 +218,25 @@ def test_western_bistro_demo_seed_replaces_sample_sales(
     sales = client.get(f"/api/v1/stores/{store_id}/analytics/sales").json()
     assert sales["total_completed_orders"] == sales1["total_completed_orders"] > 0
     assert sales["total_net_sales"] == sales1["total_net_sales"]
+
+
+def test_western_bistro_demo_seed_weather_includes_cold_days(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "kma_station_id", "999")
+    store = client.post("/api/v1/stores", json={"name": "날씨 비스트로"}).json()
+    store_id = store["id"]
+
+    assert client.post(f"/api/v1/stores/{store_id}/seed-western-demo").status_code == 200
+    assert client.post(f"/api/v1/stores/{store_id}/seed-western-demo").status_code == 200
+
+    guests = client.get(f"/api/v1/stores/{store_id}/analytics/guests").json()
+    assert guests["weather_station_configured"] is True
+    assert any(
+        d["avg_temp"] is not None and Decimal(d["avg_temp"]) < Decimal("5")
+        for d in guests["weather_days"]
+    )
+    groups = {g["key"]: g for g in guests["weather_groups"]}
+    assert {"DRY", "RAIN", "COLD", "COOL", "MILD", "HOT"} <= set(groups)
+    assert groups["COLD"]["day_count"] > 0
+    assert len(groups["COLD"]["top_menus"]) > 0

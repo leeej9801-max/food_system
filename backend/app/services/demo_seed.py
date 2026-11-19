@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.models import (
     Ingredient,
     InventoryAdjustment,
@@ -16,12 +17,14 @@ from app.db.models import (
     InventoryReceipt,
     MenuItem,
     MonthlyExpense,
+    MonthlyGoal,
     SalesOrder,
     SalesOrderItem,
     SessionSlot,
     Store,
     StoreTable,
     VisitSession,
+    WeatherDaily,
     new_uuid,
     utcnow,
 )
@@ -79,6 +82,13 @@ def seed_western_bistro_demo(
             "purchase_unit": "kg",
             "conversion_factor": Decimal(1000),
             "safety_stock": Decimal(1000),
+        },
+        {
+            "name": "하우스 레드와인",
+            "base_unit": "ml",
+            "purchase_unit": "L",
+            "conversion_factor": Decimal(1000),
+            "safety_stock": Decimal(1500),
         },
     ]
 
@@ -144,7 +154,9 @@ def seed_western_bistro_demo(
             "name": "하우스 와인(글라스)",
             "category": "음료/와인",
             "selling_price": Decimal(9000),
-            "recipe": [],
+            "recipe": [
+                ("하우스 레드와인", Decimal(150)),
+            ],
         },
     ]
 
@@ -496,17 +508,22 @@ def _seed_activity(
     ingredients = [db.get(Ingredient, ident) for ident in ingredient_ids]
     menus = [db.get(MenuItem, ident) for ident in menu_ids]
     assert all(ingredients) and all(menus)
-    recipe = [(120, 50, 30, 0, 0), (120, 0, 15, 45, 0), (0, 0, 0, 20, 220), (0, 0, 0, 0, 0)]
-    unit_costs = [Decimal(9), Decimal(32), Decimal(45), Decimal(18), Decimal(42)]
+    recipe = [
+        (120, 50, 30, 0, 0, 0),
+        (120, 0, 15, 45, 0, 0),
+        (0, 0, 0, 20, 220, 0),
+        (0, 0, 0, 0, 0, 150),
+    ]
+    unit_costs = [Decimal(9), Decimal(32), Decimal(45), Decimal(18), Decimal(42), Decimal(18)]
     weekdays = ["월", "화", "수", "목", "금", "토", "일"]
     open_days = (
         {day.strip() for day in store.business_days.split(",")}
         if store.business_days
         else set(weekdays[1:])
     )
-    _seed_attendance(
-        db, store, today, now, {i for i, day in enumerate(weekdays) if day in open_days}
-    )
+    open_day_indices = {i for i, day in enumerate(weekdays) if day in open_days}
+    _seed_attendance(db, store, today, now, open_day_indices)
+    _seed_weather(db, first, today, open_day_indices)
     month_sales: dict[str, int] = {}
     receipts = orders = visits = 0
     day = first
@@ -520,7 +537,7 @@ def _seed_activity(
         usage = [Decimal(0) for _ in ingredients]
         parties = (27 if day.weekday() >= 4 else 20) + rng.randint(-2, 2)
         for index in range(parties):
-            party = rng.choices([1, 2, 3], [2, 7, 1])[0]
+            party = rng.choices([1, 2, 3], [10, 70, 20])[0]
             hour = [11, 12, 18, 19, 13, 17, 20][index // len(tables) % 7]
             at = datetime.combine(day, time(hour, index % len(tables) * 3 % 60), zone)
             order = SalesOrder(
@@ -571,8 +588,15 @@ def _seed_activity(
                     )
                 )
                 daily_sales += int(price)
+                usage = [value + Decimal(q) for value, q in zip(usage, recipe[3], strict=True)]
             db.add(order)
             table = tables[index % len(tables)]
+            if party == 1:
+                relationship = "ALONE"
+            elif party == 2:
+                relationship = rng.choices(["COUPLE", "FRIENDS", "FAMILY"], [45, 35, 20])[0]
+            else:
+                relationship = rng.choices(["FRIENDS", "FAMILY"], [65, 35])[0]
             visit = VisitSession(
                 id=new_uuid(),
                 store_id=store_id,
@@ -586,7 +610,7 @@ def _seed_activity(
                 source=SAMPLE,
                 notes=SAMPLE,
                 closed_reason="CLEARED",
-                relationship_type=rng.choice(["FRIENDS", "FAMILY", "COUPLE"]),
+                relationship_type=relationship,
                 context_source="STAFF",
             )
             db.add(visit)
@@ -598,7 +622,7 @@ def _seed_activity(
                         slot_no=slot + 1,
                         state="SILHOUETTE",
                         age_band=visit.age_band,
-                        gender="UNRECORDED",
+                        gender=rng.choices(["FEMALE", "MALE"], [55, 45])[0],
                         profile_source="STAFF",
                         created_at=at,
                         updated_at=at,
@@ -671,7 +695,43 @@ def _seed_activity(
     completed = [value for key, value in month_sales.items() if key != today.strftime("%Y-%m")]
     monthly_basis = Decimal(sum(completed)) / max(1, len(completed))
     db.flush()
+    existing_goals = set(
+        db.scalars(
+            select(MonthlyGoal.month).where(
+                MonthlyGoal.store_id == store_id,
+                MonthlyGoal.month.in_(list(month_sales)),
+            )
+        ).all()
+    )
+    goal_step = Decimal(500_000) if monthly_basis >= Decimal(5_000_000) else Decimal(100_000)
+    revenue_target = max(
+        100_000,
+        int(
+            (monthly_basis * Decimal("1.08") / goal_step).quantize(
+                Decimal(1), rounding=ROUND_HALF_UP
+            )
+        )
+        * int(goal_step),
+    )
+    profit_target = max(
+        10_000,
+        int(
+            (Decimal(revenue_target) * Decimal("0.15") / Decimal(100_000)).quantize(
+                Decimal(1), rounding=ROUND_HALF_UP
+            )
+        )
+        * 100_000,
+    )
     for month in month_sales:
+        if month not in existing_goals:
+            db.add(
+                MonthlyGoal(
+                    store_id=store_id,
+                    month=month,
+                    revenue_target=revenue_target,
+                    profit_target=profit_target,
+                )
+            )
         existing = set(
             db.scalars(
                 select(MonthlyExpense.item_code).where(
@@ -721,3 +781,124 @@ def _seed_activity(
     )
     db.commit()
     return {"receipts_created": receipts, "orders_created": orders, "visits_created": visits}
+
+
+WEATHER_SAMPLE_SOURCE = "DEMO_SEED"
+_MONTHLY_AVG_TEMPS = {
+    1: 0.5,
+    2: 2.5,
+    3: 7.5,
+    4: 13.5,
+    5: 18.5,
+    6: 23.0,
+    7: 26.8,
+    8: 27.5,
+    9: 22.0,
+    10: 15.5,
+    11: 7.5,
+    12: 2.0,
+}
+
+
+def _seed_weather(db: Session, first: date, today: date, open_day_indices: set[int]) -> None:
+    station = settings.kma_station_id.strip()
+    if not station:
+        return
+    db.execute(
+        delete(WeatherDaily).where(
+            WeatherDaily.station_id == station,
+            WeatherDaily.weather_date.between(first, today),
+            WeatherDaily.source == WEATHER_SAMPLE_SOURCE,
+        )
+    )
+    db.flush()
+    existing = {
+        row.weather_date: row
+        for row in db.scalars(
+            select(WeatherDaily).where(
+                WeatherDaily.station_id == station,
+                WeatherDaily.weather_date.between(first, today),
+            )
+        ).all()
+    }
+    weather_rng = Random(20261119)
+    generated: list[WeatherDaily] = []
+    day = first
+    while day <= today:
+        base = _MONTHLY_AVG_TEMPS[day.month]
+        if day.month == 11 and day.day >= 10:
+            base -= 3.5
+        avg = Decimal(str(round(base + weather_rng.uniform(-4.0, 4.0), 1)))
+        min_t = (avg - Decimal("4.0")).quantize(Decimal("0.1"))
+        max_t = (avg + Decimal("4.5")).quantize(Decimal("0.1"))
+        rain = (
+            Decimal(str(round(weather_rng.uniform(2.0, 24.0), 1)))
+            if weather_rng.random() < 0.2
+            else Decimal("0.0")
+        )
+        if day not in existing:
+            generated.append(
+                WeatherDaily(
+                    station_id=station,
+                    weather_date=day,
+                    avg_temp=avg,
+                    min_temp=min_t,
+                    max_temp=max_t,
+                    precipitation_mm=rain,
+                    source=WEATHER_SAMPLE_SOURCE,
+                )
+            )
+        day += timedelta(days=1)
+
+    if generated:
+        open_existing = [row for d, row in existing.items() if d.weekday() in open_day_indices]
+        open_generated = [
+            row for row in generated if row.weather_date.weekday() in open_day_indices
+        ]
+
+        def band_of(temp: Decimal) -> str:
+            if temp < Decimal("5"):
+                return "COLD"
+            if temp < Decimal("15"):
+                return "COOL"
+            if temp < Decimal("25"):
+                return "MILD"
+            return "HOT"
+
+        all_open = open_existing + open_generated
+        present_bands = {band_of(row.avg_temp) for row in all_open if row.avg_temp is not None}
+        band_temps = {
+            "COLD": Decimal("3.2"),
+            "COOL": Decimal("10.5"),
+            "MILD": Decimal("20.0"),
+            "HOT": Decimal("27.4"),
+        }
+        reserved: set[date] = set()
+        for band in present_bands:
+            for row in open_generated:
+                if row.avg_temp is not None and band_of(row.avg_temp) == band:
+                    reserved.add(row.weather_date)
+                    break
+        candidates = [row for row in open_generated if row.weather_date not in reserved]
+        for band in ("COLD", "COOL", "MILD", "HOT"):
+            if band not in present_bands and candidates:
+                target_row = candidates.pop()
+                temp = band_temps[band]
+                target_row.avg_temp = temp
+                target_row.min_temp = temp - Decimal("4.0")
+                target_row.max_temp = temp + Decimal("4.5")
+
+        has_rain = any(
+            row.precipitation_mm is not None and row.precipitation_mm >= Decimal("1")
+            for row in all_open
+        )
+        has_dry = any(
+            row.precipitation_mm is not None and row.precipitation_mm < Decimal("1")
+            for row in all_open
+        )
+        if not has_rain and open_generated:
+            open_generated[-1].precipitation_mm = Decimal("8.5")
+        if not has_dry and len(open_generated) > 1:
+            open_generated[0].precipitation_mm = Decimal("0.0")
+
+        db.add_all(generated)
