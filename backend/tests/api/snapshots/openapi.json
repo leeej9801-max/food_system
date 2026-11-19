@@ -3063,6 +3063,59 @@
         "title": "OAuthStartResponse",
         "type": "object"
       },
+      "OwnerMe": {
+        "properties": {
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
+          },
+          "owner_id": {
+            "format": "uuid",
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "stores": {
+            "items": {
+              "$ref": "#/components/schemas/OwnerStoreItem"
+            },
+            "title": "Stores",
+            "type": "array"
+          }
+        },
+        "required": [
+          "owner_id",
+          "nickname",
+          "stores"
+        ],
+        "title": "OwnerMe",
+        "type": "object"
+      },
+      "OwnerStoreItem": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "OwnerStoreItem",
+        "type": "object"
+      },
       "PnlComparison": {
         "properties": {
           "average_months": {
@@ -6734,6 +6787,203 @@
         "summary": "Oauth Start",
         "tags": [
           "staff-auth"
+        ]
+      }
+    },
+    "/api/v1/auth/owner/kakao/callback": {
+      "get": {
+        "operationId": "oauth_callback_api_v1_auth_owner_kakao_callback_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 100,
+              "title": "State",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "code",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 2048,
+              "title": "Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Error"
+            }
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Oauth Callback",
+        "tags": [
+          "owner-auth"
+        ]
+      }
+    },
+    "/api/v1/auth/owner/kakao/start": {
+      "get": {
+        "operationId": "oauth_start_api_v1_auth_owner_kakao_start_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthStartResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Oauth Start",
+        "tags": [
+          "owner-auth"
+        ]
+      }
+    },
+    "/api/v1/auth/owner/logout": {
+      "post": {
+        "operationId": "logout_api_v1_auth_owner_logout_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Logout Api V1 Auth Owner Logout Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Logout",
+        "tags": [
+          "owner-auth"
+        ]
+      }
+    },
+    "/api/v1/auth/owner/me": {
+      "get": {
+        "operationId": "me_api_v1_auth_owner_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Me",
+        "tags": [
+          "owner-auth"
+        ]
+      }
+    },
+    "/api/v1/auth/owner/refresh": {
+      "post": {
+        "operationId": "refresh_api_v1_auth_owner_refresh_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Refresh Api V1 Auth Owner Refresh Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Refresh",
+        "tags": [
+          "owner-auth"
         ]
       }
     },

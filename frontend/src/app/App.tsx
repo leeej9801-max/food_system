@@ -12,6 +12,7 @@ import { LabPage } from "../pages/LabPage";
 import { PnlPage } from "../pages/PnlPage";
 import { HomePage } from "../pages/HomePage";
 import { InventoryPage } from "../pages/InventoryPage";
+import { LoginPage } from "../pages/LoginPage";
 import { SettingsPage } from "../pages/SettingsPage";
 import type { Store } from "../types";
 
@@ -599,6 +600,7 @@ export function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/staff/*" element={<StaffRoute />} />
         <Route path="*" element={<StoreApp />} />
       </Routes>

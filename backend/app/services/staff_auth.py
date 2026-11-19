@@ -62,8 +62,9 @@ def signing_key() -> str:
     ).hexdigest()
 
 
-def secure_cookie() -> bool:
-    urls = [urlsplit(settings.kakao_redirect_uri), urlsplit(settings.staff_frontend_url)]
+def secure_cookie(*configured: str) -> bool:
+    configured = configured or (settings.kakao_redirect_uri, settings.staff_frontend_url)
+    urls = [urlsplit(url) for url in configured]
     local = all(
         u.scheme == "http" and u.hostname in ("localhost", "127.0.0.1", "::1") for u in urls
     )
@@ -236,26 +237,27 @@ def start_oauth(db: Session, store_id: UUID, invite_token: str | None, response:
         samesite="lax",
     )
     db.commit()
+    return {"authorize_url": authorize_url(state, verifier, settings.kakao_redirect_uri)}
+
+
+def authorize_url(state: str, verifier: str, redirect_uri: str) -> str:
     challenge = (
         base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
     )
-    return {
-        "authorize_url": "https://kauth.kakao.com/oauth/authorize?"
-        + urlencode(
-            {
-                "response_type": "code",
-                "client_id": settings.kakao_rest_api_key,
-                "redirect_uri": settings.kakao_redirect_uri,
-                "scope": "profile_nickname",
-                "state": state,
-                "code_challenge": challenge,
-                "code_challenge_method": "S256",
-            }
-        )
-    }
+    return "https://kauth.kakao.com/oauth/authorize?" + urlencode(
+        {
+            "response_type": "code",
+            "client_id": settings.kakao_rest_api_key,
+            "redirect_uri": redirect_uri,
+            "scope": "profile_nickname",
+            "state": state,
+            "code_challenge": challenge,
+            "code_challenge_method": "S256",
+        }
+    )
 
 
-def kakao_profile(code: str, verifier: str) -> tuple[str, str]:
+def kakao_profile(code: str, verifier: str, redirect_uri: str | None = None) -> tuple[str, str]:
     """HTTP 경계: 테스트는 이 함수 의존성을 교체한다. 카카오 토큰은 영속화하지 않는다."""
     try:
         with httpx.Client(timeout=10, follow_redirects=False) as client:
@@ -265,7 +267,7 @@ def kakao_profile(code: str, verifier: str) -> tuple[str, str]:
                     "grant_type": "authorization_code",
                     "client_id": settings.kakao_rest_api_key,
                     "client_secret": settings.kakao_client_secret,
-                    "redirect_uri": settings.kakao_redirect_uri,
+                    "redirect_uri": redirect_uri or settings.kakao_redirect_uri,
                     "code": code,
                     "code_verifier": verifier,
                 },

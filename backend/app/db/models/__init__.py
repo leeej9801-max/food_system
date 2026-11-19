@@ -628,6 +628,13 @@ from app.db.models.attendance import (  # noqa: E402, F401
     AttendanceShift,
     Staff,
 )
+from app.db.models.owner_auth import (  # noqa: E402, F401
+    OwnerAccount,
+    OwnerOAuthState,
+    OwnerRefresh,
+    OwnerSession,
+    OwnerStore,
+)
 from app.db.models.staff_auth import (  # noqa: E402, F401
     AttendanceQRSecret,
     AttendanceQRUse,

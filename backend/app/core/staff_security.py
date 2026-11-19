@@ -39,14 +39,22 @@ class StaffRateLimiter:
 limiter = StaffRateLimiter()
 
 
-def protect_change(request: Request):
+def check_origin(request: Request, frontend_url: str, code: str):
     origin = request.headers.get("origin")
     allowed = settings.cors_origins_list
-    frontend = urlsplit(settings.staff_frontend_url)
+    frontend = urlsplit(frontend_url)
     frontend_origin = f"{frontend.scheme}://{frontend.netloc}"
     if not origin or origin not in allowed or origin != frontend_origin:
-        raise AppError(403, "STAFF_ORIGIN", "허용된 화면에서 다시 시도해 주세요.")
+        raise AppError(403, code, "허용된 화면에서 다시 시도해 주세요.")
     limiter.check(request, request.url.path, 60)
+
+
+def protect_change(request: Request):
+    check_origin(request, settings.staff_frontend_url, "STAFF_ORIGIN")
+
+
+def protect_owner_change(request: Request):
+    check_origin(request, settings.owner_frontend_url, "OWNER_ORIGIN")
 
 
 class RedactOAuthAccessLog(logging.Filter):
@@ -54,7 +62,7 @@ class RedactOAuthAccessLog(logging.Filter):
         if isinstance(record.args, tuple) and len(record.args) >= 3:
             args = list(record.args)
             path = args[2]
-            if isinstance(path, str) and "/auth/kakao" in path:
+            if isinstance(path, str) and ("/auth/kakao" in path or "/auth/owner/kakao" in path):
                 args[2] = path.split("?", 1)[0]
                 record.args = tuple(args)
         return True

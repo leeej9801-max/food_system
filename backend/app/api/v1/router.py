@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     ingredients,
     inventory,
     menus,
+    owner_auth,
     pnl,
     staff_auth,
     stores,
@@ -31,3 +32,4 @@ api_router.include_router(attendance.router)
 api_router.include_router(staff_auth.router)
 api_router.include_router(staff_auth.owner)
 api_router.include_router(staff_auth.mobile)
+api_router.include_router(owner_auth.router)
