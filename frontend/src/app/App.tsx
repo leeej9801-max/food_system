@@ -6,6 +6,7 @@ import { KpiPageSkeleton, ShellPageSkeleton, Skeleton } from "../components/Skel
 import { withStore } from "../lib/navigation";
 import { createStore, fetchStores, fetchTables, fetchVisitSummary } from "../api/stores";
 import { fetchTodaySummary } from "../api/todaySummary";
+import { useOwnerMe } from "../api/ownerAuth";
 import { StaffAttendancePage } from "../pages/StaffAttendancePage";
 import { AnalyticsPage } from "../pages/AnalyticsPage";
 import { AttendancePage } from "../pages/AttendancePage";
@@ -347,6 +348,7 @@ function ShellLayout({ store }: { store: Store }) {
   const location = useLocation();
   // 넓은 화면은 사이드 메뉴를 펼친 채, 태블릿 세로 이하는 접은 채 시작한다
   const [sidebarOpen, setSidebarOpen] = useState(isDesktopLayout);
+  const ownerMe = useOwnerMe();
   const [metaverseMode, setMetaverseMode] = useState<boolean>(() => {
     try {
       return localStorage.getItem("restaurant_ax_metaverse_mode") !== "false";
@@ -480,6 +482,11 @@ function ShellLayout({ store }: { store: Store }) {
             );
           })}
         </nav>
+        {ownerMe.data?.nickname && (
+          <p className="mt-8 truncate px-4 text-sm text-gray-500">
+            <span className="font-semibold text-ink">{ownerMe.data.nickname}</span>님 환영합니다
+          </p>
+        )}
       </aside>
 
       <div className={`transition-[padding] duration-200 ${sidebarOpen ? "lg:pl-[184px] xl:pl-[216px]" : ""}`}>

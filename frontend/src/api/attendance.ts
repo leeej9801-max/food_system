@@ -49,3 +49,7 @@ export function recordAttendance(store: string, staff_id: string, kind: "IN" | "
 export function correctAttendance(store: string, staff_id: string, reason: string, items: CorrectionItem[]) {
   return apiRequest(z.array(correctionSchema), `${path(store)}/corrections`, { method: "POST", body: JSON.stringify({ staff_id, reason, items }) });
 }
+
+export function deactivateStaff(store: string, id: string) {
+  return apiRequest(z.object({ deleted: z.boolean() }), `${path(store)}/staff/${id}`, { method: "DELETE" });
+}

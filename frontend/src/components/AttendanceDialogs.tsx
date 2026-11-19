@@ -58,7 +58,6 @@ export function AttendanceQRDialog({ storeId, onClose }: { storeId: string; onCl
       <p className="note">출근·퇴근은 직원의 현재 상태에 따라 자동으로 결정됩니다.</p>
     </>}
     {(qr.error || status.error) && <><p className="error" role="alert">{(qr.error || status.error)?.message}</p><Button label="다시 불러오기" onClick={() => { void qr.refetch(); void status.refetch(); }} /></>}
-    <p className="note">PROVISIONAL · 공개 데모에서는 점주 권한을 확인하지 않습니다.</p>
   </div><div className="m-foot"><Button label={completed ? "확인" : "닫기"} onClick={onClose} /></div></Modal>;
 }
 

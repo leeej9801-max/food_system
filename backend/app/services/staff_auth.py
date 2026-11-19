@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import hmac
+import logging
 import secrets
 from datetime import UTC, datetime, timedelta
 from io import BytesIO
@@ -40,6 +41,8 @@ ACCESS_COOKIE = "food_staff_access"
 REFRESH_COOKIE = "food_staff_refresh"
 OAUTH_COOKIE = "food_staff_oauth"
 ISSUER = "food-staff"
+
+logger = logging.getLogger(__name__)
 
 
 def aware(value: datetime) -> datetime:
@@ -286,7 +289,13 @@ def kakao_profile(code: str, verifier: str, redirect_uri: str | None = None) -> 
             if not kakao_id.isdecimal() or not isinstance(nickname, str) or not nickname.strip():
                 raise ValueError("invalid profile")
             return kakao_id, nickname[:100]
-    except (httpx.HTTPError, ValueError, KeyError, TypeError):
+    except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
+        # 비밀값 없이 카카오 오류 코드(KOExxx)와 단계만 남긴다.
+        body = getattr(getattr(exc, "response", None), "text", "")[:300]
+        code_hint = body.split('"error_code":"')[1][:6] if '"error_code":"' in body else ""
+        logger.warning(
+            "kakao login failed: %s %s %s", type(exc).__name__, code_hint, exc.__class__.__module__
+        )
         raise AppError(
             502, "KAKAO_LOGIN", "카카오 로그인에 실패했습니다. 다시 시도해 주세요."
         ) from None

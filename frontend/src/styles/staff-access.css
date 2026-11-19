@@ -26,4 +26,21 @@
   .attendance-qr img { display: block; width: min(100%, 20rem); height: auto; margin: 1rem auto; background: white; }
   .attendance-qr .qr-count { font-variant-numeric: tabular-nums; font-size: 1.125rem; font-weight: 700; }
   .attendance-qr .qr-complete { padding: 3rem 0; font-size: 1.5rem; font-weight: 700; line-height: 1.6; }
+  .access-person { display: flex; align-items: center; gap: .75rem; }
+  .access-person > div:first-of-type { flex: 1; }
+  .access-remove { width: 2rem; height: 2rem; flex: none; border-radius: 999px; color: var(--color-muted); font-size: 1.125rem; line-height: 1; }
+  .access-remove:hover { background: #fff1f2; color: #a6202d; }
+  .access-confirm { background: white; border-radius: 16px; padding: 24px; max-width: 24rem; }
+  .access-confirm h2 { font-size: 1.125rem; font-weight: 700; margin-bottom: .5rem; }
+  .access-confirm p { color: var(--color-muted); line-height: 1.6; }
+  .access-confirm-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1.25rem; }
+  .staff-mark { width: 4rem; height: 4rem; margin-bottom: 1.5rem; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .staff-mark circle { stroke-dasharray: 151; stroke-dashoffset: 151; animation: staff-draw .45s ease-out forwards; }
+  .staff-mark path { stroke-dasharray: 48; stroke-dashoffset: 48; animation: staff-draw .3s .4s ease-out forwards; }
+  .staff-mark.ok { stroke: #16a34a; }
+  .staff-mark.fail { stroke: #dc2626; animation: staff-shake .35s .7s ease-in-out; }
+  .staff-fail { margin-top: 1.5rem; }
+  @keyframes staff-draw { to { stroke-dashoffset: 0; } }
+  @keyframes staff-shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+  @media (prefers-reduced-motion: reduce) { .staff-mark circle, .staff-mark path { animation: none; stroke-dashoffset: 0; } .staff-mark.fail { animation: none; } }
 }

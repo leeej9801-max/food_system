@@ -75,8 +75,8 @@
 .attendance-page .wk-row em .info { order:2; }
 .attendance-page .wk-row em .info { color:var(--muted); }
 .attendance-page .person.sel { background:var(--accent-50); border-color:var(--accent-600); box-shadow:0 0 0 3px rgba(47,107,255,.18); color:var(--accent-700); }
-.attendance-page .board.has-sel .tl-row.hl { background:linear-gradient(90deg, rgba(47,107,255,.10), rgba(20,184,166,.06)); box-shadow:inset 3px 0 0 var(--accent-600); }
-.attendance-page .board.has-sel .who.hl { box-shadow:inset 3px 0 0 var(--accent-600); }
+.attendance-page .board.has-sel .tl-row.hl { background:linear-gradient(90deg, rgba(47,107,255,.18), rgba(20,184,166,.10)); }
+.attendance-page .board.has-sel .who.hl { background:rgba(47,107,255,.14); }
 .attendance-page .board.has-sel .tl-row.hl .who { opacity:1; }
 .attendance-page .tl-row { grid-template-columns:200px minmax(0,1fr) !important; }
 .attendance-page .tl-head { grid-template-columns:200px minmax(0,1fr) !important; }
