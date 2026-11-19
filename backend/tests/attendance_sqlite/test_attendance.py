@@ -3,7 +3,7 @@
 import importlib.util
 import json
 import os
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -18,14 +18,16 @@ from sqlalchemy.pool import StaticPool
 
 os.environ.setdefault("DATABASE_URL", "sqlite://")
 
+from app.core.config import Settings, settings  # noqa: E402
 from app.db.base import Base  # noqa: E402
 from app.db.models import AttendanceCorrection, AttendanceEvent, Store  # noqa: E402
-from app.db.models.attendance import AuditLog, Staff  # noqa: E402
+from app.db.models.attendance import AttendanceShift, AuditLog, Staff  # noqa: E402
 from app.db.session import get_db  # noqa: E402
 from app.db.tenancy import RequestContext, bind_store_scope  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.schemas.attendance import StaffCreate  # noqa: E402
 from app.services import attendance as service  # noqa: E402
+from app.services import demo_seed  # noqa: E402
 
 
 def migration(name):
@@ -104,6 +106,113 @@ def dashboard(client, base, start="2026-11-17", end="2026-11-17"):
     response = client.get(base, params={"start": start, "end": end})
     assert response.status_code == 200, response.text
     return response.json()
+
+
+@pytest.mark.parametrize(
+    ("environment", "flag", "expected"),
+    [("production", "false", 404), ("production", "true", 200), ("staging", "false", 200)],
+)
+def test_demo_seed_gate(context, monkeypatch, environment, flag, expected):
+    client, base, _, _ = context
+    monkeypatch.setenv("DEMO_SEED_ENABLED", flag)
+    monkeypatch.setattr(settings, "app_env", environment)
+    monkeypatch.setattr(
+        settings, "demo_seed_enabled", Settings(database_url="sqlite://").demo_seed_enabled
+    )
+    monkeypatch.setattr(demo_seed, "seed_western_bistro_demo", lambda *_args, **_kwargs: {})
+    assert (
+        client.post(base.removesuffix("/attendance") + "/seed-western-demo").status_code == expected
+    )
+
+
+def test_demo_seed_attendance(context, monkeypatch):
+    client, base, _, engine = context
+    url = base.removesuffix("/attendance") + "/seed-western-demo"
+    manual_id = staff(client, base)
+    now = datetime(2026, 11, 17, 5, 20, tzinfo=UTC)
+    monkeypatch.setattr(settings, "app_env", "production")
+    monkeypatch.setattr(settings, "demo_seed_enabled", True)
+    monkeypatch.setattr(demo_seed, "utcnow", lambda: now)
+    monkeypatch.setattr(service, "utcnow", lambda: now)
+    day = date(2026, 11, 17)
+
+    with Session(engine) as db:
+        manual = db.get(Staff, UUID(manual_id))
+        assert manual is not None
+        manual_before = (manual.name, manual.role, manual.color, manual.status, manual.created_at)
+
+    assert client.post(url).status_code == 200
+    result = dashboard(client, base)
+    people = {row["id"]: row for row in result["staff"] if row["id"] != manual_id}
+    assert len(people) == 5
+    assert len({row["color"] for row in people.values()}) == 5
+    shifts = sorted(
+        (people[row["staff_id"]]["name"], row["start_minute"], row["end_minute"])
+        for row in result["shifts"]
+    )
+    assert shifts == sorted(
+        [
+            ("김서윤", 780, 870),
+            ("박도현", 750, 810),
+            ("박도현", 870, 930),
+            ("최유진", 750, 810),
+            ("윤민재", 750, 810),
+            ("한지우", 690, 750),
+            ("한지우", 780, 840),
+        ]
+    )
+    actual = {
+        people[row["staff_id"]]["name"]: (
+            row["started_at"][11:16],
+            row["ended_at"][11:16] if row["ended_at"] else None,
+        )
+        for row in result["sessions"]
+    }
+    assert actual == {
+        "김서윤": ("04:00", None),
+        "박도현": ("03:42", "04:30"),
+        "최유진": ("03:30", "04:15"),
+        "윤민재": ("03:30", "04:45"),
+        "한지우": ("02:30", "03:30"),
+    }
+
+    def snapshot(db):
+        return (
+            set(db.scalars(select(AttendanceShift.id))),
+            {row.id: (row.kind, row.occurred_at) for row in db.scalars(select(AttendanceEvent))},
+        )
+
+    with Session(engine) as db:
+        plans = list(db.scalars(select(AttendanceShift)))
+        assert min(row.work_date for row in plans) == day - timedelta(days=28)
+        assert max(row.work_date for row in plans) == day + timedelta(days=14)
+        assert all(
+            row.work_date.weekday() < 5 and 540 <= row.start_minute < row.end_minute <= 1080
+            for row in plans
+        )
+        before = snapshot(db)
+    now += timedelta(minutes=45)
+    assert client.post(url).status_code == 200
+    with Session(engine) as db:
+        assert snapshot(db) == before
+        manual = db.get(Staff, UUID(manual_id))
+        assert manual is not None
+        assert (
+            manual.name,
+            manual.role,
+            manual.color,
+            manual.status,
+            manual.created_at,
+        ) == manual_before
+
+    now += timedelta(days=1)
+    assert client.post(url).status_code == 200
+    with Session(engine) as db:
+        _, events = snapshot(db)
+        assert before[1].items() <= events.items()
+    previous = dashboard(client, base)
+    assert len(previous["sessions"]) == 5
+    assert all(row["ended_at"] is not None for row in previous["sessions"])
 
 
 def test_staff_shift_owner_gaps_and_closed_days(context):

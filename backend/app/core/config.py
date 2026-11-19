@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_env: str = "development"
+    demo_seed_enabled: bool = False
     api_prefix: str = "/api/v1"
     guest_api_prefix: str = "/api/guest/v1"
     # 손님 익명 기기 쿠키. 기본은 Secure. 브라우저는 http://localhost도 허용한다

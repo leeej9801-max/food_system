@@ -115,11 +115,12 @@ def test_sample_period_ratios_and_replace_preserves_manual(db_session: Session) 
     assert json.loads(store.floor_fixtures or "null") == list(fixtures)
     assert db_session.scalar(select(func.count()).select_from(StoreTable)) == len(tables)
     staff = list(db_session.scalars(select(Staff).where(Staff.store_id == sid)))
+    assert len(staff) == 5
     assert {row.role for row in staff} == {"HALL", "KITCHEN"}
     shift_ids = set(
         db_session.scalars(select(AttendanceShift.id).where(AttendanceShift.store_id == sid))
     )
-    assert len(shift_ids) == 26
+    assert len(shift_ids) >= 185
     manual_staff = Staff(store_id=sid, name="수기 직원", role="HALL", color="#123456")
     db_session.add(manual_staff)
     totals = []
@@ -162,7 +163,7 @@ def test_sample_period_ratios_and_replace_preserves_manual(db_session: Session) 
     db_session.commit()
     seed_western_bistro_demo(db_session, store_id=sid, today=date(2026, 11, 18))
     assert db_session.get(Staff, manual_staff.id) is not None
-    assert db_session.scalar(select(func.count()).select_from(Staff)) == 3
+    assert db_session.scalar(select(func.count()).select_from(Staff)) == 6
     assert set(db_session.scalars(select(AttendanceShift.id))) == shift_ids
     assert db_session.scalar(select(func.count()).select_from(StoreTable)) == len(tables)
     assert db_session.get(InventoryCount, count.id) is not None

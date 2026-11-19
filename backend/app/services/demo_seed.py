@@ -1,5 +1,6 @@
 import json
-from datetime import date, datetime, time, timedelta
+from collections import defaultdict
+from datetime import UTC, date, datetime, time, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from random import Random
 from uuid import UUID, uuid5
@@ -24,7 +25,7 @@ from app.db.models import (
     new_uuid,
     utcnow,
 )
-from app.db.models.attendance import AttendanceShift, Staff
+from app.db.models.attendance import AttendanceEvent, AttendanceShift, Staff
 from app.schemas import (
     IngredientCreate,
     MenuCreate,
@@ -33,6 +34,7 @@ from app.schemas import (
 )
 from app.services import ingredients as ing_service
 from app.services import menus as menu_service
+from app.services.attendance import _opening
 from app.services.floor import PRESETS
 
 
@@ -200,42 +202,168 @@ def seed_western_bistro_demo(
 SAMPLE = "demo:bistro:v2"
 
 
-def _seed_attendance(db: Session, store_id: UUID, today: date, open_days: set[int]) -> None:
-    for role, name, color, start, end in (
-        ("HALL", "샘플 홀 직원", "#2563eb", 11, 20),
-        ("KITCHEN", "샘플 주방 직원", "#ea580c", 10, 19),
+def _demo_day_plans(
+    index: int, opening: int, closing: int, minute: int
+) -> list[tuple[int, int, int | None, int | None]]:
+    """(예정 시작, 예정 종료, 실제 출근, 실제 퇴근). 시각은 매장 자정 기준 분."""
+    anchor = minute // 30 * 30
+    if anchor - 150 >= opening and minute < closing:
+        start, end = anchor - 90, anchor - 30
+        all_plans: list[list[tuple[int, int, int | None, int | None]]] = [
+            [(anchor - 60, anchor + 30, anchor - 60, None)],
+            [(start, end, start + 12, end)],
+            [(start, end, start, end - 15)],
+            [(start, end, start, end + 15)],
+            [(anchor - 150, start, anchor - 150, start), (anchor - 60, anchor, None, None)],
+        ]
+        plans = all_plans[index]
+        if index == 1 and anchor + 90 <= closing:
+            plans.append((anchor + 30, anchor + 90, None, None))
+        return plans
+
+    start = min(opening + index * 30, closing - 60)
+    end = min(start + 240, closing)
+    if end <= minute:
+        return [(start, end, start, end)]
+    return [(start, end, start if start < minute else None, None)]
+
+
+def _seed_attendance(
+    db: Session, store: Store, today: date, now: datetime, open_days: set[int]
+) -> None:
+    store_id = store.id
+    staff_ids = {}
+    for index, (key, name, role, color, legacy_name) in enumerate(
+        (
+            ("HALL", "김서윤", "HALL", "#2563eb", "샘플 홀 직원"),
+            ("KITCHEN", "박도현", "KITCHEN", "#ea580c", "샘플 주방 직원"),
+            ("hall-2", "최유진", "HALL", "#7c3aed", None),
+            ("kitchen-2", "윤민재", "KITCHEN", "#0d9488", None),
+            ("hall-3", "한지우", "HALL", "#be185d", None),
+        )
     ):
-        staff_id = uuid5(store_id, f"{SAMPLE}:staff:{role}")
+        staff_id = uuid5(store_id, f"{SAMPLE}:staff:{key}")
         staff = db.get(Staff, staff_id)
         if staff is None:
             db.add(Staff(id=staff_id, store_id=store_id, name=name, role=role, color=color))
-            db.flush()
-        elif staff.status != "ACTIVE":
+        elif staff.store_id != store_id or staff.status != "ACTIVE":
             continue
-        first = today - timedelta(days=7)
-        last = today + timedelta(days=7)
-        scheduled = set(
-            db.scalars(
-                select(AttendanceShift.work_date).where(
-                    AttendanceShift.store_id == store_id,
-                    AttendanceShift.staff_id == staff_id,
-                    AttendanceShift.work_date.between(first, last),
-                )
+        elif staff.name == legacy_name:
+            staff.name = name
+        staff_ids[index] = staff_id
+    db.flush()
+
+    start, end = _opening(store) or (11 * 60, 21 * 60)
+    # 근무 일정은 30분 단위이며 매장 자정을 넘길 수 없다.
+    opening, closing = max(0, (start + 29) // 30 * 30), min(1440, end // 30 * 30)
+    if closing - opening < 60:
+        return
+    first, last = today - timedelta(days=28), today + timedelta(days=14)
+    scheduled = defaultdict(list)
+    for shift in db.scalars(
+        select(AttendanceShift)
+        .where(
+            AttendanceShift.store_id == store_id,
+            AttendanceShift.staff_id.in_(staff_ids.values()),
+            AttendanceShift.work_date.between(first, last),
+        )
+        .order_by(AttendanceShift.start_minute)
+    ):
+        scheduled[shift.work_date, shift.staff_id].append(shift)
+    events = {
+        row.client_event_id: row
+        for row in db.scalars(
+            select(AttendanceEvent).where(
+                AttendanceEvent.store_id == store_id,
+                AttendanceEvent.staff_id.in_(staff_ids.values()),
+                AttendanceEvent.occurred_at >= datetime.combine(first, time.min, now.tzinfo),
             )
         )
-        for offset in range(15):
-            day = first + timedelta(days=offset)
-            if day.weekday() in open_days and day not in scheduled:
-                db.add(
-                    AttendanceShift(
+    }
+
+    for offset in range((last - first).days + 1):
+        day = first + timedelta(days=offset)
+        if day.weekday() not in open_days:
+            continue
+        midnight = datetime.combine(day, time.min, now.tzinfo)
+        recorded = any(
+            uuid5(shift.id, "IN") in events
+            for staff_id in staff_ids.values()
+            for shift in scheduled[day, staff_id]
+        )
+        for index, staff_id in staff_ids.items():
+            existing = scheduled[day, staff_id]
+            if any(shift.label != SAMPLE for shift in existing):
+                continue
+            if recorded:
+                # 당일 시연을 보존하고 날짜가 지난 열린 근무만 퇴근 원본을 추가한다.
+                if day < today:
+                    for shift in existing:
+                        entry = events.get(uuid5(shift.id, "IN"))
+                        if entry is not None:
+                            _add_demo_event(
+                                db, shift, "OUT", midnight, shift.end_minute, now, events
+                            )
+                continue
+
+            minute = now.hour * 60 + now.minute if day == now.date() else -1
+            plans = _demo_day_plans(index, opening, closing, minute)
+            if day < today:
+                start, end, _, _ = plans[0]
+                variant = (day.toordinal() + index * 3) % 17
+                plans = [
+                    (
+                        start,
+                        end,
+                        start + (12 if variant == 0 else 0),
+                        min(closing, end + (15 if variant == 1 else 0)),
+                    )
+                ]
+            for slot, (start, end, clock_in, clock_out) in enumerate(plans):
+                if slot < len(existing):
+                    shift = existing[slot]
+                    shift.start_minute, shift.end_minute = start, end
+                else:
+                    shift = AttendanceShift(
+                        id=uuid5(staff_id, f"{SAMPLE}:shift:{day}:{slot}"),
                         store_id=store_id,
                         staff_id=staff_id,
                         work_date=day,
-                        start_minute=start * 60,
-                        end_minute=end * 60,
+                        start_minute=start,
+                        end_minute=end,
                         label=SAMPLE,
                     )
-                )
+                    db.add(shift)
+                _add_demo_event(db, shift, "IN", midnight, clock_in, now, events)
+                _add_demo_event(db, shift, "OUT", midnight, clock_out, now, events)
+
+
+def _add_demo_event(
+    db: Session,
+    shift: AttendanceShift,
+    kind: str,
+    midnight: datetime,
+    minute: int | None,
+    now: datetime,
+    existing: dict[UUID, AttendanceEvent],
+) -> None:
+    event_id = uuid5(shift.id, kind)
+    if minute is None or event_id in existing:
+        return
+    occurred_at = (midnight + timedelta(minutes=minute)).astimezone(UTC)
+    if occurred_at > now:
+        return
+    assert shift.staff_id is not None
+    db.add(
+        AttendanceEvent(
+            id=event_id,
+            store_id=shift.store_id,
+            staff_id=shift.staff_id,
+            client_event_id=event_id,
+            kind=kind,
+            occurred_at=occurred_at,
+        )
+    )
 
 
 def _seed_floor(db: Session, store: Store) -> list[StoreTable]:
@@ -294,7 +422,8 @@ def _seed_activity(
     # 같은 매장 샘플 교체가 겹치지 않도록 잠근다.
     db.refresh(store, with_for_update=True)
     zone = ZoneInfo(store.timezone)
-    today = today or utcnow().astimezone(zone).date()
+    now = utcnow().astimezone(zone)
+    today = today or now.date()
     month_index = today.year * 12 + today.month - 1 - 6
     first = date(month_index // 12, month_index % 12 + 1, 1)
     rng = Random(20261118)
@@ -357,7 +486,9 @@ def _seed_activity(
         if store.business_days
         else set(weekdays[1:])
     )
-    _seed_attendance(db, store_id, today, {i for i, day in enumerate(weekdays) if day in open_days})
+    _seed_attendance(
+        db, store, today, now, {i for i, day in enumerate(weekdays) if day in open_days}
+    )
     month_sales: dict[str, int] = {}
     receipts = orders = visits = 0
     day = first
