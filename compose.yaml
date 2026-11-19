@@ -22,7 +22,8 @@ x-api-env: &api-env
 x-api: &api
   image: food-backend:local
   build: ./backend
-  networks: [private]
+  # private는 internal이라 외부(카카오·기상청) 접속 불가 → egress 추가
+  networks: [private, egress]
 
 services:
   food-db:
@@ -94,6 +95,7 @@ services:
 networks:
   private:
     internal: true
+  egress: {}
   tunnel:
     external: true
     name: ${TUNNEL_NETWORK:-lci-prod_edge}
