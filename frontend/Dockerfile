@@ -4,6 +4,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY index.html tsconfig*.json vite.config.ts ./
 COPY src ./src
+COPY public ./public
 ENV VITE_API_BASE_URL=/api/v1
 RUN npm run build -- --base=/
 

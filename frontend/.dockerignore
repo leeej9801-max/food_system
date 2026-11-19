@@ -7,3 +7,5 @@
 !nginx.conf
 !src/
 !src/**
+!public/
+!public/**
