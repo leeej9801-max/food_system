@@ -1,7 +1,8 @@
+import json
 from datetime import date, datetime, time, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from random import Random
-from uuid import UUID
+from uuid import UUID, uuid5
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import delete, select
@@ -17,11 +18,13 @@ from app.db.models import (
     SalesOrder,
     SalesOrderItem,
     SessionSlot,
+    Store,
     StoreTable,
     VisitSession,
     new_uuid,
     utcnow,
 )
+from app.db.models.attendance import AttendanceShift, Staff
 from app.schemas import (
     IngredientCreate,
     MenuCreate,
@@ -30,6 +33,7 @@ from app.schemas import (
 )
 from app.services import ingredients as ing_service
 from app.services import menus as menu_service
+from app.services.floor import PRESETS
 
 
 def seed_western_bistro_demo(
@@ -196,6 +200,88 @@ def seed_western_bistro_demo(
 SAMPLE = "demo:bistro:v2"
 
 
+def _seed_attendance(db: Session, store_id: UUID, today: date, open_days: set[int]) -> None:
+    for role, name, color, start, end in (
+        ("HALL", "샘플 홀 직원", "#2563eb", 11, 20),
+        ("KITCHEN", "샘플 주방 직원", "#ea580c", 10, 19),
+    ):
+        staff_id = uuid5(store_id, f"{SAMPLE}:staff:{role}")
+        staff = db.get(Staff, staff_id)
+        if staff is None:
+            db.add(Staff(id=staff_id, store_id=store_id, name=name, role=role, color=color))
+            db.flush()
+        elif staff.status != "ACTIVE":
+            continue
+        first = today - timedelta(days=7)
+        last = today + timedelta(days=7)
+        scheduled = set(
+            db.scalars(
+                select(AttendanceShift.work_date).where(
+                    AttendanceShift.store_id == store_id,
+                    AttendanceShift.staff_id == staff_id,
+                    AttendanceShift.work_date.between(first, last),
+                )
+            )
+        )
+        for offset in range(15):
+            day = first + timedelta(days=offset)
+            if day.weekday() in open_days and day not in scheduled:
+                db.add(
+                    AttendanceShift(
+                        store_id=store_id,
+                        staff_id=staff_id,
+                        work_date=day,
+                        start_minute=start * 60,
+                        end_minute=end * 60,
+                        label=SAMPLE,
+                    )
+                )
+
+
+def _seed_floor(db: Session, store: Store) -> list[StoreTable]:
+    tables = list(
+        db.scalars(
+            select(StoreTable).where(StoreTable.store_id == store.id).order_by(StoreTable.name)
+        )
+    )
+    tables_spec, fixtures = PRESETS["meal_love"]
+    preset_fixtures = json.dumps(fixtures, ensure_ascii=False)
+    if store.floor_fixtures in (None, "", "[]"):
+        store.floor_fixtures = preset_fixtures
+    active = [table for table in tables if table.is_active]
+    if active:
+        by_name = {table.name: table for table in active}
+        # 기존 위저드의 축약 좌표는 도면을 켜면 겹친다. 기본 배치만 옮기고 테이블 ID는 유지한다.
+        if (
+            store.floor_fixtures == preset_fixtures
+            and len(active) <= len(tables_spec)
+            and all(
+                (table := by_name.get(f"T{i + 1}")) is not None
+                and (table.grid_x, table.grid_y, table.orientation) == (i % 3, i // 3, "H")
+                for i in range(len(active))
+            )
+        ):
+            for name, x, y, orientation, _ in tables_spec[: len(active)]:
+                table = by_name[name]
+                table.grid_x, table.grid_y, table.orientation = x, y, orientation
+        return active
+    existing_names = {table.name for table in tables}
+    for name, x, y, orientation, seats in tables_spec:
+        active.append(
+            StoreTable(
+                store_id=store.id,
+                name=f"샘플 {name}" if name in existing_names else name,
+                seats=seats,
+                grid_x=x,
+                grid_y=y,
+                orientation=orientation,
+            )
+        )
+    db.add_all(active)
+    db.flush()
+    return sorted(active, key=lambda table: table.name)
+
+
 def _seed_activity(
     db: Session,
     store_id: UUID,
@@ -259,26 +345,7 @@ def _seed_activity(
             InventoryReceipt.supplier_name == "유로푸드 파트너스(프로토타입)",
         )
     )
-    tables = list(
-        db.scalars(
-            select(StoreTable)
-            .where(StoreTable.store_id == store_id, StoreTable.is_active.is_(True))
-            .order_by(StoreTable.name)
-        ).all()
-    )
-    if not tables:
-        tables = [
-            StoreTable(
-                store_id=store_id,
-                name=f"샘플 T{i + 1}",
-                seats=4,
-                grid_x=3 + i % 2 * 11,
-                grid_y=4 + i // 2 * 9,
-            )
-            for i in range(4)
-        ]
-        db.add_all(tables)
-        db.flush()
+    tables = _seed_floor(db, store)
     ingredients = [db.get(Ingredient, ident) for ident in ingredient_ids]
     menus = [db.get(MenuItem, ident) for ident in menu_ids]
     assert all(ingredients) and all(menus)
@@ -290,6 +357,7 @@ def _seed_activity(
         if store.business_days
         else set(weekdays[1:])
     )
+    _seed_attendance(db, store_id, today, {i for i, day in enumerate(weekdays) if day in open_days})
     month_sales: dict[str, int] = {}
     receipts = orders = visits = 0
     day = first
@@ -305,7 +373,7 @@ def _seed_activity(
         for index in range(parties):
             party = rng.choices([1, 2, 3], [2, 7, 1])[0]
             hour = [11, 12, 18, 19, 13, 17, 20][index // len(tables) % 7]
-            at = datetime.combine(day, time(hour, index % len(tables) * 3), zone)
+            at = datetime.combine(day, time(hour, index % len(tables) * 3 % 60), zone)
             order = SalesOrder(
                 store_id=store_id,
                 source_mode=SAMPLE,

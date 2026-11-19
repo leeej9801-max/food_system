@@ -167,14 +167,25 @@ ORD-303,2026-10-25 18:00:00,까르보나라,1,16000,CANCELLED
 def test_western_bistro_demo_seed_replaces_sample_sales(
     client: TestClient,
 ) -> None:
-    store = client.post("/api/v1/stores", json={"name": "프로토타입 비스트로"}).json()
+    store = client.post(
+        "/api/v1/stores", json={"name": "프로토타입 비스트로", "initial_table_count": 2}
+    ).json()
     store_id = store["id"]
+    tables_url = f"/api/v1/stores/{store_id}/tables"
+    before = {row["name"]: row["id"] for row in client.get(tables_url).json()}
 
     seed1 = client.post(f"/api/v1/stores/{store_id}/seed-western-demo")
     assert seed1.status_code == 200
     assert seed1.json()["ingredients_created"] == 5
     assert seed1.json()["menus_created"] == 4
     assert seed1.json()["receipts_created"] > 500
+    tables = {row["name"]: row for row in client.get(tables_url).json()}
+    assert {name: row["id"] for name, row in tables.items()} == before
+    assert (tables["T1"]["grid_x"], tables["T1"]["grid_y"], tables["T1"]["orientation"]) == (
+        21,
+        1,
+        "V",
+    )
     sales1 = client.get(f"/api/v1/stores/{store_id}/analytics/sales").json()
 
     # 재호출 시 중복 생성되지 않음 (멱등성)

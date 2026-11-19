@@ -1,5 +1,6 @@
 """기본/월 목표, 완료 기간 평균과 전 화면 공통 샘플의 회귀 증명."""
 
+import json
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo
@@ -15,10 +16,13 @@ from app.db.models import (
     SalesOrder,
     SessionSlot,
     Store,
+    StoreTable,
     VisitSession,
     utcnow,
 )
+from app.db.models.attendance import AttendanceShift, Staff
 from app.services.demo_seed import SAMPLE, seed_western_bistro_demo
+from app.services.floor import PRESETS
 from app.services.pnl import get_pnl
 
 
@@ -107,6 +111,17 @@ def test_sample_period_ratios_and_replace_preserves_manual(db_session: Session) 
     db_session.commit()
     sid = store.id
     seed_western_bistro_demo(db_session, store_id=sid, today=date(2026, 11, 18))
+    tables, fixtures = PRESETS["meal_love"]
+    assert json.loads(store.floor_fixtures or "null") == list(fixtures)
+    assert db_session.scalar(select(func.count()).select_from(StoreTable)) == len(tables)
+    staff = list(db_session.scalars(select(Staff).where(Staff.store_id == sid)))
+    assert {row.role for row in staff} == {"HALL", "KITCHEN"}
+    shift_ids = set(
+        db_session.scalars(select(AttendanceShift.id).where(AttendanceShift.store_id == sid))
+    )
+    assert len(shift_ids) == 26
+    manual_staff = Staff(store_id=sid, name="수기 직원", role="HALL", color="#123456")
+    db_session.add(manual_staff)
     totals = []
     for number in range(5, 12):
         pnl = get_pnl(
@@ -146,6 +161,10 @@ def test_sample_period_ratios_and_replace_preserves_manual(db_session: Session) 
     db_session.add_all([count, expense])
     db_session.commit()
     seed_western_bistro_demo(db_session, store_id=sid, today=date(2026, 11, 18))
+    assert db_session.get(Staff, manual_staff.id) is not None
+    assert db_session.scalar(select(func.count()).select_from(Staff)) == 3
+    assert set(db_session.scalars(select(AttendanceShift.id))) == shift_ids
+    assert db_session.scalar(select(func.count()).select_from(StoreTable)) == len(tables)
     assert db_session.get(InventoryCount, count.id) is not None
     assert db_session.get(MonthlyExpense, expense.id) is not None
     assert (
