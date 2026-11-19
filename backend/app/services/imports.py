@@ -121,20 +121,9 @@ def get_integration_status(db: Session, *, store_id: UUID) -> IntegrationStatusR
     conn = _get_or_create_pos_connection(db, store_id=store_id)
     db.commit()
 
-    orders = sales_order_repo.list_with_items(db, store_id)
-
-    completed_orders = [o for o in orders if o.status == "COMPLETED"]
-    net_sales = Decimal("0.00")
-    net_qty = 0
-    unmapped_set: set[str] = set()
-
-    for order in orders:
-        for item in order.items:
-            if item.mapping_status == "UNMAPPED":
-                unmapped_set.add(item.raw_product_name)
-            if order.status == "COMPLETED" and item.status == "COMPLETED":
-                net_sales += Decimal(str(item.unit_price)) * item.quantity
-                net_qty += item.quantity
+    completed_count, net_sales, net_qty, unmapped = sales_order_repo.integration_totals(
+        db, store_id
+    )
 
     mode_val: PosModeType = (
         "TOSS_OPEN_API"
@@ -154,10 +143,10 @@ def get_integration_status(db: Session, *, store_id: UUID) -> IntegrationStatusR
         is_realtime=False,
         last_synced_at=conn.last_synced_at,
         latest_data_time=conn.latest_data_time,
-        total_orders_count=len(completed_orders),
+        total_orders_count=completed_count,
         net_sales_amount=net_sales.quantize(Decimal("0.01")),
         net_items_quantity=net_qty,
-        unmapped_products=sorted(unmapped_set),
+        unmapped_products=unmapped,
     )
 
 
@@ -615,6 +604,9 @@ def _serialize_sales_order(
     )
 
 
+RECENT_ORDER_LIMIT = 100
+
+
 def list_sales_orders(db: Session, *, store_id: UUID) -> SalesOrdersListResponse:
     get_store_or_404(db, store_id)
     conn = _get_or_create_pos_connection(db, store_id=store_id)
@@ -626,7 +618,8 @@ def list_sales_orders(db: Session, *, store_id: UUID) -> SalesOrdersListResponse
         else "POS 연동 모드(A/B): 주문 변경 및 환불은 POS 단말기 이벤트에서 자동 동기화되므로 수동 수정이 잠겨 있습니다."
     )
 
-    orders = sales_order_repo.list_recent_with_items(db, store_id)
+    # 홈 화면은 최근 주문만 보여준다. 전체 이력(수천 건) 직렬화가 응답의 대부분을 차지했다.
+    orders = sales_order_repo.list_recent_with_items(db, store_id, limit=RECENT_ORDER_LIMIT)
     menus_by_id = {m.id: m for m in menu_repo.list_by_store(db, store_id)}
 
     return SalesOrdersListResponse(

@@ -1,0 +1,63 @@
+/* 디자인 토큰. 색은 시안 A 팔레트로 통일한다 (U-51). */
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo",
+    "Malgun Gothic", system-ui, sans-serif;
+
+  /* 태블릿 현장 가독성: 가장 작은 본문 단계를 12px → 13px로 올린다 (메타 정보는 text-[12px]). */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+
+  /* 화면 바탕과 강조 KPI 카드 바탕 */
+  --color-ground: #f1f4f9;
+  --color-ink: #0f1e3d;
+  /* 보조 글씨(진남 65%)와 구분선(진남 9%) */
+  --color-muted: #636d81;
+  --color-rule: #e9ebee;
+
+  /* 단일 강조색(파랑). 진한 단계는 작은 표시·주 버튼에만, 옅은 단계는 선택 상태·배지 면에 쓴다. */
+  --color-accent-50: #eef3ff;
+  --color-accent-100: #dde7ff;
+  --color-accent-200: #c2d4ff;
+  --color-accent-300: #a9c4ff;
+  --color-accent-400: #6f97ff;
+  --color-accent-500: #4a7bff;
+  --color-accent-600: #2f6bff;
+  --color-accent-700: #1f55e0;
+  --color-accent-800: #1a45b5;
+  --color-accent-900: #18388c;
+  --color-accent-950: #0f1e3d;
+}
+
+body {
+  background: var(--color-ground);
+}
+
+:root {
+  --app-zoom: 1;
+  --app-viewport-height: 100dvh;
+}
+
+/* 고해상도 대형 패드(예: Galaxy Tab S7 FE 2560×1600, 브라우저 뷰포트 ~2400×1500): 유효 폭이 ~1300~1440px이 되도록 배율을 키운다 */
+@media (pointer: coarse) and (min-width: 1600px) {
+  :root {
+    --app-zoom: 1.35;
+    --app-viewport-height: calc(100dvh / 1.35);
+  }
+  body {
+    zoom: 1.35;
+  }
+}
+
+@media (pointer: coarse) and (min-width: 2100px) {
+  :root {
+    --app-zoom: 1.7;
+    --app-viewport-height: calc(100dvh / 1.7);
+  }
+  body {
+    zoom: 1.7;
+  }
+}
+
+table {
+  font-variant-numeric: tabular-nums;
+}

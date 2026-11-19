@@ -50,7 +50,7 @@ export function AnalyticsPage({ store }: AnalyticsPageProps) {
   const shownRankings = showAllMenus ? rankings : rankings.slice(0, TOP_N);
 
   return (
-    <div>
+    <div className="analytics-page">
       <div className="page-heading">
         <div className="page-title">
           <h1>분석</h1>

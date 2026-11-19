@@ -164,7 +164,7 @@ ORD-303,2026-10-25 18:00:00,까르보나라,1,16000,CANCELLED
     assert buckets_by_hour[0]["quantity"] == 0  # 일자만 있는 주문이 0시에 왜곡 편입되지 않음
 
 
-def test_western_bistro_demo_seed_idempotent_and_no_fake_sales(
+def test_western_bistro_demo_seed_replaces_sample_sales(
     client: TestClient,
 ) -> None:
     store = client.post("/api/v1/stores", json={"name": "프로토타입 비스트로"}).json()
@@ -174,16 +174,17 @@ def test_western_bistro_demo_seed_idempotent_and_no_fake_sales(
     assert seed1.status_code == 200
     assert seed1.json()["ingredients_created"] == 5
     assert seed1.json()["menus_created"] == 4
-    assert seed1.json()["receipts_created"] == 5
+    assert seed1.json()["receipts_created"] > 500
+    sales1 = client.get(f"/api/v1/stores/{store_id}/analytics/sales").json()
 
     # 재호출 시 중복 생성되지 않음 (멱등성)
     seed2 = client.post(f"/api/v1/stores/{store_id}/seed-western-demo")
     assert seed2.status_code == 200
     assert seed2.json()["ingredients_created"] == 0
     assert seed2.json()["menus_created"] == 0
-    assert seed2.json()["receipts_created"] == 0
+    assert seed2.json()["receipts_created"] == seed1.json()["receipts_created"]
 
-    # 가짜 판매 매출은 자동 주입되지 않아야 함
+    # 명시적으로 요청한 전체 샘플: 재실행해도 판매 합계는 같다.
     sales = client.get(f"/api/v1/stores/{store_id}/analytics/sales").json()
-    assert sales["total_completed_orders"] == 0
-    assert Decimal(sales["total_net_sales"]) == Decimal("0.00")
+    assert sales["total_completed_orders"] == sales1["total_completed_orders"] > 0
+    assert sales["total_net_sales"] == sales1["total_net_sales"]

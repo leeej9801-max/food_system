@@ -128,6 +128,12 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
     setNotes(selectedTable.active_visit?.notes ?? "");
   }
 
+  // 착석·인원·자리·배치 변경은 테이블과 방문 집계만 바뀐다. 매출·재고까지 다시 읽으면 저장마다 요청이 6개로 늘었다.
+  function refreshFloor() {
+    queryClient.invalidateQueries({ queryKey: ["tables", store.id] });
+    queryClient.invalidateQueries({ queryKey: ["visit-summary", store.id] });
+  }
+
   function refreshAll() {
     queryClient.invalidateQueries({ queryKey: ["tables", store.id] });
     queryClient.invalidateQueries({ queryKey: ["visit-summary", store.id] });
@@ -146,7 +152,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
         notes: notes.trim() || null,
       });
     },
-    onSuccess: () => refreshAll(),
+    onSuccess: () => refreshFloor(),
     onError: (err: unknown) => {
       setBanner({ type: "error", text: errorText(err, "착석 기록에 실패했습니다.") });
     },
@@ -161,7 +167,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
       if (!activeVisit) throw new Error("진행 중인 방문 세션이 없습니다.");
       return updateVisitSession(store.id, activeVisit.id, payload);
     },
-    onSuccess: () => refreshAll(),
+    onSuccess: () => refreshFloor(),
     onError: (err: unknown) => {
       setBanner({ type: "error", text: errorText(err, "상태 변경에 실패했습니다.") });
     },
@@ -175,7 +181,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
         age_band: params.age_band,
       });
     },
-    onSuccess: () => refreshAll(),
+    onSuccess: () => refreshFloor(),
     onError: (err: unknown) => {
       setBanner({ type: "error", text: errorText(err, "객층 입력에 실패했습니다.") });
     },
@@ -186,7 +192,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
       if (!activeVisit) throw new Error("진행 중인 방문 세션이 없습니다.");
       return addVisitSlot(store.id, activeVisit.id, p);
     },
-    onSuccess: () => refreshAll(),
+    onSuccess: () => refreshFloor(),
     onError: (err: unknown) => {
       setBanner({ type: "error", text: errorText(err, "인원 추가에 실패했습니다.") });
     },
@@ -197,7 +203,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
       if (!activeVisit) throw new Error("진행 중인 방문 세션이 없습니다.");
       return removeVisitSlot(store.id, activeVisit.id, slotNo);
     },
-    onSuccess: () => refreshAll(),
+    onSuccess: () => refreshFloor(),
     onError: (err: unknown) => {
       setBanner({ type: "error", text: errorText(err, "인원 빼기에 실패했습니다.") });
     },
@@ -258,7 +264,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
         grid_y: params.gridY,
         orientation: params.orientation,
       }),
-    onSuccess: () => refreshAll(),
+    onSuccess: () => refreshFloor(),
     onError: (err: unknown) => {
       setBanner({ type: "error", text: errorText(err, "테이블 이동에 실패했습니다.") });
     },
@@ -299,7 +305,7 @@ export function HomePage({ store, metaverseMode }: HomePageProps) {
 
   return (
     <div
-      className="flex min-h-0 flex-col gap-3"
+      className="home-page flex min-h-0 flex-col gap-3"
       style={{ height: "calc(var(--app-viewport-height) - var(--app-header-height, 56px) - 3rem)" }}
     >
       {banner && (

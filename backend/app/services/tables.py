@@ -292,17 +292,22 @@ def update_visit_session(
     return _to_visit_response(visit, visit.table.name)
 
 
+RECENT_VISIT_LIMIT = 100
+
+
 def list_visit_summary(db: Session, *, store_id: UUID) -> VisitSummaryResponse:
     get_store_or_404(db, store_id)
     if close_expired_sessions(db, store_id):
         db.commit()
-    sessions = visit_repo.list_with_table_and_slots(db, store_id)
-    active_sessions = [s for s in sessions if s.status in ("SEATED", "PAID")]
+    # 화면은 개수만 쓴다. 목록은 최근 RECENT_VISIT_LIMIT건만 주고 합계는 DB 집계로 낸다.
+    sessions = visit_repo.list_with_table_and_slots(db, store_id, limit=RECENT_VISIT_LIMIT)
+    active_sessions = visit_repo.list_open_with_table_and_slots(db, store_id)
+    total_visits, total_guests = visit_repo.count_totals(db, store_id)
     return VisitSummaryResponse(
         active_table_count=len(active_sessions),
         active_guest_count=sum(s.party_size for s in active_sessions),
-        total_visit_count=len(sessions),
-        total_guest_count=sum(s.party_size for s in sessions),
+        total_visit_count=total_visits,
+        total_guest_count=total_guests,
         sessions=[_to_visit_response(s, s.table.name) for s in sessions],
     )
 

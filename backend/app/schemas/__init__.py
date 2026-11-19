@@ -908,7 +908,7 @@ class GuestSessionContextUpdate(BaseModel):
 
 # ---- 월별 손익표 (WO-20261111-002) ----
 
-PNL_MONTH_PATTERN = r"^\d{4}-(0[1-9]|1[0-2])$"
+PNL_MONTH_PATTERN = r"^20\d{2}-(0[1-9]|1[0-2])$"
 
 PnlSourceType = Literal["auto", "manual"]
 
@@ -936,6 +936,91 @@ class PnlDay(BaseModel):
     expenses: int
 
 
+class PnlDaySale(BaseModel):
+    menu_item_id: UUID | None  # None이면 메뉴에 연결되지 않은 POS 상품명
+    name: str
+    quantity: int
+    amount: int
+
+
+class PnlDayReceipt(BaseModel):
+    id: UUID
+    ingredient_name: str
+    quantity: Decimal
+    unit: str
+    amount: int
+    received_at: datetime
+    supplier_name: str | None
+
+
+class PnlDayDetail(BaseModel):
+    """하루 상세: 날짜가 있는 기록만(판매·입고·추정 카드수수료). 월 단위 수기 항목은 넣지 않는다."""
+
+    date: date
+    revenue: int
+    expenses: int
+    operating_profit: int
+    card_fee: int
+    card_fee_percent: Decimal
+    sales: list[PnlDaySale]
+    receipts: list[PnlDayReceipt]
+
+
+class PnlPeriod(BaseModel):
+    """양 끝 포함 기간. 전월 동기는 날짜 실적만, 주 비교는 월 수기 금액 안분도 포함한다."""
+
+    start: date
+    end: date
+    revenue: int
+    expenses: int
+    operating_profit: int
+
+
+class PnlUnitComparison(BaseModel):
+    current: PnlPeriod | None
+    baseline: PnlPeriod | None
+    baseline_count: int
+
+
+class PnlComparison(BaseModel):
+    previous_month: PnlTrendPoint
+    to_date: PnlPeriod | None
+    previous_to_date: PnlPeriod | None
+    weekly: PnlUnitComparison
+    monthly_average: PnlUnitComparison
+    weekly_average: PnlUnitComparison
+    average_months: int
+
+
+class PnlGoal(BaseModel):
+    revenue_target: int | None
+    profit_target: int | None
+    # 이 달 목표가 없으면 가장 최근 이전 달 목표를 이어받는다. 이어받은 달(YYYY-MM), 직접 설정이면 None
+    inherited_from: str | None = None
+
+
+class PnlGoalUpdate(BaseModel):
+    revenue_target: int | None = Field(None, ge=0, le=10_000_000_000)
+    profit_target: int | None = Field(None, ge=-10_000_000_000, le=10_000_000_000)
+
+
+class PnlSalesDay(BaseModel):
+    date: date
+    revenue: int
+    order_count: int
+
+
+class PnlKpi(BaseModel):
+    order_count: int
+    previous_order_count: int
+    to_date_order_count: int | None
+    previous_to_date_order_count: int | None
+    previous_has_data: bool
+    previous_to_date_has_data: bool | None
+    today: PnlSalesDay
+    yesterday: PnlSalesDay
+
+
 class PnlResponse(BaseModel):
     store_id: UUID
     month: str
@@ -947,6 +1032,9 @@ class PnlResponse(BaseModel):
     operating_margin_percent: Decimal | None
     trend: list[PnlTrendPoint]  # 최근 6개월, 오래된 달부터
     daily: list[PnlDay]  # 그 달 모든 날, 1일부터
+    comparison: PnlComparison
+    goal: PnlGoal
+    kpi: PnlKpi
 
 
 class PnlExpenseInput(BaseModel):

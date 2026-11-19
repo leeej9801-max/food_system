@@ -426,7 +426,7 @@ function Inventory({ store }: InventoryPageProps) {
                       <td className="!text-right text-muted tabular-nums">{fmt(item.adjustments_since_count_base)}{u}</td>
                       <td className="!text-right font-semibold tabular-nums">{fmt(item.estimated_quantity)}{u}</td>
                       <td><span className={`chip ${status.className}`}>{status.label}</span></td>
-                      <td className="!text-right"><div className="inventory-table-actions flex justify-end gap-1.5">
+                      <td className="!text-right"><div className="inventory-table-actions flex justify-end">
                         {(Object.keys(ACTION_LABELS) as Action[]).map((action) => (
                           <button key={action} type="button" onClick={() => openAction(item, action)}
                             className={`pill pill-sm ${action === "RECEIPT" ? "pill-dark" : "pill-soft"}`}>{ACTION_LABELS[action]}</button>

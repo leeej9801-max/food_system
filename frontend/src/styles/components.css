@@ -1,0 +1,310 @@
+/* 시안 A 공통 부품 (U-52). 패드(가로 1024~1280)가 기준이고, 넓은 화면은 간격만 넓힌다. */
+@layer components {
+  .page-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 16px;
+    margin-bottom: 16px;
+  }
+  .page-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+  .page-title h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1.1px;
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+  .page-title .title-divider {
+    width: 1px;
+    height: 21px;
+    background: color-mix(in srgb, var(--color-ink) 20%, transparent);
+  }
+  .page-title .title-meta {
+    font-size: 14px;
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+  .page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .card {
+    min-width: 0;
+    border-radius: 16px;
+    background: #fff;
+    padding: 24px;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .card-head h2 {
+    font-size: 16px;
+    font-weight: 650;
+    letter-spacing: -0.4px;
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+  .card-meta {
+    font-size: 12px;
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 550;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .pill:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .pill-sm {
+    min-height: 34px;
+    padding: 0 14px;
+    font-size: 12px;
+  }
+  .pill-primary {
+    background: var(--color-accent-600);
+    color: #fff;
+  }
+  .pill-primary:hover:not(:disabled) {
+    background: var(--color-accent-700);
+  }
+  .pill-secondary {
+    background: #fff;
+    color: var(--color-ink);
+  }
+  .pill-secondary:hover:not(:disabled) {
+    background: var(--color-accent-50);
+  }
+  /* 흰 카드 안에서 쓰는 보조 버튼 */
+  .pill-soft {
+    background: var(--color-ground);
+    color: var(--color-ink);
+  }
+  .pill-soft:hover:not(:disabled) {
+    background: var(--color-accent-50);
+  }
+  .pill-soft[aria-pressed="true"] {
+    background: var(--color-ink);
+    color: #fff;
+  }
+  .pill-dark {
+    background: var(--color-ink);
+    color: #fff;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.45;
+    white-space: nowrap;
+    background: #f6f8fb;
+    color: var(--color-muted);
+    border: 0;
+  }
+  .chip-ok {
+    background: #e8f6f1;
+    color: #0f7a5a;
+  }
+  .chip-warn {
+    background: #fff4ec;
+    color: #c2410c;
+  }
+  .chip-danger {
+    background: #fdecec;
+    color: #b42318;
+  }
+  .chip-idle {
+    background: #f6f8fb;
+    color: var(--color-muted);
+  }
+  .menu-category-chip {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.45;
+    white-space: nowrap;
+    background: #f6f8fb;
+    color: var(--color-muted);
+  }
+  .menu-category-tone-blue {
+    background: var(--color-background-blue, #b9d7ff);
+    color: var(--color-text-blue, #003978);
+  }
+  .menu-category-tone-teal {
+    background: var(--color-background-teal, #a9e2d6);
+    color: var(--color-text-teal, #00463d);
+  }
+  .menu-category-tone-purple {
+    background: var(--color-background-purple, #f7d5ff);
+    color: var(--color-text-purple, #5c0e6c);
+  }
+  .menu-category-tone-green {
+    background: var(--color-background-green, #bce0bb);
+    color: var(--color-text-green, #00490b);
+  }
+  .menu-category-tone-orange {
+    background: var(--color-background-orange, #ffc7a1);
+    color: var(--color-text-orange, #622700);
+  }
+  .menu-category-tone-cyan {
+    background: var(--color-background-cyan, #9ae2f4);
+    color: var(--color-text-cyan, #004351);
+  }
+  .menu-category-tone-pink {
+    background: var(--color-background-pink, #ffc0d7);
+    color: var(--color-text-pink, #70003f);
+  }
+  .menu-category-tone-yellow {
+    background: var(--color-background-yellow, #fae19e);
+    color: var(--color-text-yellow, #4b3900);
+  }
+  .menu-category-tone-neutral {
+    background: var(--color-background-gray, #e2e2e2);
+    color: var(--color-text-gray, #1b1b1b);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .data-table th {
+    height: 42px;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--color-rule);
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+  .data-table td {
+    height: 52px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--color-rule);
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+  .data-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .data-table th:first-child,
+  .data-table td:first-child {
+    padding-left: 0;
+  }
+  .data-table th:last-child,
+  .data-table td:last-child {
+    padding-right: 0;
+  }
+
+  /* astryx Table도 패드·공통 표와 행 높이를 맞춘다 */
+  .astryx-table-header-cell {
+    height: 42px;
+  }
+  .astryx-table-cell {
+    height: 52px;
+  }
+
+  .kpi-label {
+    font-size: 15px;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .kpi-value {
+    margin-top: 12px;
+    font-size: 30px;
+    font-weight: 650;
+    letter-spacing: -1.1px;
+    line-height: 1.15;
+    color: var(--color-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-value small {
+    margin-left: 5px;
+    font-size: 14px;
+    font-weight: 450;
+    letter-spacing: 0;
+  }
+  .kpi-sub {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* 패드 가로(1280 이하): 카드 안쪽과 숫자를 한 단계 줄인다 */
+@media (max-width: 1280px) {
+  .card {
+    padding: 20px;
+  }
+  .kpi-value {
+    font-size: 25px;
+  }
+}
+
+/* 손가락 입력 기기: 누르는 영역을 44px 이상, 표 행을 56px 이상으로 */
+@media (pointer: coarse) {
+  .pill {
+    min-height: 44px;
+  }
+  .pill-sm {
+    min-height: 44px;
+    padding: 0 15px;
+    font-size: 13px;
+  }
+  .data-table th,
+  .astryx-table-header-cell {
+    height: 44px;
+  }
+  .data-table td,
+  .astryx-table-cell {
+    height: 56px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title h1 {
+    font-size: 24px;
+  }
+}

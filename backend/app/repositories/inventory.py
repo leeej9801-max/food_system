@@ -68,3 +68,19 @@ def sum_receipt_cost_by_day(
         .group_by(day)
     ).all()
     return {d: t for d, t in rows}
+
+
+def list_receipts_between(
+    db: Session, store_id: UUID, start: datetime, end: datetime
+) -> list[InventoryReceipt]:
+    return list(
+        db.scalars(
+            select(InventoryReceipt)
+            .where(
+                InventoryReceipt.store_id == store_id,
+                InventoryReceipt.received_at >= start,
+                InventoryReceipt.received_at < end,
+            )
+            .order_by(InventoryReceipt.received_at)
+        )
+    )

@@ -1,0 +1,164 @@
+/* 식자재 관리 시안 v5 화면 전용 스타일 (공통 KPI·탭·표·배지는 kpi.css·components.css 사용) */
+@layer components {
+  .ingredient-management .kpi-seg {
+    display: flex;
+    gap: 3px;
+    height: 28px;
+  }
+
+  .ingredient-management .kpi-seg i {
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-style: normal;
+    font-size: 12px;
+    color: #fff;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .ingredient-management .ing-safety-slider {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    vertical-align: middle;
+  }
+
+  .ingredient-management .ing-safety-track-wrap {
+    position: relative;
+    width: 112px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .ingredient-management .ing-safety-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: #d9e0ea;
+    outline: none;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  .ingredient-management .ing-safety-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2.5px solid var(--kpi-accent);
+    box-shadow: 0 1px 3px rgba(15, 30, 61, 0.22);
+    cursor: grab;
+    transition: transform 0.1s ease;
+  }
+
+  .ingredient-management .ing-safety-range:active::-webkit-slider-thumb {
+    cursor: grabbing;
+    transform: scale(1.1);
+  }
+
+  .ingredient-management .ing-safety-range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2.5px solid var(--kpi-accent);
+    box-shadow: 0 1px 3px rgba(15, 30, 61, 0.22);
+    cursor: grab;
+  }
+
+  .ingredient-management .ing-safety-range:focus-visible {
+    outline: 2px solid var(--kpi-accent);
+    outline-offset: 2px;
+  }
+
+  .ingredient-management .ing-est-tick {
+    position: absolute;
+    top: 3px;
+    width: 2px;
+    height: 14px;
+    border-radius: 1px;
+    background: var(--kpi-ink);
+    opacity: 0.45;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  .ingredient-management .ing-safety-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--kpi-ink);
+    min-width: 58px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ingredient-management .ing-status-cell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .ingredient-management .ing-name-btn {
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .ingredient-management .ing-name-btn:hover {
+    text-decoration: underline;
+  }
+
+  .ingredient-management .restock-hero-card:focus-visible,
+  .ingredient-management .ing-name-btn:focus-visible {
+    outline: 2px solid var(--color-accent-600);
+    outline-offset: 2px;
+  }
+
+  .ing-adjust-modal {
+    width: min(420px, 92vw);
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px 24px;
+    color: #0f1e3d;
+    box-shadow: 0 20px 50px rgba(15, 30, 61, 0.18);
+  }
+
+  .ing-adjust-reasons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .ing-adjust-reason-btn {
+    border: 1px solid #e6eaf1;
+    border-radius: 10px;
+    padding: 9px 12px;
+    background: #f6f8fb;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #636d81;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+
+  .ing-adjust-reason-btn.is-on {
+    border-color: #2f6bff;
+    background: #eef3ff;
+    color: #2f6bff;
+  }
+}

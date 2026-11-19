@@ -1,0 +1,233 @@
+/* 재고·입고: 상단 기록 도구와 표가 화면 높이를 나눠 쓴다. */
+@layer components {
+  .inventory-management {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .inventory-management .page-heading {
+    margin-bottom: 0;
+  }
+  .inventory-management .inventory-overview {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .inventory-management .inventory-alert-card,
+  .inventory-management .inventory-quick-card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .inventory-management .inventory-alert-card {
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+  .inventory-management .inventory-alert-card:hover {
+    filter: brightness(0.97);
+  }
+  .inventory-management .inventory-quick-card {
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .inventory-management .inventory-quick-action {
+    min-height: 44px;
+    padding-inline: 8px;
+  }
+  .inventory-management .inventory-receipt-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .inventory-management .inventory-receipt-summary dt {
+    font-size: 13px;
+    color: var(--color-muted);
+  }
+  .inventory-management .inventory-receipt-summary dd {
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .inventory-management .inventory-list {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .inventory-management .inventory-toolbar {
+    flex-shrink: 0;
+    overflow-x: auto;
+  }
+  .inventory-management .inventory-toolbar > .astryx-segmented-control {
+    min-width: max-content;
+  }
+  .inventory-management .inventory-table-region,
+  .inventory-management .inventory-history-scroll {
+    min-width: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .inventory-management .inventory-table-region {
+    height: 360px;
+  }
+  .inventory-management .inventory-table th {
+    padding-inline: 6px;
+    line-height: 1.25;
+    white-space: normal;
+  }
+  .inventory-management .inventory-table td {
+    padding-inline: 6px;
+  }
+  .inventory-management .inventory-table th,
+  .inventory-management .inventory-history-scroll th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: white;
+  }
+  .inventory-management .inventory-table th:first-child,
+  .inventory-management .inventory-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 120px;
+    background: white;
+  }
+  .inventory-management .inventory-table th:first-child {
+    z-index: 3;
+  }
+  .inventory-management .inventory-count-value {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .inventory-management .inventory-info-button,
+  .inventory-management .inventory-info-placeholder {
+    display: inline-flex;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+  }
+  .inventory-management .inventory-info-button {
+    border-radius: 50%;
+    color: var(--color-muted);
+    cursor: pointer;
+  }
+  .inventory-management .inventory-info-button:hover {
+    background: var(--color-accent-50);
+  }
+  .inventory-management .inventory-alert-card:focus-visible,
+  .inventory-management .inventory-info-button:focus-visible,
+  .inventory-management .inventory-table-region:focus-visible,
+  .inventory-management .inventory-history-scroll:focus-visible,
+  .inventory-management .inventory-select:focus-visible {
+    outline: 2px solid var(--color-accent-600);
+    outline-offset: 2px;
+  }
+  .inventory-management .inventory-select {
+    min-height: 44px;
+    max-width: 100%;
+    border-radius: 12px;
+    padding-inline: 12px;
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-size: 14px;
+  }
+  .inventory-management .inventory-action-dialog {
+    max-height: calc(var(--app-viewport-height) - 2rem);
+    overflow-y: auto;
+  }
+  .inventory-management .inventory-history-dialog {
+    display: flex;
+    width: 100%;
+    max-width: 1100px;
+    height: min(720px, calc(var(--app-viewport-height) - 2rem));
+    min-height: 0;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .inventory-management .inventory-history-scroll {
+    min-height: 0;
+    flex: 1;
+  }
+  .inventory-management .inventory-table-actions {
+    gap: 6px;
+  }
+
+  @media (min-width: 768px) {
+    .inventory-management .inventory-overview {
+      grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr);
+    }
+  }
+  @media (min-width: 768px) and (min-height: 600px) {
+    .inventory-management {
+      height: calc(var(--app-viewport-height) - var(--app-header-height, 56px) - 3rem);
+      min-height: 720px;
+    }
+    .inventory-management .inventory-list {
+      flex: 1;
+    }
+    .inventory-management .inventory-table-region {
+      height: auto;
+      min-height: 310px;
+      flex: 1;
+    }
+  }
+  @media (max-width: 1200px) {
+    .inventory-management .inventory-table {
+      font-size: 13px;
+    }
+    .inventory-management .inventory-table th,
+    .inventory-management .inventory-table td {
+      padding-inline: 4px;
+    }
+    .inventory-management .inventory-table th {
+      word-break: keep-all;
+    }
+    .inventory-management .inventory-table th:first-child,
+    .inventory-management .inventory-table td:first-child {
+      min-width: 96px;
+      max-width: 112px;
+      padding-left: 0;
+      white-space: normal;
+      word-break: keep-all;
+      line-height: 1.25;
+    }
+    .inventory-management .inventory-table th:last-child,
+    .inventory-management .inventory-table td:last-child {
+      padding-right: 0;
+    }
+    .inventory-management .inventory-table .inventory-count-value {
+      gap: 2px;
+    }
+    .inventory-management .inventory-table .inventory-info-button,
+    .inventory-management .inventory-table .inventory-info-placeholder {
+      width: 26px;
+      height: 26px;
+    }
+    .inventory-management .inventory-table-actions {
+      gap: 4px;
+    }
+    .inventory-management .inventory-table-actions .pill-sm {
+      padding: 0 9px;
+      font-size: 12px;
+    }
+  }
+  @media (pointer: coarse) {
+    .inventory-management .inventory-info-button,
+    .inventory-management .inventory-info-placeholder {
+      width: 44px;
+      height: 44px;
+    }
+  }
+}
