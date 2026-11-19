@@ -5,6 +5,17 @@ x-api-env: &api-env
   API_PREFIX: /api/v1
   APP_TIMEZONE: Asia/Seoul
   CORS_ALLOWED_ORIGINS: https://food.leejblab.site
+  STAFF_FRONTEND_URL: https://food.leejblab.site
+  OWNER_FRONTEND_URL: https://food.leejblab.site
+  KAKAO_REDIRECT_URI: https://food.leejblab.site/api/v1/auth/kakao/callback
+  OWNER_KAKAO_REDIRECT_URI: https://food.leejblab.site/api/v1/auth/owner/kakao/callback
+  # 값은 git 제외 .env.deploy에서만 읽는다
+  KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY:?add to .env.deploy}
+  KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:?add to .env.deploy}
+  KMA_APIHUB_KEY: ${KMA_APIHUB_KEY:?add to .env.deploy}
+  KMA_STATION_ID: ${KMA_STATION_ID:?add to .env.deploy}
+  KMA_GRID_NX: ${KMA_GRID_NX:?add to .env.deploy}
+  KMA_GRID_NY: ${KMA_GRID_NY:?add to .env.deploy}
 
 x-api: &api
   image: food-backend:local
