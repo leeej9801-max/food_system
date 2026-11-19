@@ -20,6 +20,12 @@ class Settings(BaseSettings):
     app_timezone: str = "Asia/Seoul"
     cors_allowed_origins: str = "http://localhost:5173"
     pos_mode: str = "csv"
+    kakao_rest_api_key: str = ""
+    kakao_client_secret: str = ""
+    kakao_redirect_uri: str = "http://localhost:8001/api/v1/auth/kakao/callback"
+    staff_frontend_url: str = "http://localhost:5175"
+    # 미설정 시 카카오 client secret에서 용도를 분리한 HMAC 키를 유도한다.
+    staff_auth_signing_key: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

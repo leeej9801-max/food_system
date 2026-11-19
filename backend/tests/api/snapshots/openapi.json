@@ -1,6 +1,262 @@
 {
   "components": {
     "schemas": {
+      "AttendanceResponse": {
+        "properties": {
+          "corrections": {
+            "items": {
+              "$ref": "#/components/schemas/CorrectionResponse"
+            },
+            "title": "Corrections",
+            "type": "array"
+          },
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventResponse"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "gaps": {
+            "items": {
+              "$ref": "#/components/schemas/Gap"
+            },
+            "title": "Gaps",
+            "type": "array"
+          },
+          "now": {
+            "format": "date-time",
+            "title": "Now",
+            "type": "string"
+          },
+          "presets": {
+            "items": {
+              "$ref": "#/components/schemas/Preset"
+            },
+            "title": "Presets",
+            "type": "array"
+          },
+          "provisional": {
+            "default": true,
+            "title": "Provisional",
+            "type": "boolean"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/WorkSession"
+            },
+            "title": "Sessions",
+            "type": "array"
+          },
+          "shifts": {
+            "items": {
+              "$ref": "#/components/schemas/ShiftResponse"
+            },
+            "title": "Shifts",
+            "type": "array"
+          },
+          "staff": {
+            "items": {
+              "$ref": "#/components/schemas/StaffResponse"
+            },
+            "title": "Staff",
+            "type": "array"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "summary": {
+            "items": {
+              "$ref": "#/components/schemas/StaffSummary"
+            },
+            "title": "Summary",
+            "type": "array"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "now",
+          "staff",
+          "shifts",
+          "presets",
+          "events",
+          "corrections",
+          "sessions",
+          "summary",
+          "gaps"
+        ],
+        "title": "AttendanceResponse",
+        "type": "object"
+      },
+      "CorrectionItem": {
+        "additionalProperties": false,
+        "properties": {
+          "corrected_at": {
+            "format": "date-time",
+            "title": "Corrected At",
+            "type": "string"
+          },
+          "corrected_kind": {
+            "enum": [
+              "IN",
+              "OUT"
+            ],
+            "title": "Corrected Kind",
+            "type": "string"
+          },
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Id"
+          },
+          "previous_correction_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Correction Id"
+          }
+        },
+        "required": [
+          "corrected_kind",
+          "corrected_at"
+        ],
+        "title": "CorrectionItem",
+        "type": "object"
+      },
+      "CorrectionResponse": {
+        "properties": {
+          "corrected_at": {
+            "format": "date-time",
+            "title": "Corrected At",
+            "type": "string"
+          },
+          "corrected_by_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrected By User Id"
+          },
+          "corrected_kind": {
+            "title": "Corrected Kind",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "previous_correction_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Correction Id"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "staff_id": {
+            "format": "uuid",
+            "title": "Staff Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "staff_id",
+          "event_id",
+          "previous_correction_id",
+          "corrected_kind",
+          "corrected_at",
+          "reason",
+          "corrected_by_user_id",
+          "created_at"
+        ],
+        "title": "CorrectionResponse",
+        "type": "object"
+      },
+      "CorrectionsCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CorrectionItem"
+            },
+            "maxItems": 2,
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "staff_id": {
+            "format": "uuid",
+            "title": "Staff Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "staff_id",
+          "reason",
+          "items"
+        ],
+        "title": "CorrectionsCreate",
+        "type": "object"
+      },
       "CostSimulationRequest": {
         "properties": {
           "global_change_percent": {
@@ -392,6 +648,92 @@
         "title": "CsvPreviewValidRow",
         "type": "object"
       },
+      "EventCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "client_event_id": {
+            "format": "uuid",
+            "title": "Client Event Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "IN",
+              "OUT"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "staff_id": {
+            "format": "uuid",
+            "title": "Staff Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "staff_id",
+          "kind",
+          "client_event_id"
+        ],
+        "title": "EventCreate",
+        "type": "object"
+      },
+      "EventResponse": {
+        "properties": {
+          "client_event_id": {
+            "format": "uuid",
+            "title": "Client Event Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "staff_id": {
+            "format": "uuid",
+            "title": "Staff Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "client_event_id",
+          "staff_id",
+          "kind",
+          "occurred_at",
+          "created_at",
+          "device_id"
+        ],
+        "title": "EventResponse",
+        "type": "object"
+      },
       "FieldError": {
         "properties": {
           "field": {
@@ -471,6 +813,32 @@
           "h"
         ],
         "title": "FloorFixture",
+        "type": "object"
+      },
+      "Gap": {
+        "properties": {
+          "ended_at": {
+            "format": "date-time",
+            "title": "Ended At",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "work_date": {
+            "format": "date",
+            "title": "Work Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "work_date",
+          "started_at",
+          "ended_at"
+        ],
+        "title": "Gap",
         "type": "object"
       },
       "GuestAnalyticsResponse": {
@@ -946,6 +1314,52 @@
           "source"
         ],
         "title": "HolidayResponse",
+        "type": "object"
+      },
+      "IdentityResponse": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
+          },
+          "provisional": {
+            "default": true,
+            "title": "Provisional",
+            "type": "boolean"
+          },
+          "staff_id": {
+            "format": "uuid",
+            "title": "Staff Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "UNLINKED",
+              "PENDING",
+              "ACTIVE"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "staff_id",
+          "name",
+          "nickname",
+          "status"
+        ],
+        "title": "IdentityResponse",
         "type": "object"
       },
       "IngredientCreate": {
@@ -1990,6 +2404,30 @@
         "title": "InventoryReceiptResponse",
         "type": "object"
       },
+      "InviteResponse": {
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "provisional": {
+            "default": true,
+            "title": "Provisional",
+            "type": "boolean"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "expires_at"
+        ],
+        "title": "InviteResponse",
+        "type": "object"
+      },
       "MenuCategoryCreate": {
         "properties": {
           "name": {
@@ -2583,6 +3021,46 @@
           "name"
         ],
         "title": "MenuWithoutRecipe",
+        "type": "object"
+      },
+      "OAuthStart": {
+        "properties": {
+          "invite_token": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invite Token"
+          },
+          "store_id": {
+            "format": "uuid",
+            "title": "Store Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "store_id"
+        ],
+        "title": "OAuthStart",
+        "type": "object"
+      },
+      "OAuthStartResponse": {
+        "properties": {
+          "authorize_url": {
+            "title": "Authorize Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "authorize_url"
+        ],
+        "title": "OAuthStartResponse",
         "type": "object"
       },
       "PnlComparison": {
@@ -3283,6 +3761,66 @@
         "title": "PosModeUpdateRequest",
         "type": "object"
       },
+      "Preset": {
+        "additionalProperties": false,
+        "properties": {
+          "end_minute": {
+            "maximum": 1440.0,
+            "minimum": 60.0,
+            "title": "End Minute",
+            "type": "integer"
+          },
+          "key": {
+            "enum": [
+              "AM",
+              "PM",
+              "OPEN",
+              "CLOSE"
+            ],
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "default": "수동 설정",
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "start_minute": {
+            "maximum": 1380.0,
+            "minimum": 0.0,
+            "title": "Start Minute",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start_minute",
+          "end_minute",
+          "key"
+        ],
+        "title": "Preset",
+        "type": "object"
+      },
+      "PresetsUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "presets": {
+            "items": {
+              "$ref": "#/components/schemas/Preset"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Presets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "presets"
+        ],
+        "title": "PresetsUpdate",
+        "type": "object"
+      },
       "Problem": {
         "description": "RFC 9457 오류 본문. `code`와 `errors`는 확장 필드다 (API-004).",
         "properties": {
@@ -3390,6 +3928,82 @@
           "menu_item_id"
         ],
         "title": "ProductMappingUpsertRequest",
+        "type": "object"
+      },
+      "QRRecord": {
+        "properties": {
+          "client_event_id": {
+            "format": "uuid",
+            "title": "Client Event Id",
+            "type": "string"
+          },
+          "qr_token": {
+            "maxLength": 100,
+            "minLength": 40,
+            "pattern": "^[0-9]{1,12}\\.[0-9a-f]{64}$",
+            "title": "Qr Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "qr_token",
+          "client_event_id"
+        ],
+        "title": "QRRecord",
+        "type": "object"
+      },
+      "QRResponse": {
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "provisional": {
+            "default": true,
+            "title": "Provisional",
+            "type": "boolean"
+          },
+          "server_now": {
+            "format": "date-time",
+            "title": "Server Now",
+            "type": "string"
+          },
+          "svg": {
+            "title": "Svg",
+            "type": "string"
+          }
+        },
+        "required": [
+          "svg",
+          "server_now",
+          "expires_at"
+        ],
+        "title": "QRResponse",
+        "type": "object"
+      },
+      "QRStatus": {
+        "properties": {
+          "completed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Recorded"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provisional": {
+            "default": true,
+            "title": "Provisional",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "completed"
+        ],
+        "title": "QRStatus",
         "type": "object"
       },
       "RecipeItemInput": {
@@ -3572,6 +4186,40 @@
           }
         },
         "title": "RecipeUpsertRequest",
+        "type": "object"
+      },
+      "Recorded": {
+        "properties": {
+          "event_id": {
+            "format": "uuid",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "IN",
+              "OUT"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "name",
+          "kind",
+          "occurred_at"
+        ],
+        "title": "Recorded",
         "type": "object"
       },
       "SalesAnalyticsResponse": {
@@ -3957,6 +4605,144 @@
         "title": "SalesOrdersListResponse",
         "type": "object"
       },
+      "ShiftCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "dates": {
+            "items": {
+              "format": "date",
+              "type": "string"
+            },
+            "maxItems": 31,
+            "minItems": 1,
+            "title": "Dates",
+            "type": "array"
+          },
+          "end_minute": {
+            "maximum": 1440.0,
+            "minimum": 60.0,
+            "title": "End Minute",
+            "type": "integer"
+          },
+          "label": {
+            "default": "수동 설정",
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "staff_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Id"
+          },
+          "start_minute": {
+            "maximum": 1380.0,
+            "minimum": 0.0,
+            "title": "Start Minute",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start_minute",
+          "end_minute",
+          "dates"
+        ],
+        "title": "ShiftCreate",
+        "type": "object"
+      },
+      "ShiftResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "end_minute": {
+            "maximum": 1440.0,
+            "minimum": 60.0,
+            "title": "End Minute",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "default": "수동 설정",
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "staff_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Id"
+          },
+          "start_minute": {
+            "maximum": 1380.0,
+            "minimum": 0.0,
+            "title": "Start Minute",
+            "type": "integer"
+          },
+          "work_date": {
+            "format": "date",
+            "title": "Work Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_minute",
+          "end_minute",
+          "id",
+          "staff_id",
+          "work_date"
+        ],
+        "title": "ShiftResponse",
+        "type": "object"
+      },
+      "ShiftTime": {
+        "additionalProperties": false,
+        "properties": {
+          "end_minute": {
+            "maximum": 1440.0,
+            "minimum": 60.0,
+            "title": "End Minute",
+            "type": "integer"
+          },
+          "label": {
+            "default": "수동 설정",
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "start_minute": {
+            "maximum": 1380.0,
+            "minimum": 0.0,
+            "title": "Start Minute",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start_minute",
+          "end_minute"
+        ],
+        "title": "ShiftTime",
+        "type": "object"
+      },
       "SlotProfileUpdate": {
         "properties": {
           "age_band": {
@@ -3999,6 +4785,173 @@
           }
         },
         "title": "SlotProfileUpdate",
+        "type": "object"
+      },
+      "StaffCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "color": {
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "title": "Color",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "HALL",
+              "KITCHEN"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "role",
+          "color"
+        ],
+        "title": "StaffCreate",
+        "type": "object"
+      },
+      "StaffMe": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "staff_id": {
+            "format": "uuid",
+            "title": "Staff Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "ACTIVE"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "staff_id",
+          "name",
+          "status"
+        ],
+        "title": "StaffMe",
+        "type": "object"
+      },
+      "StaffResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "color": {
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "title": "Color",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "HALL",
+              "KITCHEN"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "role",
+          "color",
+          "id",
+          "status"
+        ],
+        "title": "StaffResponse",
+        "type": "object"
+      },
+      "StaffSummary": {
+        "properties": {
+          "actual_minutes": {
+            "title": "Actual Minutes",
+            "type": "integer"
+          },
+          "last_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "IN",
+                  "OUT"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Kind"
+          },
+          "missing_count": {
+            "title": "Missing Count",
+            "type": "integer"
+          },
+          "overtime_minutes": {
+            "title": "Overtime Minutes",
+            "type": "integer"
+          },
+          "planned_minutes": {
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "staff_id": {
+            "format": "uuid",
+            "title": "Staff Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "WORKING",
+              "EXPECTED",
+              "OUT",
+              "MISSING",
+              "NONE"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "staff_id",
+          "planned_minutes",
+          "actual_minutes",
+          "overtime_minutes",
+          "missing_count",
+          "last_kind",
+          "status"
+        ],
+        "title": "StaffSummary",
         "type": "object"
       },
       "StoreCreate": {
@@ -4416,6 +5369,29 @@
           "rotated_at"
         ],
         "title": "TableQrTokenResponse",
+        "type": "object"
+      },
+      "TodaySummary": {
+        "properties": {
+          "today_guest_count": {
+            "title": "Today Guest Count",
+            "type": "integer"
+          },
+          "today_net_sales_amount": {
+            "title": "Today Net Sales Amount",
+            "type": "string"
+          },
+          "today_visit_count": {
+            "title": "Today Visit Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "today_visit_count",
+          "today_guest_count",
+          "today_net_sales_amount"
+        ],
+        "title": "TodaySummary",
         "type": "object"
       },
       "VisitSessionCreate": {
@@ -5091,6 +6067,101 @@
         ],
         "title": "WeatherMonthResponse",
         "type": "object"
+      },
+      "WorkSession": {
+        "properties": {
+          "ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "in_event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "In Event Id"
+          },
+          "in_id": {
+            "format": "uuid",
+            "title": "In Id",
+            "type": "string"
+          },
+          "minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes"
+          },
+          "missing": {
+            "title": "Missing",
+            "type": "boolean"
+          },
+          "out_event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Out Event Id"
+          },
+          "out_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Out Id"
+          },
+          "staff_id": {
+            "format": "uuid",
+            "title": "Staff Id",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "staff_id",
+          "in_id",
+          "out_id",
+          "in_event_id",
+          "out_event_id",
+          "started_at",
+          "ended_at",
+          "minutes",
+          "missing"
+        ],
+        "title": "WorkSession",
+        "type": "object"
       }
     }
   },
@@ -5560,6 +6631,112 @@
         ]
       }
     },
+    "/api/v1/auth/kakao/callback": {
+      "get": {
+        "operationId": "oauth_callback_api_v1_auth_kakao_callback_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 100,
+              "title": "State",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "code",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 2048,
+              "title": "Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Error"
+            }
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Oauth Callback",
+        "tags": [
+          "staff-auth"
+        ]
+      }
+    },
+    "/api/v1/auth/kakao/start": {
+      "post": {
+        "operationId": "oauth_start_api_v1_auth_kakao_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthStartResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Oauth Start",
+        "tags": [
+          "staff-auth"
+        ]
+      }
+    },
     "/api/v1/holidays": {
       "get": {
         "operationId": "get_holidays_api_v1_holidays_get",
@@ -5951,6 +7128,932 @@
         "summary": "Get Sales Analytics Endpoint",
         "tags": [
           "analytics"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance": {
+      "get": {
+        "operationId": "get_attendance_api_v1_stores__store_id__attendance_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Start",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "End",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_inactive",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Inactive",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Attendance",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/corrections": {
+      "post": {
+        "operationId": "correct_events_api_v1_stores__store_id__attendance_corrections_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionsCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CorrectionResponse"
+                  },
+                  "title": "Response Correct Events Api V1 Stores  Store Id  Attendance Corrections Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Correct Events",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/events": {
+      "post": {
+        "operationId": "record_event_api_v1_stores__store_id__attendance_events_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Event",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/identities": {
+      "get": {
+        "description": "PROVISIONAL: 공개 데모의 점주 권한은 아직 검증하지 않는다.",
+        "operationId": "identities_api_v1_stores__store_id__attendance_identities_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IdentityResponse"
+                  },
+                  "title": "Response Identities Api V1 Stores  Store Id  Attendance Identities Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Identities",
+        "tags": [
+          "staff-auth-provisional"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/presets": {
+      "put": {
+        "operationId": "save_presets_api_v1_stores__store_id__attendance_presets_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresetsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Preset"
+                  },
+                  "title": "Response Save Presets Api V1 Stores  Store Id  Attendance Presets Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Presets",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/qr": {
+      "post": {
+        "description": "PROVISIONAL 점주 API. 매장 QR은 서버에 저장하지 않는다.",
+        "operationId": "qr_api_v1_stores__store_id__attendance_qr_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QRResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Qr",
+        "tags": [
+          "staff-auth-provisional"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/qr-status": {
+      "get": {
+        "description": "PROVISIONAL 점주 폴링 API.",
+        "operationId": "qr_status_api_v1_stores__store_id__attendance_qr_status_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "since",
+            "required": true,
+            "schema": {
+              "format": "date-time",
+              "title": "Since",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "staff_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Staff Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QRStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Qr Status",
+        "tags": [
+          "staff-auth-provisional"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/shifts": {
+      "post": {
+        "operationId": "create_shifts_api_v1_stores__store_id__attendance_shifts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ShiftResponse"
+                  },
+                  "title": "Response Create Shifts Api V1 Stores  Store Id  Attendance Shifts Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Shifts",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/shifts/{shift_id}": {
+      "delete": {
+        "operationId": "delete_shift_api_v1_stores__store_id__attendance_shifts__shift_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shift_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Shift Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Delete Shift Api V1 Stores  Store Id  Attendance Shifts  Shift Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Shift",
+        "tags": [
+          "attendance"
+        ]
+      },
+      "put": {
+        "operationId": "update_shift_api_v1_stores__store_id__attendance_shifts__shift_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shift_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Shift Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftTime"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Shift",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/staff": {
+      "get": {
+        "operationId": "list_staff_api_v1_stores__store_id__attendance_staff_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_inactive",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Inactive",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StaffResponse"
+                  },
+                  "title": "Response List Staff Api V1 Stores  Store Id  Attendance Staff Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Staff",
+        "tags": [
+          "attendance"
+        ]
+      },
+      "post": {
+        "operationId": "create_staff_api_v1_stores__store_id__attendance_staff_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Staff",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/staff/{staff_id}": {
+      "delete": {
+        "operationId": "deactivate_staff_api_v1_stores__store_id__attendance_staff__staff_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Staff Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Deactivate Staff Api V1 Stores  Store Id  Attendance Staff  Staff Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Deactivate Staff",
+        "tags": [
+          "attendance"
+        ]
+      },
+      "put": {
+        "operationId": "update_staff_api_v1_stores__store_id__attendance_staff__staff_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Staff Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Staff",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/staff/{staff_id}/approve": {
+      "post": {
+        "description": "PROVISIONAL 점주 API.",
+        "operationId": "approve_api_v1_stores__store_id__attendance_staff__staff_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Staff Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Approve Api V1 Stores  Store Id  Attendance Staff  Staff Id  Approve Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve",
+        "tags": [
+          "staff-auth-provisional"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/attendance/staff/{staff_id}/invite": {
+      "post": {
+        "description": "PROVISIONAL 점주 API.",
+        "operationId": "invite_api_v1_stores__store_id__attendance_staff__staff_id__invite_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Staff Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Invite",
+        "tags": [
+          "staff-auth-provisional"
         ]
       }
     },
@@ -8024,6 +10127,196 @@
         ]
       }
     },
+    "/api/v1/stores/{store_id}/staff-access/logout": {
+      "post": {
+        "operationId": "logout_api_v1_stores__store_id__staff_access_logout_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Logout Api V1 Stores  Store Id  Staff Access Logout Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Logout",
+        "tags": [
+          "staff-auth"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/staff-access/me": {
+      "get": {
+        "operationId": "me_api_v1_stores__store_id__staff_access_me_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Me",
+        "tags": [
+          "staff-auth"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/staff-access/record": {
+      "post": {
+        "operationId": "record_api_v1_stores__store_id__staff_access_record_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QRRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Recorded"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record",
+        "tags": [
+          "staff-auth"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/staff-access/refresh": {
+      "post": {
+        "operationId": "refresh_api_v1_stores__store_id__staff_access_refresh_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Refresh Api V1 Stores  Store Id  Staff Access Refresh Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Refresh",
+        "tags": [
+          "staff-auth"
+        ]
+      }
+    },
     "/api/v1/stores/{store_id}/tables": {
       "get": {
         "operationId": "get_tables_api_v1_stores__store_id__tables_get",
@@ -8297,6 +10590,49 @@
         "summary": "Rotate Table Qr Token",
         "tags": [
           "tables & visits"
+        ]
+      }
+    },
+    "/api/v1/stores/{store_id}/today-summary": {
+      "get": {
+        "operationId": "today_summary_api_v1_stores__store_id__today_summary_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "store_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Store Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodaySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Today Summary",
+        "tags": [
+          "stores"
         ]
       }
     },

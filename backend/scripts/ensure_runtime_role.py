@@ -38,6 +38,16 @@ def ensure_runtime_role(owner_url: str, role: str, password: str) -> None:
             )
             conn.exec_driver_sql(f"GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {role}")
             conn.exec_driver_sql(f"REVOKE ALL ON alembic_version FROM {role}")
+            # 인증 설계 §6.4: 재실행해도 원본·정정의 쓰기 권한이 복원되면 안 된다.
+            for table in (
+                "attendance_events",
+                "attendance_corrections",
+                "audit_logs",
+                "attendance_event_retries",
+                "attendance_qr_uses",
+            ):
+                if conn.scalar(text("SELECT to_regclass(:t)"), {"t": table}):
+                    conn.exec_driver_sql(f"REVOKE UPDATE, DELETE, TRUNCATE ON {table} FROM {role}")
             # 손님 QR 토큰 1개만 푸는 함수 (alembic 0007). 그 전 리비전이면 없다
             if conn.scalar(text("SELECT to_regprocedure('app_resolve_table_qr(text)')")):
                 conn.exec_driver_sql(

@@ -619,3 +619,21 @@ class MenuCategory(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
     )
+
+
+from app.db.models.attendance import (  # noqa: E402, F401
+    AttendanceCorrection,
+    AttendanceEvent,
+    AttendancePreset,
+    AttendanceShift,
+    Staff,
+)
+from app.db.models.staff_auth import (  # noqa: E402, F401
+    AttendanceQRSecret,
+    AttendanceQRUse,
+    StaffIdentity,
+    StaffInvite,
+    StaffOAuthState,
+    StaffRefresh,
+    StaffSession,
+)

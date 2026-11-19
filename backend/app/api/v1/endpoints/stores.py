@@ -7,10 +7,17 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.db.session import get_db
 from app.schemas import StoreCreate, StoreResponse, StoreUpdate
+from app.schemas.today_summary import TodaySummary
 from app.services import demo_seed
 from app.services import menus as menu_service
+from app.services.today_summary import get_today_summary
 
 router = APIRouter(prefix="/stores", tags=["stores"])
+
+
+@router.get("/{store_id}/today-summary")
+def today_summary(store_id: UUID, db: Annotated[Session, Depends(get_db)]) -> TodaySummary:
+    return get_today_summary(db, store_id)
 
 
 @router.get("")

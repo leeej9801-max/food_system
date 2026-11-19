@@ -1,0 +1,29 @@
+@layer components {
+  .staff-mobile { min-height: 100dvh; background: white; color: var(--color-ink); width: 100%; max-width: 32rem; margin: auto; display: flex; flex-direction: column; }
+  .staff-mobile header { display: flex; justify-content: space-between; align-items: baseline; padding: 1.5rem; border-bottom: 1px solid var(--color-rule); }
+  .staff-mobile header span, .staff-mobile footer { color: var(--color-muted); font-size: .8125rem; }
+  .staff-mobile-content { padding: 3.5rem 1.5rem 2rem; flex: 1; }
+  .staff-mobile h1 { font-size: 1.75rem; line-height: 1.4; font-weight: 700; letter-spacing: -.035em; margin: .75rem 0 1.25rem; overflow-wrap: anywhere; }
+  .staff-mobile p { line-height: 1.7; color: var(--color-muted); margin-bottom: 1.5rem; }
+  .staff-mobile .staff-eyebrow { font-size: .8125rem; color: var(--color-accent-700); margin-bottom: .75rem; font-weight: 600; }
+  .staff-mobile button { min-height: 3rem; border-radius: .75rem; padding: .75rem 1rem; font-weight: 600; cursor: pointer; width: 100%; }
+  .staff-mobile button:focus-visible { outline: 3px solid var(--color-accent-600); outline-offset: 3px; }
+  .staff-mobile button:disabled { opacity: .65; cursor: wait; }
+  .staff-kakao { background: #fee500; color: #191919; }
+  .staff-primary { background: var(--color-accent-600); color: white; }
+  .staff-mobile .staff-help { font-size: .8125rem; margin-top: 1.25rem; }
+  .staff-mobile .staff-text-button { background: none; color: var(--color-muted); font-size: .8125rem; margin-top: 1.25rem; }
+  .staff-mobile .staff-error { color: #a6202d; background: #fff1f2; padding: 1rem; border-radius: .75rem; }
+  .staff-mobile time { font-variant-numeric: tabular-nums; font-size: .9375rem; font-weight: 600; }
+  .staff-success-mark { font-size: 2rem; color: var(--color-accent-700); margin-bottom: 1.5rem; }
+  .staff-mobile footer { padding: 1.5rem; line-height: 1.7; }
+  .attendance-access { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--color-rule); }
+  .attendance-access h3 { font-weight: 700; margin-bottom: .5rem; }
+  .attendance-access .access-person { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid var(--color-rule); }
+  .attendance-access small { display: block; color: var(--color-muted); font-size: .8125rem; margin-top: .25rem; }
+  .attendance-access .access-link { width: 100%; min-height: 2.75rem; border: 1px solid var(--color-rule); border-radius: .5rem; padding: .5rem; }
+  .attendance-qr { text-align: center; padding: .5rem 0 1.5rem; }
+  .attendance-qr img { display: block; width: min(100%, 20rem); height: auto; margin: 1rem auto; background: white; }
+  .attendance-qr .qr-count { font-variant-numeric: tabular-nums; font-size: 1.125rem; font-weight: 700; }
+  .attendance-qr .qr-complete { padding: 3rem 0; font-size: 1.5rem; font-weight: 700; line-height: 1.6; }
+}
