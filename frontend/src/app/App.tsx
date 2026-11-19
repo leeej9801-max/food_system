@@ -639,6 +639,7 @@ function StoreApp() {
     queryKey: ["stores"],
     queryFn: fetchStores,
   });
+  const ownerMe = useOwnerMe();
   const storeId = params.get("store");
   const stores = storesQuery.data ?? [];
   const selectedStore = storeId ? stores.find((store) => store.id === storeId) : stores[0];
@@ -672,6 +673,9 @@ function StoreApp() {
     return <div className="p-10 text-center">주소에 지정된 매장을 찾을 수 없습니다.</div>;
   }
   if (!selectedStore) {
+    // 새 매장 만들기는 점주 로그인 뒤에만 연다
+    if (ownerMe.isLoading) return <ShellPageSkeleton />;
+    if (!ownerMe.data) return <Navigate to="/login" replace />;
     return (
       <StoreBootstrapWizard
         onCreated={() => {
